@@ -70,10 +70,6 @@ public final class TerritoryService {
     }
 
     public boolean transferClaim(ServerLevel level, ChunkPos chunkPos, PartyId newOwner) {
-        boolean transferred = claimAdapter.transferClaim(level, chunkPos, newOwner);
-        if (!transferred) {
-            territoryStateService.setOwnerOverride(ChunkPosKey.from(level, chunkPos), newOwner);
-        }
-        return true;
+        return claimAdapter.transferClaim(level, chunkPos, newOwner);
     }
 }

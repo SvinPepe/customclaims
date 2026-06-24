@@ -22,6 +22,10 @@ public final class ProtectionConfig {
             .comment("Temporary MVP limit for foreign peaceful claim block placements per player runtime session.")
             .defineInRange("foreign_interaction.block_place_limit", 0, 0, 100_000);
 
+    public static final ModConfigSpec.IntValue FOREIGN_INTERACTION_LIMIT_RESET_INTERVAL_SECONDS = BUILDER
+            .comment("Global runtime reset interval for foreign peaceful claim block break/place counters.")
+            .defineInRange("foreign_interaction.limit_reset_interval_seconds", 3600, 1, 604_800);
+
     public static final ModConfigSpec.BooleanValue ALLOW_OPEN_STORAGE_ON_FOREIGN_CLAIMS = BUILDER
             .comment("If true, players can open storage on foreign peaceful claims.")
             .define("storage_rules.allow_open_storage_on_foreign_claims", true);

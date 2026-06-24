@@ -7,6 +7,7 @@ import dev.customclaims.core.permissions.CustomClaimsPermissions;
 import dev.customclaims.protection.CustomClaimsProtectionMod;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -19,7 +20,19 @@ public final class ClaimRulesCommand {
         event.getDispatcher().register(Commands.literal("claimrules")
                 .then(Commands.literal("limits")
                         .then(Commands.literal("me")
-                                .executes(context -> limitsMe(context.getSource()))))
+                                .executes(context -> limitsMe(context.getSource())))
+                        .then(Commands.literal("reset")
+                                .requires(source -> CustomClaimsCoreMod.services().permissionService()
+                                        .hasPermission(source, CustomClaimsPermissions.LIMITS_RESET))
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(context -> resetLimits(
+                                                context.getSource(),
+                                                EntityArgument.getPlayer(context, "player")
+                                        ))))
+                        .then(Commands.literal("resetall")
+                                .requires(source -> CustomClaimsCoreMod.services().permissionService()
+                                        .hasPermission(source, CustomClaimsPermissions.LIMITS_RESET))
+                                .executes(context -> resetAllLimits(context.getSource()))))
                 .then(Commands.literal("explosions")
                         .then(Commands.literal("status")
                                 .requires(source -> CustomClaimsCoreMod.services().permissionService()
@@ -48,11 +61,23 @@ public final class ClaimRulesCommand {
         }
     }
 
+    private static int resetLimits(CommandSourceStack source, ServerPlayer target) {
+        CustomClaimsProtectionMod.services().foreignInteractionLimitService().reset(target.getUUID());
+        source.sendSuccess(() -> Component.literal("Foreign claim limits reset for " + target.getGameProfile().getName() + "."), true);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int resetAllLimits(CommandSourceStack source) {
+        CustomClaimsProtectionMod.services().foreignInteractionLimitService().resetAll();
+        source.sendSuccess(() -> Component.literal("Foreign claim limits reset for all players."), true);
+        return Command.SINGLE_SUCCESS;
+    }
+
     private static int explosionStatus(CommandSourceStack source) {
         return withPlayerParty(source, party -> {
             boolean protectedFromExplosions = CustomClaimsProtectionMod.services()
                     .explosionProtectionService()
-                    .isPartyExplosionProtectionEnabled(party);
+                    .isPartyExplosionProtectionEnabled(source.getServer(), party);
             source.sendSuccess(() -> Component.literal(
                     "Explosion protection for " + party + ": " + (protectedFromExplosions ? "enabled" : "disabled")
             ), false);
@@ -62,7 +87,13 @@ public final class ClaimRulesCommand {
 
     private static int setExplosionProtection(CommandSourceStack source, boolean enabled) {
         return withPlayerParty(source, party -> {
-            CustomClaimsProtectionMod.services().explosionProtectionService().setPartyExplosionProtection(party, enabled);
+            boolean updated = CustomClaimsProtectionMod.services()
+                    .explosionProtectionService()
+                    .setPartyExplosionProtection(source.getServer(), party, enabled);
+            if (!updated) {
+                source.sendFailure(Component.literal("Failed to update Open Parties and Claims explosion rules for " + party + "."));
+                return 0;
+            }
             source.sendSuccess(() -> Component.literal(
                     "Explosion protection for " + party + " is now " + (enabled ? "enabled" : "disabled")
             ), true);

@@ -32,22 +32,25 @@ public record CoreServices(
         RollbackService rollbackService
 ) {
     static CoreServices create() {
-        OpenPartiesClaimAdapter adapter = new OpenPartiesClaimAdapter();
+        OpenPartiesClaimAdapter openPartiesClaimAdapter = new OpenPartiesClaimAdapter();
+        ClaimAdapter claimAdapter = openPartiesClaimAdapter;
+        PartyAdapter partyAdapter = openPartiesClaimAdapter;
+
         ConfigManager configManager = new ConfigManager();
         DataStorageService dataStorageService = new DataStorageService();
         MessageService messageService = new MessageService();
         PermissionService permissionService = new PermissionService();
-        PartyService partyService = new PartyService(adapter);
-        ClaimService claimService = new ClaimService(adapter);
+        PartyService partyService = new PartyService(partyAdapter);
+        ClaimService claimService = new ClaimService(claimAdapter);
         TerritoryStateService territoryStateService = new TerritoryStateService();
-        TerritoryService territoryService = new TerritoryService(adapter, adapter, territoryStateService);
+        TerritoryService territoryService = new TerritoryService(claimAdapter, partyAdapter, territoryStateService);
         WarLogService warLogService = new WarLogService(dataStorageService);
         ActionLogService actionLogService = new ActionLogService(dataStorageService);
         RollbackService rollbackService = new NoopRollbackService();
 
         return new CoreServices(
-                adapter,
-                adapter,
+                claimAdapter,
+                partyAdapter,
                 partyService,
                 claimService,
                 territoryStateService,

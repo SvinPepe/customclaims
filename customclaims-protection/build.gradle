@@ -1,4 +1,6 @@
 dependencies {
     implementation project(':customclaims-core')
     implementation project(':customclaims-war')
+    compileOnly "maven.modrinth:open-parties-and-claims:${opc_version}"
+    localRuntime "maven.modrinth:open-parties-and-claims:${opc_version}"
 }

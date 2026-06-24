@@ -69,6 +69,9 @@ subprojects {
         maven {
             url = 'https://maven.neoforged.net/releases'
         }
+        maven {
+            url = 'https://api.modrinth.com/maven'
+        }
     }
 
     sourceSets.main.resources {

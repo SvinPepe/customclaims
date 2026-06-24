@@ -16,30 +16,30 @@ ${mod_description}
 
 This module owns the shared server-side foundation:
 - adapter interfaces for Open Parties and Claims
-- fallback/mock party and claim implementation for early testing
+- Open Parties and Claims party and claim integration
 - party, claim, chunk, and territory models
 - shared permission, message, config, storage, log, and rollback service contracts
 
 Other Custom Claims modules should depend on this module instead of calling external claim APIs directly.
 '''
 
-[[dependencies.${mod_id}]]
+[[dependencies.customclaims_core]]
 modId="neoforge"
 type="required"
 versionRange="[${neo_version},)"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.${mod_id}]]
+[[dependencies.customclaims_core]]
 modId="minecraft"
 type="required"
 versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.${mod_id}]]
+[[dependencies.customclaims_core]]
 modId="openpartiesandclaims"
-type="optional"
-versionRange="[0,)"
+type="required"
+versionRange="[0.27.5,)"
 ordering="AFTER"
 side="BOTH"

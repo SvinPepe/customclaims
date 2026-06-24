@@ -1,1 +1,4 @@
-// Shared core module. Dependencies are configured in the root build.
+dependencies {
+    compileOnly "maven.modrinth:open-parties-and-claims:${opc_version}"
+    localRuntime "maven.modrinth:open-parties-and-claims:${opc_version}"
+}

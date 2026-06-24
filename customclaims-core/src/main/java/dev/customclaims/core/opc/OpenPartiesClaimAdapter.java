@@ -2,71 +2,112 @@ package dev.customclaims.core.opc;
 
 import dev.customclaims.core.api.ClaimAdapter;
 import dev.customclaims.core.api.PartyAdapter;
-import dev.customclaims.core.api.model.ChunkPosKey;
 import dev.customclaims.core.api.model.PartyId;
-import dev.customclaims.core.config.CoreConfig;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.scores.Team;
+import xaero.pac.common.claims.player.api.IPlayerChunkClaimAPI;
+import xaero.pac.common.server.api.OpenPACServerAPI;
+import xaero.pac.common.server.claims.api.IServerClaimsManagerAPI;
+import xaero.pac.common.server.parties.party.api.IServerPartyAPI;
 
 public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter {
-    private final Map<ChunkPosKey, PartyId> fallbackClaimOwners = new ConcurrentHashMap<>();
-
     @Override
     public String name() {
-        return "open_parties_and_claims_fallback";
+        return "open_parties_and_claims";
     }
 
     @Override
     public Optional<PartyId> getClaimOwner(ServerLevel level, ChunkPos chunkPos) {
-        // TODO: Replace this fallback map with Open Parties and Claims claim lookup API.
-        return Optional.ofNullable(fallbackClaimOwners.get(ChunkPosKey.from(level, chunkPos)));
+        return getClaimOwner(api(level.getServer()), level, chunkPos);
     }
 
     @Override
     public boolean transferClaim(ServerLevel level, ChunkPos chunkPos, PartyId newOwner) {
-        // TODO: Prefer a real Open Parties and Claims transfer/unclaim+claim integration here.
-        if (!CoreConfig.ALLOW_FALLBACK_CLAIM_TRANSFER.get()) {
+        OpenPACServerAPI api = api(level.getServer());
+
+        Optional<UUID> partyUuid = parsePartyUuid(newOwner);
+        if (partyUuid.isEmpty()) {
             return false;
         }
 
-        fallbackClaimOwners.put(ChunkPosKey.from(level, chunkPos), newOwner);
-        return true;
+        IServerPartyAPI party = api.getPartyManager().getPartyById(partyUuid.get());
+        if (party == null) {
+            return false;
+        }
+
+        UUID ownerUuid = party.getOwner().getUUID();
+        IServerClaimsManagerAPI claimsManager = api.getServerClaimsManager();
+        IPlayerChunkClaimAPI oldClaim = claimsManager.get(level.dimension().location(), chunkPos);
+        int subConfigIndex = oldClaim == null ? 0 : oldClaim.getSubConfigIndex();
+        boolean forceload = oldClaim != null && oldClaim.isForceloadable();
+        claimsManager.claim(level.dimension().location(), ownerUuid, subConfigIndex, chunkPos.x, chunkPos.z, forceload);
+        return getClaimOwner(level, chunkPos).filter(newOwner::equals).isPresent();
     }
 
     @Override
     public Optional<PartyId> getPlayerParty(ServerPlayer player) {
-        // TODO: Replace scoreboard fallback with Open Parties and Claims party lookup API.
-        if (!CoreConfig.SCOREBOARD_TEAM_PARTY_FALLBACK.get()) {
-            return Optional.empty();
-        }
-
-        Team team = player.getTeam();
-        if (team == null) {
-            return Optional.empty();
-        }
-        return Optional.of(PartyId.of(team.getName()));
+        IServerPartyAPI party = api(player.server).getPartyManager().getPartyByMember(player.getUUID());
+        return Optional.ofNullable(party).map(value -> PartyId.of(value.getId().toString()));
     }
 
     @Override
     public boolean isPlayerInParty(ServerPlayer player, PartyId partyId) {
-        return getPlayerParty(player).filter(partyId::equals).isPresent();
+        Optional<UUID> partyUuid = parsePartyUuid(partyId);
+        if (partyUuid.isEmpty()) {
+            return false;
+        }
+
+        IServerPartyAPI party = api(player.server).getPartyManager().getPartyById(partyUuid.get());
+        return party != null && party.getMemberInfo(player.getUUID()) != null;
     }
 
     @Override
     public Collection<ServerPlayer> getOnlinePartyMembers(MinecraftServer server, PartyId partyId) {
-        return server.getPlayerList().getPlayers().stream()
-                .filter(player -> isPlayerInParty(player, partyId))
-                .toList();
+        Optional<UUID> partyUuid = parsePartyUuid(partyId);
+        if (partyUuid.isEmpty()) {
+            return java.util.List.of();
+        }
+
+        IServerPartyAPI party = api(server).getPartyManager().getPartyById(partyUuid.get());
+        if (party == null) {
+            return java.util.List.of();
+        }
+        return party.getOnlineMemberStream().toList();
     }
 
-    public void recordFallbackClaim(ServerLevel level, ChunkPos chunkPos, PartyId owner) {
-        fallbackClaimOwners.put(ChunkPosKey.from(level, chunkPos), owner);
+    private Optional<PartyId> getClaimOwner(OpenPACServerAPI api, ServerLevel level, ChunkPos chunkPos) {
+        IPlayerChunkClaimAPI claim = api.getServerClaimsManager().get(level.dimension().location(), chunkPos);
+        if (claim == null) {
+            return Optional.empty();
+        }
+
+        IServerPartyAPI party;
+        if (api.getServerClaimsManager().getPlayerInfo(claim.getPlayerId()).isPartyOwned()) {
+            party = api.getPartyManager().getPartyByOwner(claim.getPlayerId());
+        } else {
+            party = api.getPartyManager().getPartyByMember(claim.getPlayerId());
+        }
+
+        if (party == null) {
+            return Optional.empty();
+        }
+        return Optional.of(PartyId.of(party.getId().toString()));
+    }
+
+    private OpenPACServerAPI api(MinecraftServer server) {
+        return OpenPACServerAPI.get(server);
+    }
+
+    private Optional<UUID> parsePartyUuid(PartyId partyId) {
+        try {
+            return Optional.of(UUID.fromString(partyId.value()));
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
     }
 }

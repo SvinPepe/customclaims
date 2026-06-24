@@ -14,6 +14,10 @@ public final class ExplosionEventHandler {
             return;
         }
 
+        CustomClaimsProtectionMod.services()
+                .explosionProtectionService()
+                .prepareExplosion(level, event.getExplosion(), event.getAffectedBlocks());
+
         event.getAffectedBlocks().removeIf(object ->
                 object instanceof BlockPos pos
                         && !CustomClaimsProtectionMod.services().explosionProtectionService().canExplosionAffect(level, pos));

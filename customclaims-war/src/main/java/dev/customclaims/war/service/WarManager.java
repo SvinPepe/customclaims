@@ -189,7 +189,11 @@ public final class WarManager {
         coreServices.warLogService().log(server, "PROGRESS " + war.id() + " " + Math.round(war.progress()));
 
         if (war.progress() >= 100.0D) {
-            coreServices.territoryService().transferClaim(level.get(), war.targetChunk().toChunkPos(), war.attackerParty());
+            boolean transferred = coreServices.territoryService().transferClaim(level.get(), war.targetChunk().toChunkPos(), war.attackerParty());
+            if (!transferred) {
+                finish(server, war, WarState.FAILED, "claim_transfer_failed");
+                return true;
+            }
             finish(server, war, WarState.FINISHED, "attacker_captured");
             return true;
         }

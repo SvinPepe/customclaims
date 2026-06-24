@@ -3,6 +3,7 @@ package dev.customclaims.protection;
 import dev.customclaims.core.CoreServices;
 import dev.customclaims.protection.service.ExplosionProtectionService;
 import dev.customclaims.protection.service.ForeignInteractionLimitService;
+import dev.customclaims.protection.service.OpenPartiesProtectionBypassService;
 import dev.customclaims.protection.service.StorageProtectionService;
 import dev.customclaims.protection.service.VillagerProtectionService;
 import dev.customclaims.protection.service.WitherRulesService;
@@ -10,6 +11,7 @@ import dev.customclaims.protection.service.WitherRulesService;
 public record ProtectionServices(
         ExplosionProtectionService explosionProtectionService,
         ForeignInteractionLimitService foreignInteractionLimitService,
+        OpenPartiesProtectionBypassService openPartiesProtectionBypassService,
         StorageProtectionService storageProtectionService,
         WitherRulesService witherRulesService,
         VillagerProtectionService villagerProtectionService
@@ -19,7 +21,11 @@ public record ProtectionServices(
                 coreServices.territoryService(),
                 coreServices.permissionService()
         );
-        ExplosionProtectionService explosionProtectionService = new ExplosionProtectionService(coreServices.territoryService());
+        OpenPartiesProtectionBypassService openPartiesProtectionBypassService = new OpenPartiesProtectionBypassService();
+        ExplosionProtectionService explosionProtectionService = new ExplosionProtectionService(
+                coreServices.territoryService(),
+                openPartiesProtectionBypassService
+        );
         StorageProtectionService storageProtectionService = new StorageProtectionService(
                 coreServices.territoryService(),
                 coreServices.permissionService()
@@ -30,6 +36,7 @@ public record ProtectionServices(
         return new ProtectionServices(
                 explosionProtectionService,
                 foreignInteractionLimitService,
+                openPartiesProtectionBypassService,
                 storageProtectionService,
                 witherRulesService,
                 villagerProtectionService
