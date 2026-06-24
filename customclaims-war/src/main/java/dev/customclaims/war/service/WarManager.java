@@ -2,13 +2,17 @@ package dev.customclaims.war.service;
 
 import dev.customclaims.core.CoreServices;
 import dev.customclaims.core.api.model.ChunkPosKey;
+import dev.customclaims.core.api.model.ClaimSnapshot;
 import dev.customclaims.core.api.model.PartyId;
 import dev.customclaims.war.config.WarConfig;
 import dev.customclaims.war.model.WarData;
+import dev.customclaims.war.model.WarMarkerDto;
 import dev.customclaims.war.model.WarState;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +27,9 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
 public final class WarManager {
+    private static final int DEFAULT_NEAR_RADIUS_CHUNKS = 8;
+    private static final int MAX_NEAR_RADIUS_CHUNKS = 32;
+
     private final CoreServices coreServices;
     private final WarStorage warStorage;
     private final RaidWindowService raidWindowService;
@@ -30,6 +37,9 @@ public final class WarManager {
     private final AfkTracker afkTracker;
     private final CaptureProgressService captureProgressService;
     private final PostWarProtectionService postWarProtectionService;
+    private final WarDisplayService displayService;
+    private final WarHudService hudService;
+    private final WarNotificationService notificationService;
     private final Map<UUID, WarData> wars = new LinkedHashMap<>();
     private boolean loaded;
     private long ticks;
@@ -41,7 +51,10 @@ public final class WarManager {
             BorderChunkService borderChunkService,
             AfkTracker afkTracker,
             CaptureProgressService captureProgressService,
-            PostWarProtectionService postWarProtectionService
+            PostWarProtectionService postWarProtectionService,
+            WarDisplayService displayService,
+            WarHudService hudService,
+            WarNotificationService notificationService
     ) {
         this.coreServices = coreServices;
         this.warStorage = warStorage;
@@ -50,6 +63,9 @@ public final class WarManager {
         this.afkTracker = afkTracker;
         this.captureProgressService = captureProgressService;
         this.postWarProtectionService = postWarProtectionService;
+        this.displayService = displayService;
+        this.hudService = hudService;
+        this.notificationService = notificationService;
     }
 
     public WarOperationResult startWar(ServerPlayer player) {
@@ -80,15 +96,18 @@ public final class WarManager {
                 defenderParty.get(),
                 WarConfig.ALLOW_DIAGONAL_BORDER_CHUNKS.get()
         )) {
-            return WarOperationResult.fail("Target chunk must border attacker territory.");
+            return WarOperationResult.fail("Target chunk must border wilderness or attacker territory.");
         }
 
         ChunkPosKey key = ChunkPosKey.from(level, target);
         if (findByChunk(key).isPresent()) {
             return WarOperationResult.fail("This chunk is already involved in a war.");
         }
-        if (activeWarsByAttacker(attackerParty.get()) >= WarConfig.MAX_ACTIVE_WARS_PER_PARTY.get()) {
-            return WarOperationResult.fail("Your party has reached the active war limit.");
+        if (activeWarsByParty(attackerParty.get()) >= WarConfig.MAX_ACTIVE_WARS_PER_PARTY.get()) {
+            return WarOperationResult.fail("Your party is already involved in a war.");
+        }
+        if (activeWarsByParty(defenderParty.get()) >= WarConfig.MAX_ACTIVE_WARS_PER_PARTY.get()) {
+            return WarOperationResult.fail("The defending party is already involved in a war.");
         }
         if (!hasOnlineNonAfkDefender(server, defenderParty.get())) {
             return WarOperationResult.fail("The defending party has no online non-AFK members.");
@@ -98,21 +117,57 @@ public final class WarManager {
         wars.put(war.id(), war);
         save(server);
         coreServices.warLogService().log(server, "START " + describe(war));
-        return WarOperationResult.ok("War started. Preparation phase active for war " + war.id() + ".");
+        notificationService.notifyDeclared(server, war);
+        return WarOperationResult.ok(displayService.formatStart(server, war));
     }
 
     public WarOperationResult status(ServerPlayer player) {
         ensureLoaded(player.server);
         ChunkPosKey key = ChunkPosKey.from(player.serverLevel(), player.chunkPosition());
         return findByChunk(key)
-                .map(war -> WarOperationResult.ok(formatWarStatus(war)))
+                .map(war -> WarOperationResult.ok(displayService.formatWarStatus(player.server, war, Instant.now())))
                 .orElseGet(() -> WarOperationResult.ok("No active war for this chunk."));
     }
 
     public WarOperationResult status(MinecraftServer server) {
         ensureLoaded(server);
-        long active = wars.values().stream().filter(war -> !war.isTerminal()).count();
-        return WarOperationResult.ok("Tracked wars: " + active + " active/preparing, " + wars.size() + " total loaded.");
+        List<WarData> active = activeWars().toList();
+        if (active.isEmpty()) {
+            return WarOperationResult.ok("No active or preparing wars.");
+        }
+        Instant now = Instant.now();
+        return WarOperationResult.ok("Active wars: " + active.size() + "\n" + formatWarList(server, active, now));
+    }
+
+    public WarOperationResult list(ServerPlayer player) {
+        ensureLoaded(player.server);
+        List<WarData> visible = visibleWarsFor(player, DEFAULT_NEAR_RADIUS_CHUNKS).toList();
+        if (visible.isEmpty()) {
+            return WarOperationResult.ok("No visible active or preparing wars.");
+        }
+        return WarOperationResult.ok("Visible wars:\n" + formatWarList(player.server, visible, Instant.now()));
+    }
+
+    public WarOperationResult near(ServerPlayer player, int radiusChunks) {
+        ensureLoaded(player.server);
+        int radius = Math.max(0, Math.min(MAX_NEAR_RADIUS_CHUNKS, radiusChunks));
+        List<WarData> nearby = activeWars()
+                .filter(war -> isNear(player, war, radius))
+                .toList();
+        if (nearby.isEmpty()) {
+            return WarOperationResult.ok("No active or preparing wars within " + radius + " chunks.");
+        }
+        return WarOperationResult.ok("Nearby wars within " + radius + " chunks:\n"
+                + formatWarList(player.server, nearby, Instant.now()));
+    }
+
+    public WarOperationResult adminList(MinecraftServer server) {
+        ensureLoaded(server);
+        List<WarData> active = activeWars().toList();
+        if (active.isEmpty()) {
+            return WarOperationResult.ok("No active or preparing wars.");
+        }
+        return WarOperationResult.ok("Active wars:\n" + formatWarList(server, active, Instant.now()));
     }
 
     public WarOperationResult adminStop(MinecraftServer server, UUID warId) {
@@ -122,7 +177,17 @@ public final class WarManager {
             return WarOperationResult.fail("War not found or already ended.");
         }
         finish(server, war, WarState.CANCELLED, "admin_stop");
-        return WarOperationResult.ok("War " + warId + " cancelled.");
+        return WarOperationResult.ok("Cancelled war: " + displayService.label(server, war));
+    }
+
+    public WarOperationResult adminStopChunk(MinecraftServer server, ChunkPosKey key) {
+        ensureLoaded(server);
+        Optional<WarData> war = findByChunk(key);
+        if (war.isEmpty()) {
+            return WarOperationResult.fail("No active or preparing war for " + displayService.chunkLabel(key) + ".");
+        }
+        finish(server, war.get(), WarState.CANCELLED, "admin_stop");
+        return WarOperationResult.ok("Cancelled war: " + displayService.label(server, war.get()));
     }
 
     public WarOperationResult adminSetProgress(MinecraftServer server, UUID warId, double progress) {
@@ -134,7 +199,45 @@ public final class WarManager {
         war.setProgress(progress);
         save(server);
         coreServices.warLogService().log(server, "ADMIN_SET_PROGRESS " + war.id() + " " + progress);
-        return WarOperationResult.ok("War " + warId + " progress set to " + Math.round(war.progress()) + "%.");
+        return WarOperationResult.ok(displayService.formatAdminProgress(war));
+    }
+
+    public WarOperationResult adminSetProgressChunk(MinecraftServer server, ChunkPosKey key, double progress) {
+        ensureLoaded(server);
+        Optional<WarData> war = findByChunk(key);
+        if (war.isEmpty()) {
+            return WarOperationResult.fail("No active or preparing war for " + displayService.chunkLabel(key) + ".");
+        }
+        war.get().setProgress(progress);
+        save(server);
+        coreServices.warLogService().log(server, "ADMIN_SET_PROGRESS " + war.get().id() + " " + progress);
+        return WarOperationResult.ok(displayService.formatAdminProgress(war.get()));
+    }
+
+    public WarOperationResult adminSkipPreparationChunk(MinecraftServer server, ChunkPosKey key) {
+        ensureLoaded(server);
+        Optional<WarData> war = findByChunk(key);
+        if (war.isEmpty()) {
+            return WarOperationResult.fail("No active or preparing war for " + displayService.chunkLabel(key) + ".");
+        }
+        if (war.get().state() != WarState.PREPARING) {
+            return WarOperationResult.fail("War is not preparing: " + displayService.label(server, war.get()));
+        }
+        notificationService.notifyAdminSkip(server, war.get());
+        if (!activate(server, war.get(), Instant.now())) {
+            return WarOperationResult.fail("Failed to move war into active phase: " + displayService.label(server, war.get()));
+        }
+        save(server);
+        return WarOperationResult.ok("Preparation skipped: " + displayService.label(server, war.get()));
+    }
+
+    public List<WarMarkerDto> visibleMarkersFor(ServerPlayer player, int radiusChunks) {
+        ensureLoaded(player.server);
+        int radius = Math.max(0, Math.min(MAX_NEAR_RADIUS_CHUNKS, radiusChunks));
+        return activeWars()
+                .filter(war -> isVisibleTo(player, war, radius))
+                .map(war -> markerFor(player, war, radius))
+                .toList();
     }
 
     public void tick(MinecraftServer server) {
@@ -153,6 +256,8 @@ public final class WarManager {
             changed |= tickWar(server, war, now);
         }
 
+        hudService.update(server, activeWars().toList());
+
         if (changed) {
             save(server);
         }
@@ -161,6 +266,8 @@ public final class WarManager {
     private boolean tickWar(MinecraftServer server, WarData war, Instant now) {
         if (war.state() == WarState.PREPARING) {
             long seconds = Duration.between(war.createdAt(), now).getSeconds();
+            long remaining = Math.max(0L, WarConfig.PREPARATION_SECONDS.get() - seconds);
+            maybeSendPreparationWarning(server, war, remaining);
             if (seconds >= WarConfig.PREPARATION_SECONDS.get()) {
                 activate(server, war, now);
                 return true;
@@ -184,9 +291,16 @@ public final class WarManager {
             return true;
         }
 
-        double nextProgress = captureProgressService.nextProgress(server, level.get(), war, afkTracker);
-        war.setProgress(nextProgress);
-        coreServices.warLogService().log(server, "PROGRESS " + war.id() + " " + Math.round(war.progress()));
+        CaptureTickResult capture = captureProgressService.nextProgress(server, level.get(), war, afkTracker);
+        war.setProgress(capture.progress());
+        war.setCaptureSnapshot(capture.deltaPerSecond(), capture.attackersPresent(), capture.defendersPresent());
+        maybeNotifyEmptyDecay(server, war, capture, now);
+        notifyProgressMilestones(server, war);
+        coreServices.warLogService().log(server, "PROGRESS " + war.id()
+                + " " + Math.round(war.progress())
+                + " delta=" + capture.deltaPerSecond()
+                + " attackers=" + capture.attackersPresent()
+                + " defenders=" + capture.defendersPresent());
 
         if (war.progress() >= 100.0D) {
             boolean transferred = coreServices.territoryService().transferClaim(level.get(), war.targetChunk().toChunkPos(), war.attackerParty());
@@ -213,20 +327,39 @@ public final class WarManager {
         return true;
     }
 
-    private void activate(MinecraftServer server, WarData war, Instant now) {
+    private boolean activate(MinecraftServer server, WarData war, Instant now) {
+        Optional<ServerLevel> level = resolveLevel(server, war.targetChunk());
+        if (level.isEmpty()) {
+            finish(server, war, WarState.FAILED, "level_missing");
+            return false;
+        }
+        if (!setupContestedClaim(level.get(), war)) {
+            finish(server, war, WarState.FAILED, "contested_claim_transfer_failed");
+            return false;
+        }
+
         war.setState(WarState.ACTIVE);
         war.setActiveAt(now);
         war.setProgress(Math.max(war.progress(), WarConfig.STARTING_PROGRESS.get()));
-        coreServices.territoryStateService().markContested(war.targetChunk());
+        coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerParty(), war.defenderParty());
         coreServices.warLogService().log(server, "ACTIVE " + describe(war));
+        notificationService.notifyActive(server, war);
+        notifyProgressMilestones(server, war);
+        return true;
     }
 
     private void finish(MinecraftServer server, WarData war, WarState state, String reason) {
+        if (state != WarState.FINISHED) {
+            resolveLevel(server, war.targetChunk()).ifPresent(level -> restoreOriginalClaim(level, war));
+        }
         war.setState(state);
         war.setEndedAt(Instant.now());
         war.setEndReason(reason);
+        coreServices.territoryStateService().clearStatus(war.targetChunk());
         postWarProtectionService.protect(war.targetChunk());
+        hudService.remove(server, war);
         coreServices.warLogService().log(server, state.name() + " " + describe(war) + " reason=" + reason);
+        notificationService.notifyEnded(server, war);
         save(server);
     }
 
@@ -235,10 +368,10 @@ public final class WarManager {
                 .anyMatch(player -> !afkTracker.isAfk(player));
     }
 
-    private long activeWarsByAttacker(PartyId attackerParty) {
+    private long activeWarsByParty(PartyId party) {
         return wars.values().stream()
                 .filter(war -> !war.isTerminal())
-                .filter(war -> war.attackerParty().equals(attackerParty))
+                .filter(war -> war.attackerParty().equals(party) || war.defenderParty().equals(party))
                 .count();
     }
 
@@ -249,6 +382,83 @@ public final class WarManager {
                 .findFirst();
     }
 
+    private java.util.stream.Stream<WarData> activeWars() {
+        return wars.values().stream().filter(war -> !war.isTerminal());
+    }
+
+    private java.util.stream.Stream<WarData> visibleWarsFor(ServerPlayer player, int radiusChunks) {
+        return activeWars()
+                .filter(war -> isVisibleTo(player, war, radiusChunks))
+                .sorted(Comparator.comparing(WarData::createdAt));
+    }
+
+    private boolean isVisibleTo(ServerPlayer player, WarData war, int radiusChunks) {
+        return viewerRelation(player, war, radiusChunks).isPresent();
+    }
+
+    private Optional<String> viewerRelation(ServerPlayer player, WarData war, int radiusChunks) {
+        if (coreServices.permissionService().hasPermission(player, dev.customclaims.core.permissions.CustomClaimsPermissions.WAR_ADMIN)) {
+            return Optional.of("admin");
+        }
+        if (coreServices.partyService().isSameParty(player, war.attackerParty())) {
+            return Optional.of("attacker");
+        }
+        if (coreServices.partyService().isSameParty(player, war.defenderParty())) {
+            return Optional.of("defender");
+        }
+        if (isNear(player, war, radiusChunks)) {
+            return Optional.of("nearby");
+        }
+        return Optional.empty();
+    }
+
+    private boolean isNear(ServerPlayer player, WarData war, int radiusChunks) {
+        if (!player.level().dimension().location().toString().equals(war.targetChunk().levelId())) {
+            return false;
+        }
+        ChunkPos playerChunk = player.chunkPosition();
+        ChunkPos target = war.targetChunk().toChunkPos();
+        int distance = Math.max(Math.abs(playerChunk.x - target.x), Math.abs(playerChunk.z - target.z));
+        return distance <= radiusChunks;
+    }
+
+    private WarMarkerDto markerFor(ServerPlayer player, WarData war, int radiusChunks) {
+        String attackerName = displayService.partyName(player.server, war.attackerParty());
+        String defenderName = displayService.partyName(player.server, war.defenderParty());
+        String relation = viewerRelation(player, war, radiusChunks).orElse("hidden");
+        return new WarMarkerDto(
+                markerLabel(player.server, war, relation),
+                displayService.stateName(war.state()),
+                war.targetChunk().levelId(),
+                war.targetChunk().x(),
+                war.targetChunk().z(),
+                attackerName,
+                defenderName,
+                war.progress(),
+                war.lastDeltaPerSecond(),
+                war.lastAttackersPresent(),
+                war.lastDefendersPresent(),
+                relation
+        );
+    }
+
+    private String markerLabel(MinecraftServer server, WarData war, String relation) {
+        return switch (relation) {
+            case "attacker" -> "Attack target: " + displayService.label(server, war);
+            case "defender" -> "Defend target: " + displayService.label(server, war);
+            case "admin" -> "War target: " + displayService.label(server, war);
+            default -> displayService.label(server, war);
+        };
+    }
+
+    private String formatWarList(MinecraftServer server, Collection<WarData> wars, Instant now) {
+        return wars.stream()
+                .sorted(Comparator.comparing(WarData::createdAt))
+                .map(war -> displayService.formatWarListEntry(server, war, now))
+                .reduce((left, right) -> left + "\n" + right)
+                .orElse("No active or preparing wars.");
+    }
+
     private void ensureLoaded(MinecraftServer server) {
         if (loaded) {
             return;
@@ -256,7 +466,8 @@ public final class WarManager {
         warStorage.load(server).forEach(war -> wars.put(war.id(), war));
         for (WarData war : wars.values()) {
             if (war.state() == WarState.ACTIVE) {
-                coreServices.territoryStateService().markContested(war.targetChunk());
+                coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerParty(), war.defenderParty());
+                resolveLevel(server, war.targetChunk()).ifPresent(level -> ensureContestedClaimOwner(level, war));
             }
         }
         loaded = true;
@@ -272,12 +483,97 @@ public final class WarManager {
         return Optional.ofNullable(server.getLevel(dimension));
     }
 
-    private String formatWarStatus(WarData war) {
-        return "War " + war.id()
-                + " state=" + war.state()
-                + " attacker=" + war.attackerParty()
-                + " defender=" + war.defenderParty()
-                + " progress=" + Math.round(war.progress()) + "%";
+    private boolean setupContestedClaim(ServerLevel level, WarData war) {
+        Optional<ClaimSnapshot> currentSnapshot = coreServices.territoryService()
+                .getClaimSnapshot(level, war.targetChunk().toChunkPos());
+        if (currentSnapshot.isEmpty()) {
+            return false;
+        }
+        if (war.originalClaimSnapshot().isEmpty()) {
+            war.setOriginalClaimSnapshot(currentSnapshot.get());
+        }
+        ClaimSnapshot original = war.originalClaimSnapshot().orElse(currentSnapshot.get());
+        UUID contestedOwner = contestedOwnerUuid();
+        boolean claimed = coreServices.territoryService().claimForPlayer(
+                level,
+                war.targetChunk().toChunkPos(),
+                contestedOwner,
+                original.subConfigIndex(),
+                original.forceload()
+        );
+        return claimed && isClaimOwnedBy(level, war, contestedOwner);
+    }
+
+    private void ensureContestedClaimOwner(ServerLevel level, WarData war) {
+        if (isClaimOwnedBy(level, war, contestedOwnerUuid())) {
+            return;
+        }
+        war.originalClaimSnapshot().ifPresent(snapshot -> coreServices.territoryService().claimForPlayer(
+                level,
+                war.targetChunk().toChunkPos(),
+                contestedOwnerUuid(),
+                snapshot.subConfigIndex(),
+                snapshot.forceload()
+        ));
+    }
+
+    private void restoreOriginalClaim(ServerLevel level, WarData war) {
+        war.originalClaimSnapshot().ifPresent(snapshot -> coreServices.territoryService().claimForPlayer(
+                level,
+                war.targetChunk().toChunkPos(),
+                snapshot.ownerId(),
+                snapshot.subConfigIndex(),
+                snapshot.forceload()
+        ));
+    }
+
+    private boolean isClaimOwnedBy(ServerLevel level, WarData war, UUID ownerId) {
+        return coreServices.territoryService().getClaimSnapshot(level, war.targetChunk().toChunkPos())
+                .map(snapshot -> snapshot.ownerId().equals(ownerId))
+                .orElse(false);
+    }
+
+    private UUID contestedOwnerUuid() {
+        try {
+            return UUID.fromString(WarConfig.CONTESTED_OWNER_UUID.get());
+        } catch (IllegalArgumentException exception) {
+            return UUID.fromString("00000000-0000-0000-0000-00000000cc01");
+        }
+    }
+
+    private void maybeSendPreparationWarning(MinecraftServer server, WarData war, long remainingSeconds) {
+        int preparationSeconds = WarConfig.PREPARATION_SECONDS.get();
+        if (preparationSeconds >= 60 && remainingSeconds <= 60 && !war.preparationWarning60Sent()) {
+            war.setPreparationWarning60Sent();
+            notificationService.notifyPreparationWarning(server, war, 60);
+        }
+        if (preparationSeconds >= 10 && remainingSeconds <= 10 && !war.preparationWarning10Sent()) {
+            war.setPreparationWarning10Sent();
+            notificationService.notifyPreparationWarning(server, war, 10);
+        }
+    }
+
+    private void maybeNotifyEmptyDecay(MinecraftServer server, WarData war, CaptureTickResult capture, Instant now) {
+        if (capture.attackersPresent() != 0 || capture.defendersPresent() != 0 || capture.deltaPerSecond() >= 0.0D) {
+            return;
+        }
+        boolean canNotify = war.lastEmptyDecayNotificationAt()
+                .map(last -> Duration.between(last, now).getSeconds() >= 30)
+                .orElse(true);
+        if (canNotify) {
+            war.setLastEmptyDecayNotificationAt(now);
+            notificationService.notifyEmptyDecay(server, war);
+        }
+    }
+
+    private void notifyProgressMilestones(MinecraftServer server, WarData war) {
+        int[] milestones = {25, 50, 75, 90, 100};
+        for (int milestone : milestones) {
+            if (milestone > war.highestNotifiedMilestone() && war.progress() >= milestone) {
+                war.setHighestNotifiedMilestone(milestone);
+                notificationService.notifyProgressMilestone(server, war, milestone);
+            }
+        }
     }
 
     private String describe(WarData war) {

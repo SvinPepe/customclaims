@@ -3,10 +3,12 @@ package dev.customclaims.core.service;
 import dev.customclaims.core.api.ClaimAdapter;
 import dev.customclaims.core.api.PartyAdapter;
 import dev.customclaims.core.api.model.ChunkPosKey;
+import dev.customclaims.core.api.model.ClaimSnapshot;
 import dev.customclaims.core.api.model.PartyId;
 import dev.customclaims.core.api.model.TerritoryRelation;
 import dev.customclaims.core.api.model.TerritoryStatus;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
@@ -46,6 +48,14 @@ public final class TerritoryService {
 
     public TerritoryStatus getInteractionStatus(ServerPlayer player, ServerLevel level, ChunkPos chunkPos) {
         TerritoryStatus status = getStatus(level, chunkPos);
+        if (status == TerritoryStatus.WAR_CONTESTED) {
+            ChunkPosKey key = ChunkPosKey.from(level, chunkPos);
+            Optional<PartyId> playerParty = partyAdapter.getPlayerParty(player);
+            return playerParty
+                    .filter(partyId -> territoryStateService.isContestedParticipant(key, partyId))
+                    .map(partyId -> TerritoryStatus.WAR_CONTESTED)
+                    .orElse(TerritoryStatus.FOREIGN_LIMITED_INTERACTION);
+        }
         if (status != TerritoryStatus.PEACEFUL_CLAIMED) {
             return status;
         }
@@ -71,5 +81,13 @@ public final class TerritoryService {
 
     public boolean transferClaim(ServerLevel level, ChunkPos chunkPos, PartyId newOwner) {
         return claimAdapter.transferClaim(level, chunkPos, newOwner);
+    }
+
+    public Optional<ClaimSnapshot> getClaimSnapshot(ServerLevel level, ChunkPos chunkPos) {
+        return claimAdapter.getClaimSnapshot(level, chunkPos);
+    }
+
+    public boolean claimForPlayer(ServerLevel level, ChunkPos chunkPos, UUID ownerId, int subConfigIndex, boolean forceload) {
+        return claimAdapter.claimForPlayer(level, chunkPos, ownerId, subConfigIndex, forceload);
     }
 }

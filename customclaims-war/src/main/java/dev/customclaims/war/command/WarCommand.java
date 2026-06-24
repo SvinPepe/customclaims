@@ -2,6 +2,7 @@ package dev.customclaims.war.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.customclaims.core.CustomClaimsCoreMod;
 import dev.customclaims.core.permissions.CustomClaimsPermissions;
 import dev.customclaims.war.CustomClaimsWarMod;
@@ -27,7 +28,20 @@ public final class WarCommand {
                 .then(Commands.literal("status")
                         .requires(source -> CustomClaimsCoreMod.services().permissionService()
                                 .hasPermission(source, CustomClaimsPermissions.WAR_STATUS))
-                        .executes(context -> status(context.getSource()))));
+                        .executes(context -> status(context.getSource())))
+                .then(Commands.literal("list")
+                        .requires(source -> CustomClaimsCoreMod.services().permissionService()
+                                .hasPermission(source, CustomClaimsPermissions.WAR_STATUS))
+                        .executes(context -> list(context.getSource())))
+                .then(Commands.literal("near")
+                        .requires(source -> CustomClaimsCoreMod.services().permissionService()
+                                .hasPermission(source, CustomClaimsPermissions.WAR_STATUS))
+                        .executes(context -> near(context.getSource(), 8))
+                        .then(Commands.argument("radius_chunks", IntegerArgumentType.integer(0, 32))
+                                .executes(context -> near(
+                                        context.getSource(),
+                                        IntegerArgumentType.getInteger(context, "radius_chunks")
+                                )))));
 
         WarAdminCommand.register(dispatcher);
     }
@@ -56,6 +70,33 @@ public final class WarCommand {
             WarOperationResult result = CustomClaimsWarMod.services().warManager().status(source.getServer());
             send(source, result);
             return Command.SINGLE_SUCCESS;
+        }
+    }
+
+    private static int list(CommandSourceStack source) {
+        try {
+            ServerPlayer player = source.getPlayerOrException();
+            CustomClaimsWarMod.services().afkTracker().markActive(player);
+            WarOperationResult result = CustomClaimsWarMod.services().warManager().list(player);
+            send(source, result);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception exception) {
+            WarOperationResult result = CustomClaimsWarMod.services().warManager().status(source.getServer());
+            send(source, result);
+            return Command.SINGLE_SUCCESS;
+        }
+    }
+
+    private static int near(CommandSourceStack source, int radiusChunks) {
+        try {
+            ServerPlayer player = source.getPlayerOrException();
+            CustomClaimsWarMod.services().afkTracker().markActive(player);
+            WarOperationResult result = CustomClaimsWarMod.services().warManager().near(player, radiusChunks);
+            send(source, result);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception exception) {
+            source.sendFailure(Component.literal("Only players can search nearby wars."));
+            return 0;
         }
     }
 

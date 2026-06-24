@@ -16,23 +16,23 @@ public final class WarConfig {
 
     public static final ModConfigSpec.DoubleValue STARTING_PROGRESS = BUILDER
             .comment("Capture progress assigned when the active phase starts.")
-            .defineInRange("starting_progress", 1.0D, 0.0D, 100.0D);
+            .defineInRange("war.capture.starting_progress", 50.0D, 0.0D, 100.0D);
 
-    public static final ModConfigSpec.DoubleValue ATTACKER_PROGRESS_PER_SECOND = BUILDER
-            .comment("Progress gained per non-AFK attacker standing in the contested chunk each second.")
-            .defineInRange("attacker_progress_per_second", 0.35D, 0.0D, 100.0D);
+    public static final ModConfigSpec.DoubleValue PLAYER_WEIGHT_PER_SECOND = BUILDER
+            .comment("Progress weight per non-AFK participant standing in the contested chunk each second.")
+            .defineInRange("war.capture.player_weight_per_second", 0.35D, 0.0D, 100.0D);
 
-    public static final ModConfigSpec.DoubleValue EMPTY_DECAY_PER_SECOND = BUILDER
-            .comment("Progress decay per second when no non-AFK attackers are in the contested chunk.")
-            .defineInRange("empty_decay_per_second", 0.20D, 0.0D, 100.0D);
+    public static final ModConfigSpec.DoubleValue ATTACKER_PRESENCE_BONUS_PER_SECOND = BUILDER
+            .comment("Flat bonus progress per second when at least one non-AFK attacker is in the contested chunk.")
+            .defineInRange("war.capture.attacker_presence_bonus_per_second", 0.25D, 0.0D, 100.0D);
 
-    public static final ModConfigSpec.DoubleValue DEFENDER_DECAY_PER_SECOND = BUILDER
-            .comment("Additional progress decay per non-AFK defender in the contested chunk each second.")
-            .defineInRange("defender_decay_per_second", 0.25D, 0.0D, 100.0D);
+    public static final ModConfigSpec.DoubleValue EMPTY_CHUNK_DECAY_PER_SECOND = BUILDER
+            .comment("Progress decay per second when no non-AFK attackers or defenders are in the contested chunk.")
+            .defineInRange("war.capture.empty_chunk_decay_per_second", 0.50D, 0.0D, 100.0D);
 
     public static final ModConfigSpec.IntValue MAX_ACTIVE_WARS_PER_PARTY = BUILDER
-            .comment("Maximum simultaneous active/preparing wars started by one party.")
-            .defineInRange("max_active_wars_per_party", 3, 1, 128);
+            .comment("Maximum simultaneous active/preparing wars involving one party.")
+            .defineInRange("max_active_wars_per_party", 1, 1, 128);
 
     public static final ModConfigSpec.BooleanValue ALLOW_DIAGONAL_BORDER_CHUNKS = BUILDER
             .comment("Whether diagonal adjacency counts when checking if a target chunk is a border chunk.")
@@ -61,6 +61,18 @@ public final class WarConfig {
     public static final ModConfigSpec.IntValue POST_WAR_PROTECTION_SECONDS = BUILDER
             .comment("Seconds to mark a won/lost target chunk as post-war protected.")
             .defineInRange("post_war_protection_seconds", 1800, 0, 604_800);
+
+    public static final ModConfigSpec.IntValue WAR_UI_BOSSBAR_VISIBLE_RADIUS_CHUNKS = BUILDER
+            .comment("Chunk radius around a war target where players see the war bossbar.")
+            .defineInRange("war_ui.bossbar_visible_radius_chunks", 3, 0, 64);
+
+    public static final ModConfigSpec.ConfigValue<String> CONTESTED_OWNER_UUID = BUILDER
+            .comment("Fake player UUID that temporarily owns OPC claims while a war chunk is contested.")
+            .define("war.contested_owner_uuid", "00000000-0000-0000-0000-00000000cc01");
+
+    public static final ModConfigSpec.ConfigValue<String> CONTESTED_OWNER_NAME = BUILDER
+            .comment("Display name used in logs/messages for the fake contested claim owner.")
+            .define("war.contested_owner_name", "CC_Contested");
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 

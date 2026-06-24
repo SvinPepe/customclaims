@@ -2,6 +2,8 @@ package dev.customclaims.core.opc;
 
 import dev.customclaims.core.api.ClaimAdapter;
 import dev.customclaims.core.api.PartyAdapter;
+import dev.customclaims.core.api.model.ClaimSnapshot;
+import dev.customclaims.core.api.model.PartyDisplayInfo;
 import dev.customclaims.core.api.model.PartyId;
 import java.util.Collection;
 import java.util.Optional;
@@ -50,6 +52,38 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
     }
 
     @Override
+    public Optional<ClaimSnapshot> getClaimSnapshot(ServerLevel level, ChunkPos chunkPos) {
+        OpenPACServerAPI api = api(level.getServer());
+        IPlayerChunkClaimAPI claim = api.getServerClaimsManager().get(level.dimension().location(), chunkPos);
+        if (claim == null) {
+            return Optional.empty();
+        }
+        var playerInfo = api.getServerClaimsManager().getPlayerInfo(claim.getPlayerId());
+        return Optional.of(new ClaimSnapshot(
+                claim.getPlayerId(),
+                playerInfo != null && playerInfo.isPartyOwned(),
+                claim.getSubConfigIndex(),
+                claim.isForceloadable()
+        ));
+    }
+
+    @Override
+    public boolean claimForPlayer(ServerLevel level, ChunkPos chunkPos, UUID ownerId, int subConfigIndex, boolean forceload) {
+        OpenPACServerAPI api = api(level.getServer());
+        api.getServerClaimsManager().claim(
+                level.dimension().location(),
+                ownerId,
+                subConfigIndex,
+                chunkPos.x,
+                chunkPos.z,
+                forceload
+        );
+        return getClaimSnapshot(level, chunkPos)
+                .map(snapshot -> snapshot.ownerId().equals(ownerId))
+                .orElse(false);
+    }
+
+    @Override
     public Optional<PartyId> getPlayerParty(ServerPlayer player) {
         IServerPartyAPI party = api(player.server).getPartyManager().getPartyByMember(player.getUUID());
         return Optional.ofNullable(party).map(value -> PartyId.of(value.getId().toString()));
@@ -78,6 +112,30 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
             return java.util.List.of();
         }
         return party.getOnlineMemberStream().toList();
+    }
+
+    @Override
+    public Optional<PartyDisplayInfo> describeParty(MinecraftServer server, PartyId partyId) {
+        Optional<UUID> partyUuid = parsePartyUuid(partyId);
+        if (partyUuid.isEmpty()) {
+            return Optional.empty();
+        }
+
+        IServerPartyAPI party = api(server).getPartyManager().getPartyById(partyUuid.get());
+        if (party == null) {
+            return Optional.empty();
+        }
+
+        String name = party.getDefaultName();
+        String ownerName = party.getOwner().getUsername();
+        int onlineCount = (int) party.getOnlineMemberStream().count();
+        return Optional.of(new PartyDisplayInfo(
+                partyId,
+                name,
+                ownerName,
+                onlineCount,
+                party.getMemberCount()
+        ));
     }
 
     private Optional<PartyId> getClaimOwner(OpenPACServerAPI api, ServerLevel level, ChunkPos chunkPos) {

@@ -37,7 +37,7 @@ ext.customClaimsModules = [
         'customclaims-xaero'      : [
                 modId      : 'customclaims_xaero',
                 modName    : 'Custom Claims Xaero Compat',
-                description: 'Architectural placeholder for contested chunk markers and Xaero waypoint integration.'
+                description: 'Fair-play client overlay for active Custom Claims wars, compatible with Xaero clients without persistent waypoints.'
         ]
 ]
 

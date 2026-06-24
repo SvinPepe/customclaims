@@ -1,7 +1,12 @@
 package dev.customclaims.xaero.client;
 
+import dev.customclaims.xaero.network.ClientboundWarMarkersPayload;
+
 public final class WarClientPacketHandler {
-    public void handleContestedChunkPacket(Object packet) {
-        // TODO: Replace Object with a real Custom Claims client packet.
+    private WarClientPacketHandler() {
+    }
+
+    public static void handle(ClientboundWarMarkersPayload payload) {
+        ClientOverlayService.replaceMarkers(payload.markers());
     }
 }

@@ -1,6 +1,7 @@
 package dev.customclaims.war.model;
 
 import dev.customclaims.core.api.model.ChunkPosKey;
+import dev.customclaims.core.api.model.ClaimSnapshot;
 import dev.customclaims.core.api.model.PartyId;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -19,6 +20,17 @@ public final class WarData {
     private Instant activeAt;
     private Instant endedAt;
     private String endReason;
+    private UUID originalClaimOwnerId;
+    private boolean originalClaimPartyOwned;
+    private int originalClaimSubConfigIndex;
+    private boolean originalClaimForceload;
+    private double lastDeltaPerSecond;
+    private int lastAttackersPresent;
+    private int lastDefendersPresent;
+    private boolean preparationWarning60Sent;
+    private boolean preparationWarning10Sent;
+    private int highestNotifiedMilestone;
+    private Instant lastEmptyDecayNotificationAt;
 
     public WarData(UUID id, PartyId attackerParty, PartyId defenderParty, ChunkPosKey targetChunk, Instant createdAt) {
         this.id = id;
@@ -67,6 +79,24 @@ public final class WarData {
         this.progress = clamp(progress);
     }
 
+    public double lastDeltaPerSecond() {
+        return lastDeltaPerSecond;
+    }
+
+    public int lastAttackersPresent() {
+        return lastAttackersPresent;
+    }
+
+    public int lastDefendersPresent() {
+        return lastDefendersPresent;
+    }
+
+    public void setCaptureSnapshot(double deltaPerSecond, int attackersPresent, int defendersPresent) {
+        this.lastDeltaPerSecond = deltaPerSecond;
+        this.lastAttackersPresent = attackersPresent;
+        this.lastDefendersPresent = defendersPresent;
+    }
+
     public Optional<Instant> activeAt() {
         return Optional.ofNullable(activeAt);
     }
@@ -91,6 +121,57 @@ public final class WarData {
         this.endReason = endReason;
     }
 
+    public Optional<ClaimSnapshot> originalClaimSnapshot() {
+        if (originalClaimOwnerId == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new ClaimSnapshot(
+                originalClaimOwnerId,
+                originalClaimPartyOwned,
+                originalClaimSubConfigIndex,
+                originalClaimForceload
+        ));
+    }
+
+    public void setOriginalClaimSnapshot(ClaimSnapshot snapshot) {
+        this.originalClaimOwnerId = snapshot.ownerId();
+        this.originalClaimPartyOwned = snapshot.partyOwned();
+        this.originalClaimSubConfigIndex = snapshot.subConfigIndex();
+        this.originalClaimForceload = snapshot.forceload();
+    }
+
+    public boolean preparationWarning60Sent() {
+        return preparationWarning60Sent;
+    }
+
+    public void setPreparationWarning60Sent() {
+        this.preparationWarning60Sent = true;
+    }
+
+    public boolean preparationWarning10Sent() {
+        return preparationWarning10Sent;
+    }
+
+    public void setPreparationWarning10Sent() {
+        this.preparationWarning10Sent = true;
+    }
+
+    public int highestNotifiedMilestone() {
+        return highestNotifiedMilestone;
+    }
+
+    public void setHighestNotifiedMilestone(int highestNotifiedMilestone) {
+        this.highestNotifiedMilestone = highestNotifiedMilestone;
+    }
+
+    public Optional<Instant> lastEmptyDecayNotificationAt() {
+        return Optional.ofNullable(lastEmptyDecayNotificationAt);
+    }
+
+    public void setLastEmptyDecayNotificationAt(Instant lastEmptyDecayNotificationAt) {
+        this.lastEmptyDecayNotificationAt = lastEmptyDecayNotificationAt;
+    }
+
     public boolean isTerminal() {
         return state == WarState.FINISHED || state == WarState.CANCELLED || state == WarState.FAILED;
     }
@@ -108,13 +189,17 @@ public final class WarData {
                 createdAt.toString(),
                 activeAt == null ? "" : activeAt.toString(),
                 endedAt == null ? "" : endedAt.toString(),
-                encode(endReason)
+                encode(endReason),
+                originalClaimOwnerId == null ? "" : originalClaimOwnerId.toString(),
+                Boolean.toString(originalClaimPartyOwned),
+                Integer.toString(originalClaimSubConfigIndex),
+                Boolean.toString(originalClaimForceload)
         );
     }
 
     public static Optional<WarData> fromStorageLine(String line) {
         String[] parts = line.split("\\|", -1);
-        if (parts.length != 12) {
+        if (parts.length != 12 && parts.length != 16) {
             return Optional.empty();
         }
 
@@ -135,6 +220,12 @@ public final class WarData {
                 data.setEndedAt(Instant.parse(parts[10]));
             }
             data.setEndReason(decode(parts[11]));
+            if (parts.length == 16 && !parts[12].isBlank()) {
+                data.originalClaimOwnerId = UUID.fromString(parts[12]);
+                data.originalClaimPartyOwned = Boolean.parseBoolean(parts[13]);
+                data.originalClaimSubConfigIndex = Integer.parseInt(parts[14]);
+                data.originalClaimForceload = Boolean.parseBoolean(parts[15]);
+            }
             return Optional.of(data);
         } catch (RuntimeException exception) {
             return Optional.empty();

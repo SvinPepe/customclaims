@@ -113,9 +113,13 @@ public final class ForeignInteractionLimitService {
             return true;
         }
 
-        TerritoryStatus status = territoryService.getInteractionStatus(player, level, new ChunkPos(pos));
-        return status == TerritoryStatus.WAR_CONTESTED
-                || status == TerritoryStatus.FOREIGN_LIMITED_INTERACTION;
+        ChunkPos chunkPos = new ChunkPos(pos);
+        TerritoryStatus status = territoryService.getInteractionStatus(player, level, chunkPos);
+        if (status == TerritoryStatus.WAR_CONTESTED) {
+            return true;
+        }
+        return status == TerritoryStatus.FOREIGN_LIMITED_INTERACTION
+                && territoryService.getStatus(level, chunkPos) != TerritoryStatus.WAR_CONTESTED;
     }
 
     public synchronized void tickResetIfDue(Instant now) {

@@ -10,18 +10,12 @@ version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://github.com/customclaims/customclaims"
 authors="${mod_authors}"
-credits="Placeholder compat module for Xaero map and waypoint visualization."
+credits="Fair-play war overlay compatible with Xaero minimap/worldmap clients."
 description='''
 ${mod_description}
 
-This first-pass module intentionally contains only architectural hooks and TODO service classes.
-Planned scope:
-- contested chunk markers
-- temporary waypoints
-- war client packets
-- optional client overlay for capture visualization
-
-No deep Xaero API integration is active yet.
+Shows temporary active/preparing war markers sent by the server.
+No persistent Xaero waypoints or global claim-owner map data are created.
 '''
 
 [[dependencies.${mod_id}]]
@@ -47,7 +41,7 @@ side="BOTH"
 
 [[dependencies.${mod_id}]]
 modId="customclaims_war"
-type="optional"
+type="required"
 versionRange="[${mod_version},)"
 ordering="AFTER"
 side="BOTH"

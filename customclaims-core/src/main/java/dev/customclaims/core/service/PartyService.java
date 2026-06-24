@@ -1,6 +1,7 @@
 package dev.customclaims.core.service;
 
 import dev.customclaims.core.api.PartyAdapter;
+import dev.customclaims.core.api.model.PartyDisplayInfo;
 import dev.customclaims.core.api.model.PartyId;
 import java.util.Collection;
 import java.util.Optional;
@@ -24,5 +25,9 @@ public final class PartyService {
 
     public Collection<ServerPlayer> onlineMembers(MinecraftServer server, PartyId partyId) {
         return partyAdapter.getOnlinePartyMembers(server, partyId);
+    }
+
+    public Optional<PartyDisplayInfo> describeParty(MinecraftServer server, PartyId partyId) {
+        return partyAdapter.describeParty(server, partyId);
     }
 }

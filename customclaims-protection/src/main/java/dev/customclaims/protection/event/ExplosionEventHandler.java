@@ -20,6 +20,10 @@ public final class ExplosionEventHandler {
 
         event.getAffectedBlocks().removeIf(object ->
                 object instanceof BlockPos pos
-                        && !CustomClaimsProtectionMod.services().explosionProtectionService().canExplosionAffect(level, pos));
+                        && !CustomClaimsProtectionMod.services().explosionProtectionService().canExplosionAffect(
+                        level,
+                        pos,
+                        event.getExplosion()
+                ));
     }
 }

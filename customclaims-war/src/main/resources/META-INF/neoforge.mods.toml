@@ -15,11 +15,12 @@ description='''
 ${mod_description}
 
 First-pass MVP features:
-- /war start and /war status
-- /waradmin stop and /waradmin setprogress
+- /war start, /war status, /war list, and /war near
+- /waradmin stop, skipprep, and setprogress by current/chosen chunk
 - preparation and active war phases
-- contested chunk state
-- capture progress ticking
+- contested chunk state with temporary OPC fake-owner transfer
+- capture progress ticking, milestones, bossbar, and actionbar
+- participant notifications for declaration, start, progress, and end
 - raid window checks
 - basic AFK tracking
 - active war persistence after restart

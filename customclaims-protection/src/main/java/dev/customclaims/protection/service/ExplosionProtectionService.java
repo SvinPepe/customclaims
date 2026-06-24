@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ChunkPos;
@@ -43,7 +44,7 @@ public final class ExplosionProtectionService {
         boolean shouldBypassOpenParties = false;
         for (BlockPos pos : affectedBlocks) {
             ChunkPos chunkPos = new ChunkPos(pos);
-            if (affectedChunks.add(chunkPos) && shouldBypassOpenPartiesExplosionProtection(level, chunkPos)) {
+            if (affectedChunks.add(chunkPos) && shouldBypassOpenPartiesExplosionProtection(level, chunkPos, explosion)) {
                 shouldBypassOpenParties = true;
             }
         }
@@ -64,10 +65,15 @@ public final class ExplosionProtectionService {
     }
 
     public boolean canExplosionAffect(ServerLevel level, BlockPos pos) {
+        return canExplosionAffect(level, pos, null);
+    }
+
+    public boolean canExplosionAffect(ServerLevel level, BlockPos pos, Explosion explosion) {
         ChunkPos chunkPos = new ChunkPos(pos);
         TerritoryStatus status = territoryService.getStatus(level, chunkPos);
         if (status == TerritoryStatus.WAR_CONTESTED) {
-            return ProtectionConfig.ALLOW_EXPLOSIONS_IN_WAR_CHUNKS.get();
+            return ProtectionConfig.ALLOW_EXPLOSIONS_IN_WAR_CHUNKS.get()
+                    && isContestedExplosionSourceAllowed(level, chunkPos, explosion);
         }
         if (status == TerritoryStatus.PEACEFUL_CLAIMED || status == TerritoryStatus.POST_WAR_PROTECTED) {
             return isPeacefulExplosionAllowed(level, chunkPos);
@@ -149,10 +155,11 @@ public final class ExplosionProtectionService {
         return applied && success;
     }
 
-    private boolean shouldBypassOpenPartiesExplosionProtection(ServerLevel level, ChunkPos chunkPos) {
+    private boolean shouldBypassOpenPartiesExplosionProtection(ServerLevel level, ChunkPos chunkPos, Explosion explosion) {
         TerritoryStatus status = territoryService.getStatus(level, chunkPos);
         if (status == TerritoryStatus.WAR_CONTESTED) {
-            boolean explosionsAllowed = ProtectionConfig.ALLOW_EXPLOSIONS_IN_WAR_CHUNKS.get();
+            boolean explosionsAllowed = ProtectionConfig.ALLOW_EXPLOSIONS_IN_WAR_CHUNKS.get()
+                    && isContestedExplosionSourceAllowed(level, chunkPos, explosion);
             syncOpenPartiesClaimExplosionException(level, chunkPos, explosionsAllowed);
             return explosionsAllowed;
         }
@@ -164,6 +171,20 @@ public final class ExplosionProtectionService {
         }
 
         return false;
+    }
+
+    private boolean isContestedExplosionSourceAllowed(ServerLevel level, ChunkPos chunkPos, Explosion explosion) {
+        if (explosion == null) {
+            return false;
+        }
+        LivingEntity indirectSource = explosion.getIndirectSourceEntity();
+        if (indirectSource instanceof ServerPlayer player
+                && territoryService.getInteractionStatus(player, level, chunkPos) == TerritoryStatus.WAR_CONTESTED) {
+            return true;
+        }
+        Entity directSource = explosion.getDirectSourceEntity();
+        return directSource instanceof ServerPlayer player
+                && territoryService.getInteractionStatus(player, level, chunkPos) == TerritoryStatus.WAR_CONTESTED;
     }
 
     private boolean isPeacefulExplosionAllowed(ServerLevel level, ChunkPos chunkPos) {

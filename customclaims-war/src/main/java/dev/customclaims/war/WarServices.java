@@ -10,6 +10,9 @@ import dev.customclaims.war.service.PostWarProtectionService;
 import dev.customclaims.war.service.RaidWindowService;
 import dev.customclaims.war.service.WarManager;
 import dev.customclaims.war.service.WarStorage;
+import dev.customclaims.war.service.WarDisplayService;
+import dev.customclaims.war.service.WarHudService;
+import dev.customclaims.war.service.WarNotificationService;
 
 public record WarServices(
         WarManager warManager,
@@ -20,6 +23,9 @@ public record WarServices(
         CaptureProgressService captureProgressService,
         CaptureBoostItemService captureBoostItemService,
         PostWarProtectionService postWarProtectionService,
+        WarDisplayService displayService,
+        WarHudService hudService,
+        WarNotificationService notificationService,
         WarMessages messages
 ) {
     static WarServices create(CoreServices coreServices) {
@@ -30,6 +36,9 @@ public record WarServices(
         CaptureProgressService captureProgressService = new CaptureProgressService(coreServices.partyService());
         CaptureBoostItemService captureBoostItemService = new CaptureBoostItemService();
         PostWarProtectionService postWarProtectionService = new PostWarProtectionService(coreServices.territoryStateService());
+        WarDisplayService displayService = new WarDisplayService(coreServices);
+        WarHudService hudService = new WarHudService(coreServices, displayService);
+        WarNotificationService notificationService = new WarNotificationService(coreServices, displayService);
         WarMessages messages = new WarMessages();
         WarManager warManager = new WarManager(
                 coreServices,
@@ -38,7 +47,10 @@ public record WarServices(
                 borderChunkService,
                 afkTracker,
                 captureProgressService,
-                postWarProtectionService
+                postWarProtectionService,
+                displayService,
+                hudService,
+                notificationService
         );
 
         return new WarServices(
@@ -50,6 +62,9 @@ public record WarServices(
                 captureProgressService,
                 captureBoostItemService,
                 postWarProtectionService,
+                displayService,
+                hudService,
+                notificationService,
                 messages
         );
     }

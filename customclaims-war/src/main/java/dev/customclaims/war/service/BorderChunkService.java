@@ -31,17 +31,18 @@ public final class BorderChunkService {
             return false;
         }
 
-        if (hasNeighborOwnedBy(level, target, attacker, DIRECT_NEIGHBORS)) {
+        if (hasAttackableNeighbor(level, target, attacker, DIRECT_NEIGHBORS)) {
             return true;
         }
 
-        return includeDiagonal && hasNeighborOwnedBy(level, target, attacker, DIAGONAL_NEIGHBORS);
+        return includeDiagonal && hasAttackableNeighbor(level, target, attacker, DIAGONAL_NEIGHBORS);
     }
 
-    private boolean hasNeighborOwnedBy(ServerLevel level, ChunkPos target, PartyId owner, int[][] offsets) {
+    private boolean hasAttackableNeighbor(ServerLevel level, ChunkPos target, PartyId attacker, int[][] offsets) {
         for (int[] offset : offsets) {
             ChunkPos neighbor = new ChunkPos(target.x + offset[0], target.z + offset[1]);
-            if (territoryService.getClaimOwner(level, neighbor).filter(owner::equals).isPresent()) {
+            java.util.Optional<PartyId> owner = territoryService.getClaimOwner(level, neighbor);
+            if (owner.isEmpty() || owner.filter(attacker::equals).isPresent()) {
                 return true;
             }
         }

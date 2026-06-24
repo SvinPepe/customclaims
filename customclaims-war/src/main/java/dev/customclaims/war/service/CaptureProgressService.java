@@ -13,7 +13,7 @@ public final class CaptureProgressService {
         this.partyService = partyService;
     }
 
-    public double nextProgress(MinecraftServer server, ServerLevel level, WarData war, AfkTracker afkTracker) {
+    public CaptureTickResult nextProgress(MinecraftServer server, ServerLevel level, WarData war, AfkTracker afkTracker) {
         int attackers = 0;
         int defenders = 0;
 
@@ -35,18 +35,16 @@ public final class CaptureProgressService {
             }
         }
 
-        double delta = 0.0D;
+        double playerWeight = WarConfig.PLAYER_WEIGHT_PER_SECOND.get();
+        double delta = (attackers - defenders) * playerWeight;
         if (attackers > 0) {
-            delta += attackers * WarConfig.ATTACKER_PROGRESS_PER_SECOND.get();
-        } else {
-            delta -= WarConfig.EMPTY_DECAY_PER_SECOND.get();
+            delta += WarConfig.ATTACKER_PRESENCE_BONUS_PER_SECOND.get();
+        }
+        if (attackers == 0 && defenders == 0) {
+            delta -= WarConfig.EMPTY_CHUNK_DECAY_PER_SECOND.get();
         }
 
-        if (defenders > 0) {
-            delta -= defenders * WarConfig.DEFENDER_DECAY_PER_SECOND.get();
-        }
-
-        return clamp(war.progress() + delta);
+        return new CaptureTickResult(clamp(war.progress() + delta), delta, attackers, defenders);
     }
 
     private double clamp(double value) {
