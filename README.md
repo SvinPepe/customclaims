@@ -266,16 +266,3 @@ Copy-Item customclaims-war\build\libs\customclaims_war-0.1.0.jar dvdcraft-test\m
 Copy-Item customclaims-protection\build\libs\customclaims_protection-0.1.0.jar dvdcraft-test\mods\customclaims_protection-0.1.0.jar -Force
 Copy-Item customclaims-xaero\build\libs\customclaims_xaero-0.1.0.jar dvdcraft-test\mods\customclaims_xaero-0.1.0.jar -Force
 ```
-
-Suggested test pass:
-
-1. Start `dvdcraft-test` with OPC `0.27.5`.
-2. Create two OPC parties and claim chunks for the defender.
-3. Stand in a defender border chunk and run `/war start`.
-4. Run `/waradmin skipprep here` for a fast active-phase test.
-5. Verify the claim owner becomes the configured contested fake owner.
-6. Verify attacker and defender can break/place in the contested chunk.
-7. Verify outsiders do not receive contested access.
-8. Verify progress starts at `50%`, attacker bonus applies, and empty chunk decay works.
-9. Finish capture or cancel the war and verify the claim is transferred/restored.
-10. Check `/war list`, `/war near`, bossbar/actionbar, notifications, and Xaero overlay visibility.
