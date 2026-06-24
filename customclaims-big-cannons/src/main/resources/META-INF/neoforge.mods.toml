@@ -1,0 +1,69 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/customclaims/customclaims/issues"
+showAsResourcePack=false
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+displayURL="https://github.com/customclaims/customclaims"
+authors="${mod_authors}"
+credits="Placeholder compat module for Create Big Cannons claim and war rules."
+description='''
+${mod_description}
+
+This first-pass module intentionally contains only architectural hooks and TODO service classes.
+Planned scope:
+- cannon ownership resolution
+- projectile shot tracking
+- peaceful claim explosion filtering
+- contested chunk damage allowance
+- own-protected-claim firing rules
+- cannon impact logging for audit and rollback data
+
+No deep Create Big Cannons API integration is active yet.
+'''
+
+[[dependencies.${mod_id}]]
+modId="neoforge"
+type="required"
+versionRange="[${neo_version},)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="customclaims_core"
+type="required"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="customclaims_war"
+type="optional"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="create"
+type="optional"
+versionRange="[0,)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="createbigcannons"
+type="optional"
+versionRange="[0,)"
+ordering="AFTER"
+side="BOTH"

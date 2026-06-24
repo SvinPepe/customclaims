@@ -1,0 +1,161 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.gradle.userdev' version '7.1.38' apply false
+    id 'idea'
+}
+
+group = 'dev.customclaims'
+version = mod_version
+
+ext.customClaimsModules = [
+        'customclaims-core'       : [
+                modId      : 'customclaims_core',
+                modName    : 'Custom Claims Core',
+                description: 'Core API, Open Parties and Claims adapter layer, shared services, configs, and storage.'
+        ],
+        'customclaims-war'        : [
+                modId      : 'customclaims_war',
+                modName    : 'Custom Claims War',
+                description: 'Chunk war MVP: war data, raid windows, contested chunks, capture progress, and commands.'
+        ],
+        'customclaims-protection' : [
+                modId      : 'customclaims_protection',
+                modName    : 'Custom Claims Protection',
+                description: 'Claim protection MVP for explosions, foreign interactions, Wither rules, storage, and villagers.'
+        ],
+        'customclaims-create'     : [
+                modId      : 'customclaims_create',
+                modName    : 'Custom Claims Create Compat',
+                description: 'Architectural placeholder for Create contraption protection hooks.'
+        ],
+        'customclaims-big-cannons': [
+                modId      : 'customclaims_big_cannons',
+                modName    : 'Custom Claims Big Cannons Compat',
+                description: 'Architectural placeholder for Create Big Cannons projectile and ownership rules.'
+        ],
+        'customclaims-xaero'      : [
+                modId      : 'customclaims_xaero',
+                modName    : 'Custom Claims Xaero Compat',
+                description: 'Architectural placeholder for contested chunk markers and Xaero waypoint integration.'
+        ]
+]
+
+subprojects {
+    def moduleInfo = rootProject.ext.customClaimsModules[project.name]
+    if (moduleInfo == null) {
+        throw new GradleException("Missing Custom Claims module metadata for ${project.name}")
+    }
+
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: 'net.neoforged.gradle.userdev'
+
+    group = rootProject.group
+    version = rootProject.version
+
+    ext.mod_id = moduleInfo.modId
+    ext.mod_name = moduleInfo.modName
+    ext.mod_description = moduleInfo.description
+
+    base {
+        archivesName = moduleInfo.modId
+    }
+
+    java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+    repositories {
+        mavenCentral()
+        maven {
+            url = 'https://maven.neoforged.net/releases'
+        }
+    }
+
+    sourceSets.main.resources {
+        srcDir 'src/generated/resources'
+        exclude('**/*.bbmodel')
+        exclude('src/generated/**/.cache')
+    }
+
+    configurations {
+        runtimeClasspath.extendsFrom localRuntime
+    }
+
+    dependencies {
+        implementation "net.neoforged:neoforge:${neo_version}"
+    }
+
+    runs {
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'debug'
+            workingDirectory project.layout.projectDirectory.dir('run').dir(name)
+            modSource project.sourceSets.main
+        }
+
+        client {
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.ext.mod_id
+        }
+
+        server {
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.ext.mod_id
+            argument '--nogui'
+        }
+
+        gameTestServer {
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.ext.mod_id
+        }
+
+        data {
+            arguments.addAll '--mod', project.ext.mod_id,
+                    '--all',
+                    '--output', file('src/generated/resources/').getAbsolutePath(),
+                    '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+    }
+
+    tasks.withType(ProcessResources).configureEach {
+        def replaceProperties = [
+                minecraft_version      : minecraft_version,
+                minecraft_version_range: minecraft_version_range,
+                neo_version            : neo_version,
+                loader_version_range   : loader_version_range,
+                mod_id                 : project.ext.mod_id,
+                mod_name               : project.ext.mod_name,
+                mod_license            : mod_license,
+                mod_version            : mod_version,
+                mod_authors            : mod_authors,
+                mod_description        : project.ext.mod_description
+        ]
+
+        inputs.properties replaceProperties
+
+        filesMatching(['META-INF/neoforge.mods.toml']) {
+            expand replaceProperties
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    publishing {
+        publications {
+            register('mavenJava', MavenPublication) {
+                from components.java
+            }
+        }
+        repositories {
+            maven {
+                url "file://${project.projectDir}/repo"
+            }
+        }
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

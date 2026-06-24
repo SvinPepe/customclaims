@@ -1,0 +1,4 @@
+dependencies {
+    implementation project(':customclaims-core')
+    implementation project(':customclaims-war')
+}

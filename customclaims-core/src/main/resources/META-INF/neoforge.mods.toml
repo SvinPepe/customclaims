@@ -1,0 +1,45 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/customclaims/customclaims/issues"
+showAsResourcePack=false
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+displayURL="https://github.com/customclaims/customclaims"
+authors="${mod_authors}"
+credits="Built for NeoForge servers that use Open Parties and Claims as the source of party and claim ownership."
+description='''
+${mod_description}
+
+This module owns the shared server-side foundation:
+- adapter interfaces for Open Parties and Claims
+- fallback/mock party and claim implementation for early testing
+- party, claim, chunk, and territory models
+- shared permission, message, config, storage, log, and rollback service contracts
+
+Other Custom Claims modules should depend on this module instead of calling external claim APIs directly.
+'''
+
+[[dependencies.${mod_id}]]
+modId="neoforge"
+type="required"
+versionRange="[${neo_version},)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="openpartiesandclaims"
+type="optional"
+versionRange="[0,)"
+ordering="AFTER"
+side="BOTH"

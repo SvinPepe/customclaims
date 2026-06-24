@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            url = 'https://maven.neoforged.net/releases'
+        }
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'customclaims'
+
+include 'customclaims-core'
+include 'customclaims-war'
+include 'customclaims-protection'
+include 'customclaims-create'
+include 'customclaims-big-cannons'
+include 'customclaims-xaero'

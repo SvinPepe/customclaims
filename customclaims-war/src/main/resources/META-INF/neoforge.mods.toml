@@ -1,0 +1,49 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/customclaims/customclaims/issues"
+showAsResourcePack=false
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+displayURL="https://github.com/customclaims/customclaims"
+authors="${mod_authors}"
+credits="Depends on Custom Claims Core for territory and party ownership abstractions."
+description='''
+${mod_description}
+
+First-pass MVP features:
+- /war start and /war status
+- /waradmin stop and /waradmin setprogress
+- preparation and active war phases
+- contested chunk state
+- capture progress ticking
+- raid window checks
+- basic AFK tracking
+- active war persistence after restart
+
+The module is server-side first and delegates claim ownership to Custom Claims Core.
+'''
+
+[[dependencies.${mod_id}]]
+modId="neoforge"
+type="required"
+versionRange="[${neo_version},)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="customclaims_core"
+type="required"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="BOTH"

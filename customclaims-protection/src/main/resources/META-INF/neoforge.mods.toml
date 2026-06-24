@@ -1,0 +1,53 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/customclaims/customclaims/issues"
+showAsResourcePack=false
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+displayURL="https://github.com/customclaims/customclaims"
+authors="${mod_authors}"
+credits="Uses Custom Claims Core territory services and can cooperate with Custom Claims War contested chunks."
+description='''
+${mod_description}
+
+First-pass MVP features:
+- peaceful claim explosion filtering
+- contested chunk explosion allowance
+- limited foreign block interactions
+- storage opening/breaking rules
+- Wither blocking in configured dimensions
+- basic villager and wandering trader damage protection
+- /claimrules limits and explosion-protection commands
+'''
+
+[[dependencies.${mod_id}]]
+modId="neoforge"
+type="required"
+versionRange="[${neo_version},)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="customclaims_core"
+type="required"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="customclaims_war"
+type="optional"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="BOTH"

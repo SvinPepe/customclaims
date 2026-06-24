@@ -1,0 +1,67 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/customclaims/customclaims/issues"
+showAsResourcePack=false
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+displayURL="https://github.com/customclaims/customclaims"
+authors="${mod_authors}"
+credits="Placeholder compat module for Xaero map and waypoint visualization."
+description='''
+${mod_description}
+
+This first-pass module intentionally contains only architectural hooks and TODO service classes.
+Planned scope:
+- contested chunk markers
+- temporary waypoints
+- war client packets
+- optional client overlay for capture visualization
+
+No deep Xaero API integration is active yet.
+'''
+
+[[dependencies.${mod_id}]]
+modId="neoforge"
+type="required"
+versionRange="[${neo_version},)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="customclaims_core"
+type="required"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="customclaims_war"
+type="optional"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="xaerominimap"
+type="optional"
+versionRange="[0,)"
+ordering="AFTER"
+side="CLIENT"
+
+[[dependencies.${mod_id}]]
+modId="xaeroworldmap"
+type="optional"
+versionRange="[0,)"
+ordering="AFTER"
+side="CLIENT"
