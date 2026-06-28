@@ -5,6 +5,7 @@ import dev.customclaims.core.CustomClaimsCoreMod;
 import dev.customclaims.war.command.WarCommand;
 import dev.customclaims.war.config.WarConfig;
 import dev.customclaims.war.event.WarActivityHandler;
+import dev.customclaims.war.event.WarLivesEventHandler;
 import dev.customclaims.war.event.WarTickHandler;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -29,6 +30,7 @@ public final class CustomClaimsWarMod {
         NeoForge.EVENT_BUS.addListener(WarActivityHandler::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(WarActivityHandler::onLeftClickBlock);
         NeoForge.EVENT_BUS.addListener(WarActivityHandler::onEntityInteract);
+        NeoForge.EVENT_BUS.addListener(WarLivesEventHandler::onLivingDeath);
 
         LOGGER.info("Custom Claims War initialized");
     }

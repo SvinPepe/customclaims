@@ -12,7 +12,9 @@ import dev.customclaims.war.service.WarManager;
 import dev.customclaims.war.service.WarStorage;
 import dev.customclaims.war.service.WarDisplayService;
 import dev.customclaims.war.service.WarHudService;
+import dev.customclaims.war.service.WarLivesService;
 import dev.customclaims.war.service.WarNotificationService;
+import dev.customclaims.war.service.WarScoreboardService;
 
 public record WarServices(
         WarManager warManager,
@@ -26,6 +28,8 @@ public record WarServices(
         WarDisplayService displayService,
         WarHudService hudService,
         WarNotificationService notificationService,
+        WarLivesService livesService,
+        WarScoreboardService scoreboardService,
         WarMessages messages
 ) {
     static WarServices create(CoreServices coreServices) {
@@ -33,12 +37,14 @@ public record WarServices(
         RaidWindowService raidWindowService = new RaidWindowService();
         BorderChunkService borderChunkService = new BorderChunkService(coreServices.territoryService());
         AfkTracker afkTracker = new AfkTracker();
-        CaptureProgressService captureProgressService = new CaptureProgressService(coreServices.partyService());
+        WarLivesService livesService = new WarLivesService(coreServices);
+        CaptureProgressService captureProgressService = new CaptureProgressService(coreServices.partyService(), livesService);
         CaptureBoostItemService captureBoostItemService = new CaptureBoostItemService();
         PostWarProtectionService postWarProtectionService = new PostWarProtectionService(coreServices.territoryStateService());
         WarDisplayService displayService = new WarDisplayService(coreServices);
         WarHudService hudService = new WarHudService(coreServices, displayService);
         WarNotificationService notificationService = new WarNotificationService(coreServices, displayService);
+        WarScoreboardService scoreboardService = new WarScoreboardService();
         WarMessages messages = new WarMessages();
         WarManager warManager = new WarManager(
                 coreServices,
@@ -50,7 +56,9 @@ public record WarServices(
                 postWarProtectionService,
                 displayService,
                 hudService,
-                notificationService
+                notificationService,
+                livesService,
+                scoreboardService
         );
 
         return new WarServices(
@@ -65,6 +73,8 @@ public record WarServices(
                 displayService,
                 hudService,
                 notificationService,
+                livesService,
+                scoreboardService,
                 messages
         );
     }

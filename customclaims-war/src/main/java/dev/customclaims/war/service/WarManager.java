@@ -40,6 +40,8 @@ public final class WarManager {
     private final WarDisplayService displayService;
     private final WarHudService hudService;
     private final WarNotificationService notificationService;
+    private final WarLivesService livesService;
+    private final WarScoreboardService scoreboardService;
     private final Map<UUID, WarData> wars = new LinkedHashMap<>();
     private boolean loaded;
     private long ticks;
@@ -54,7 +56,9 @@ public final class WarManager {
             PostWarProtectionService postWarProtectionService,
             WarDisplayService displayService,
             WarHudService hudService,
-            WarNotificationService notificationService
+            WarNotificationService notificationService,
+            WarLivesService livesService,
+            WarScoreboardService scoreboardService
     ) {
         this.coreServices = coreServices;
         this.warStorage = warStorage;
@@ -66,6 +70,8 @@ public final class WarManager {
         this.displayService = displayService;
         this.hudService = hudService;
         this.notificationService = notificationService;
+        this.livesService = livesService;
+        this.scoreboardService = scoreboardService;
     }
 
     public WarOperationResult startWar(ServerPlayer player) {
@@ -240,6 +246,31 @@ public final class WarManager {
                 .toList();
     }
 
+    public void onPlayerDeath(ServerPlayer player) {
+        MinecraftServer server = player.server;
+        ensureLoaded(server);
+        Optional<WarData> war = activeWars()
+                .filter(value -> value.state() == WarState.ACTIVE)
+                .filter(value -> coreServices.partyService().isSameParty(player, value.attackerParty())
+                        || coreServices.partyService().isSameParty(player, value.defenderParty()))
+                .findFirst();
+        if (war.isEmpty()) {
+            return;
+        }
+
+        Optional<Integer> remainingLives = livesService.decrementForDeath(player, war.get());
+        if (remainingLives.isEmpty()) {
+            return;
+        }
+
+        coreServices.warLogService().log(server, "LIFE_LOST " + describe(war.get())
+                + " player=" + player.getGameProfile().getName()
+                + " remaining=" + remainingLives.get());
+        notificationService.notifyLifeLost(server, war.get(), player, remainingLives.get());
+        scoreboardService.update(server, activeWars().toList());
+        save(server);
+    }
+
     public void tick(MinecraftServer server) {
         ensureLoaded(server);
         ticks++;
@@ -257,6 +288,7 @@ public final class WarManager {
         }
 
         hudService.update(server, activeWars().toList());
+        scoreboardService.update(server, activeWars().toList());
 
         if (changed) {
             save(server);
@@ -341,6 +373,7 @@ public final class WarManager {
         war.setState(WarState.ACTIVE);
         war.setActiveAt(now);
         war.setProgress(Math.max(war.progress(), WarConfig.STARTING_PROGRESS.get()));
+        livesService.initializeIfNeeded(server, war);
         coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerParty(), war.defenderParty());
         coreServices.warLogService().log(server, "ACTIVE " + describe(war));
         notificationService.notifyActive(server, war);
@@ -358,6 +391,7 @@ public final class WarManager {
         coreServices.territoryStateService().clearStatus(war.targetChunk());
         postWarProtectionService.protect(war.targetChunk());
         hudService.remove(server, war);
+        scoreboardService.update(server, activeWars().toList());
         coreServices.warLogService().log(server, state.name() + " " + describe(war) + " reason=" + reason);
         notificationService.notifyEnded(server, war);
         save(server);
@@ -464,13 +498,18 @@ public final class WarManager {
             return;
         }
         warStorage.load(server).forEach(war -> wars.put(war.id(), war));
+        boolean changed = false;
         for (WarData war : wars.values()) {
             if (war.state() == WarState.ACTIVE) {
                 coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerParty(), war.defenderParty());
                 resolveLevel(server, war.targetChunk()).ifPresent(level -> ensureContestedClaimOwner(level, war));
+                changed |= livesService.initializeIfNeeded(server, war);
             }
         }
         loaded = true;
+        if (changed) {
+            save(server);
+        }
     }
 
     private void save(MinecraftServer server) {

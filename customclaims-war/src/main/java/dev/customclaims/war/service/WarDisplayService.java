@@ -27,6 +27,7 @@ public final class WarDisplayService {
                 + "\nAttackers: " + partySummary(server, war.attackerParty())
                 + "\nDefenders: " + partySummary(server, war.defenderParty())
                 + "\nPresence: ATK " + war.lastAttackersPresent() + " DEF " + war.lastDefendersPresent()
+                + " | Lives: ATK " + remainingLives(war.attackerLives()) + " DEF " + remainingLives(war.defenderLives())
                 + " | Time: " + timeText(war, now);
     }
 
@@ -74,7 +75,8 @@ public final class WarDisplayService {
 
     public String actionbarText(WarData war) {
         return "Capture " + Math.round(war.progress()) + "% (" + signedDecimal(war.lastDeltaPerSecond())
-                + "/s) | ATK " + war.lastAttackersPresent() + " DEF " + war.lastDefendersPresent();
+                + "/s) | ATK " + war.lastAttackersPresent() + " DEF " + war.lastDefendersPresent()
+                + " | Lives A " + remainingLives(war.attackerLives()) + " D " + remainingLives(war.defenderLives());
     }
 
     public String progressText(WarData war) {
@@ -135,5 +137,9 @@ public final class WarDisplayService {
 
     private String signedDecimal(double value) {
         return String.format(Locale.ROOT, "%+.2f", value);
+    }
+
+    private int remainingLives(java.util.Map<java.util.UUID, Integer> lives) {
+        return lives.values().stream().mapToInt(Integer::intValue).sum();
     }
 }

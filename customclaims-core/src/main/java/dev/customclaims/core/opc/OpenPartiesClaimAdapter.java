@@ -6,7 +6,9 @@ import dev.customclaims.core.api.model.ClaimSnapshot;
 import dev.customclaims.core.api.model.PartyDisplayInfo;
 import dev.customclaims.core.api.model.PartyId;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -112,6 +114,24 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
             return java.util.List.of();
         }
         return party.getOnlineMemberStream().toList();
+    }
+
+    @Override
+    public Collection<UUID> getPartyMemberIds(MinecraftServer server, PartyId partyId) {
+        Optional<UUID> partyUuid = parsePartyUuid(partyId);
+        if (partyUuid.isEmpty()) {
+            return java.util.List.of();
+        }
+
+        IServerPartyAPI party = api(server).getPartyManager().getPartyById(partyUuid.get());
+        if (party == null) {
+            return java.util.List.of();
+        }
+
+        Set<UUID> memberIds = new LinkedHashSet<>();
+        memberIds.add(party.getOwner().getUUID());
+        party.getMemberInfoStream().map(member -> member.getUUID()).forEach(memberIds::add);
+        return java.util.List.copyOf(memberIds);
     }
 
     @Override

@@ -4,6 +4,7 @@ import dev.customclaims.core.api.model.PartyId;
 import dev.customclaims.core.api.model.PartyDisplayInfo;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -13,6 +14,8 @@ public interface PartyAdapter {
     boolean isPlayerInParty(ServerPlayer player, PartyId partyId);
 
     Collection<ServerPlayer> getOnlinePartyMembers(MinecraftServer server, PartyId partyId);
+
+    Collection<UUID> getPartyMemberIds(MinecraftServer server, PartyId partyId);
 
     Optional<PartyDisplayInfo> describeParty(MinecraftServer server, PartyId partyId);
 }

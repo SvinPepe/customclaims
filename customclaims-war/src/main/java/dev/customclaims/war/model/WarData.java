@@ -3,9 +3,13 @@ package dev.customclaims.war.model;
 import dev.customclaims.core.api.model.ChunkPosKey;
 import dev.customclaims.core.api.model.ClaimSnapshot;
 import dev.customclaims.core.api.model.PartyId;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +35,9 @@ public final class WarData {
     private boolean preparationWarning10Sent;
     private int highestNotifiedMilestone;
     private Instant lastEmptyDecayNotificationAt;
+    private boolean livesInitialized;
+    private final Map<UUID, Integer> attackerLives = new LinkedHashMap<>();
+    private final Map<UUID, Integer> defenderLives = new LinkedHashMap<>();
 
     public WarData(UUID id, PartyId attackerParty, PartyId defenderParty, ChunkPosKey targetChunk, Instant createdAt) {
         this.id = id;
@@ -172,6 +179,65 @@ public final class WarData {
         this.lastEmptyDecayNotificationAt = lastEmptyDecayNotificationAt;
     }
 
+    public boolean livesInitialized() {
+        return livesInitialized;
+    }
+
+    public void initializeLives(Collection<UUID> attackerMemberIds, Collection<UUID> defenderMemberIds, int startingLives) {
+        attackerLives.clear();
+        defenderLives.clear();
+        attackerMemberIds.forEach(playerId -> attackerLives.put(playerId, startingLives));
+        defenderMemberIds.forEach(playerId -> defenderLives.put(playerId, startingLives));
+        livesInitialized = true;
+    }
+
+    public boolean hasLivesRemaining(UUID playerId) {
+        Integer attackerValue = attackerLives.get(playerId);
+        if (attackerValue != null) {
+            return attackerValue > 0;
+        }
+        Integer defenderValue = defenderLives.get(playerId);
+        return defenderValue != null && defenderValue > 0;
+    }
+
+    public int lives(UUID playerId) {
+        Integer attackerValue = attackerLives.get(playerId);
+        if (attackerValue != null) {
+            return attackerValue;
+        }
+        return defenderLives.getOrDefault(playerId, 0);
+    }
+
+    public Optional<Integer> decrementLives(UUID playerId) {
+        if (attackerLives.containsKey(playerId)) {
+            int current = attackerLives.get(playerId);
+            if (current <= 0) {
+                return Optional.empty();
+            }
+            int updated = current - 1;
+            attackerLives.put(playerId, updated);
+            return Optional.of(updated);
+        }
+        if (defenderLives.containsKey(playerId)) {
+            int current = defenderLives.get(playerId);
+            if (current <= 0) {
+                return Optional.empty();
+            }
+            int updated = current - 1;
+            defenderLives.put(playerId, updated);
+            return Optional.of(updated);
+        }
+        return Optional.empty();
+    }
+
+    public Map<UUID, Integer> attackerLives() {
+        return Collections.unmodifiableMap(attackerLives);
+    }
+
+    public Map<UUID, Integer> defenderLives() {
+        return Collections.unmodifiableMap(defenderLives);
+    }
+
     public boolean isTerminal() {
         return state == WarState.FINISHED || state == WarState.CANCELLED || state == WarState.FAILED;
     }
@@ -193,13 +259,16 @@ public final class WarData {
                 originalClaimOwnerId == null ? "" : originalClaimOwnerId.toString(),
                 Boolean.toString(originalClaimPartyOwned),
                 Integer.toString(originalClaimSubConfigIndex),
-                Boolean.toString(originalClaimForceload)
+                Boolean.toString(originalClaimForceload),
+                Boolean.toString(livesInitialized),
+                encode(livesMapToString(attackerLives)),
+                encode(livesMapToString(defenderLives))
         );
     }
 
     public static Optional<WarData> fromStorageLine(String line) {
         String[] parts = line.split("\\|", -1);
-        if (parts.length != 12 && parts.length != 16) {
+        if (parts.length != 12 && parts.length != 16 && parts.length != 19) {
             return Optional.empty();
         }
 
@@ -226,6 +295,17 @@ public final class WarData {
                 data.originalClaimSubConfigIndex = Integer.parseInt(parts[14]);
                 data.originalClaimForceload = Boolean.parseBoolean(parts[15]);
             }
+            if (parts.length == 19) {
+                if (!parts[12].isBlank()) {
+                    data.originalClaimOwnerId = UUID.fromString(parts[12]);
+                    data.originalClaimPartyOwned = Boolean.parseBoolean(parts[13]);
+                    data.originalClaimSubConfigIndex = Integer.parseInt(parts[14]);
+                    data.originalClaimForceload = Boolean.parseBoolean(parts[15]);
+                }
+                data.livesInitialized = Boolean.parseBoolean(parts[16]);
+                data.attackerLives.putAll(parseLivesMap(decode(parts[17])));
+                data.defenderLives.putAll(parseLivesMap(decode(parts[18])));
+            }
             return Optional.of(data);
         } catch (RuntimeException exception) {
             return Optional.empty();
@@ -241,6 +321,27 @@ public final class WarData {
             return "";
         }
         return new String(Base64.getUrlDecoder().decode(value), StandardCharsets.UTF_8);
+    }
+
+    private static String livesMapToString(Map<UUID, Integer> lives) {
+        return lives.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .reduce((left, right) -> left + "," + right)
+                .orElse("");
+    }
+
+    private static Map<UUID, Integer> parseLivesMap(String value) {
+        Map<UUID, Integer> lives = new LinkedHashMap<>();
+        if (value.isBlank()) {
+            return lives;
+        }
+        for (String entry : value.split(",")) {
+            String[] pair = entry.split("=", 2);
+            if (pair.length == 2) {
+                lives.put(UUID.fromString(pair[0]), Math.max(0, Integer.parseInt(pair[1])));
+            }
+        }
+        return lives;
     }
 
     private static double clamp(double value) {

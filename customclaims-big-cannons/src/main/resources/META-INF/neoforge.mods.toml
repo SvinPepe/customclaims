@@ -10,20 +10,16 @@ version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://github.com/customclaims/customclaims"
 authors="${mod_authors}"
-credits="Placeholder compat module for Create Big Cannons claim and war rules."
+credits="Integrates CustomClaims protection rules with Create Big Cannons terrain damage and projectile launch."
 description='''
 ${mod_description}
 
-This first-pass module intentionally contains only architectural hooks and TODO service classes.
-Planned scope:
-- cannon ownership resolution
-- projectile shot tracking
-- peaceful claim explosion filtering
-- contested chunk damage allowance
-- own-protected-claim firing rules
-- cannon impact logging for audit and rollback data
+When Create Big Cannons is loaded, this module:
+- cancels CBC terrain damage in CustomClaims protected chunks
+- cancels CBC projectile spawns from protected claimed chunks
+- follows /claimrules explosions enable|disable
 
-No deep Create Big Cannons API integration is active yet.
+When Create Big Cannons is absent, this module starts without active integration.
 '''
 
 [[dependencies.${mod_id}]]
@@ -48,6 +44,13 @@ ordering="AFTER"
 side="BOTH"
 
 [[dependencies.${mod_id}]]
+modId="customclaims_protection"
+type="required"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
 modId="customclaims_war"
 type="optional"
 versionRange="[${mod_version},)"
@@ -57,13 +60,13 @@ side="BOTH"
 [[dependencies.${mod_id}]]
 modId="create"
 type="optional"
-versionRange="[0,)"
+versionRange="[6.0.9,)"
 ordering="AFTER"
 side="BOTH"
 
 [[dependencies.${mod_id}]]
 modId="createbigcannons"
 type="optional"
-versionRange="[0,)"
+versionRange="[5.11.7,)"
 ordering="AFTER"
 side="BOTH"

@@ -22,7 +22,7 @@ ext.customClaimsModules = [
         'customclaims-protection' : [
                 modId      : 'customclaims_protection',
                 modName    : 'Custom Claims Protection',
-                description: 'Claim protection MVP for explosions, foreign interactions, Wither rules, storage, and villagers.'
+                description: 'Claim protection MVP for explosion filtering, foreign interactions, Wither rules, storage, and villagers.'
         ],
         'customclaims-create'     : [
                 modId      : 'customclaims_create',
@@ -32,12 +32,12 @@ ext.customClaimsModules = [
         'customclaims-big-cannons': [
                 modId      : 'customclaims_big_cannons',
                 modName    : 'Custom Claims Big Cannons Compat',
-                description: 'Architectural placeholder for Create Big Cannons projectile and ownership rules.'
+                description: 'Create Big Cannons compat for CustomClaims explosion protection and projectile launch rules.'
         ],
         'customclaims-xaero'      : [
                 modId      : 'customclaims_xaero',
                 modName    : 'Custom Claims Xaero Compat',
-                description: 'Fair-play client overlay for active Custom Claims wars, compatible with Xaero clients without persistent waypoints.'
+                description: 'Fair-play Xaero temporary waypoint sync for active Custom Claims wars, with an optional legacy HUD overlay.'
         ]
 ]
 

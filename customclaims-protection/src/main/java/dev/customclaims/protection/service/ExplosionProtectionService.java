@@ -1,10 +1,14 @@
 package dev.customclaims.protection.service;
 
+import com.mojang.logging.LogUtils;
 import dev.customclaims.core.api.model.PartyId;
 import dev.customclaims.core.api.model.TerritoryStatus;
+import dev.customclaims.core.service.DataStorageService;
 import dev.customclaims.core.service.TerritoryService;
 import dev.customclaims.protection.config.ProtectionConfig;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,11 +18,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Explosion;
+import org.slf4j.Logger;
 import xaero.pac.common.claims.player.api.IPlayerChunkClaimAPI;
 import xaero.pac.common.parties.party.member.api.IPartyMemberAPI;
 import xaero.pac.common.server.api.OpenPACServerAPI;
@@ -27,76 +31,146 @@ import xaero.pac.common.server.player.config.api.v2.IPlayerConfigAPI;
 import xaero.pac.common.server.player.config.api.v2.PlayerConfigOptions;
 
 public final class ExplosionProtectionService {
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final String STORAGE_FILE = "protection/explosion-protection.txt";
+
     private final TerritoryService territoryService;
+    private final DataStorageService dataStorageService;
     private final OpenPartiesProtectionBypassService openPartiesProtectionBypassService;
-    private final Map<PartyId, Boolean> partyExplosionProtection = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> partyExplosionProtection = new ConcurrentHashMap<>();
+
+    private MinecraftServer loadedServer;
 
     public ExplosionProtectionService(
             TerritoryService territoryService,
+            DataStorageService dataStorageService,
             OpenPartiesProtectionBypassService openPartiesProtectionBypassService
     ) {
         this.territoryService = territoryService;
+        this.dataStorageService = dataStorageService;
         this.openPartiesProtectionBypassService = openPartiesProtectionBypassService;
     }
 
-    public void prepareExplosion(ServerLevel level, Explosion explosion, List<BlockPos> affectedBlocks) {
-        Set<ChunkPos> affectedChunks = new HashSet<>();
-        boolean shouldBypassOpenParties = false;
-        for (BlockPos pos : affectedBlocks) {
-            ChunkPos chunkPos = new ChunkPos(pos);
-            if (affectedChunks.add(chunkPos) && shouldBypassOpenPartiesExplosionProtection(level, chunkPos, explosion)) {
-                shouldBypassOpenParties = true;
-            }
-        }
-
-        if (!shouldBypassOpenParties) {
-            return;
-        }
-
-        LivingEntity indirectSource = explosion.getIndirectSourceEntity();
-        if (indirectSource != null) {
-            openPartiesProtectionBypassService.grantUntilNextServerTick(level, indirectSource);
-        }
-
-        Entity directSource = explosion.getDirectSourceEntity();
-        if (directSource != null) {
-            openPartiesProtectionBypassService.grantUntilNextServerTick(level, directSource);
-        }
-    }
-
-    public boolean canExplosionAffect(ServerLevel level, BlockPos pos) {
-        return canExplosionAffect(level, pos, null);
-    }
-
-    public boolean canExplosionAffect(ServerLevel level, BlockPos pos, Explosion explosion) {
-        ChunkPos chunkPos = new ChunkPos(pos);
-        TerritoryStatus status = territoryService.getStatus(level, chunkPos);
-        if (status == TerritoryStatus.WAR_CONTESTED) {
-            return ProtectionConfig.ALLOW_EXPLOSIONS_IN_WAR_CHUNKS.get()
-                    && isContestedExplosionSourceAllowed(level, chunkPos, explosion);
-        }
-        if (status == TerritoryStatus.PEACEFUL_CLAIMED || status == TerritoryStatus.POST_WAR_PROTECTED) {
-            return isPeacefulExplosionAllowed(level, chunkPos);
-        }
-        return true;
-    }
-
-    public boolean isPartyExplosionProtectionEnabled(PartyId partyId) {
-        return partyExplosionProtection.getOrDefault(partyId, true);
-    }
-
     public boolean isPartyExplosionProtectionEnabled(MinecraftServer server, PartyId partyId) {
-        Boolean locallyConfigured = partyExplosionProtection.get(partyId);
-        if (locallyConfigured != null) {
-            return locallyConfigured;
+        ensureLoaded(server);
+        Boolean local = partyExplosionProtection.get(partyId.value());
+        if (local != null) {
+            return local;
         }
         return readOpenPartiesExplosionProtection(server, partyId).orElse(true);
     }
 
     public boolean setPartyExplosionProtection(MinecraftServer server, PartyId partyId, boolean enabled) {
-        partyExplosionProtection.put(partyId, enabled);
-        syncOpenPartiesExplosionProtection(server, partyId, enabled);
+        try {
+            ensureLoaded(server);
+            partyExplosionProtection.put(partyId.value(), enabled);
+            save(server);
+        } catch (RuntimeException exception) {
+            LOGGER.error("Failed to persist CustomClaims explosion protection rule for {}", partyId, exception);
+            return false;
+        }
+
+        try {
+            if (!syncOpenPartiesExplosionProtection(server, partyId, enabled)) {
+                LOGGER.warn("CustomClaims explosion rule for {} was saved, but OPC sync did not apply cleanly", partyId);
+            }
+        } catch (RuntimeException exception) {
+            LOGGER.warn("CustomClaims explosion rule for {} was saved, but OPC sync failed", partyId, exception);
+        }
+
         return true;
+    }
+
+    public boolean canExplosionAffect(ServerLevel level, BlockPos pos) {
+        return !isBlockProtectedFromExplosion(level, pos);
+    }
+
+    public void prepareExplosion(ServerLevel level, Explosion explosion, List<BlockPos> affectedBlocks) {
+        Set<ChunkPos> affectedChunks = new HashSet<>();
+        boolean sourceNeedsBypass = false;
+
+        for (BlockPos pos : affectedBlocks) {
+            ChunkPos chunkPos = new ChunkPos(pos);
+            if (!affectedChunks.add(chunkPos)) {
+                continue;
+            }
+
+            boolean explosionsAllowed = canExplosionAffect(level, pos);
+            if (territoryService.getStatus(level, chunkPos) != TerritoryStatus.UNCLAIMED) {
+                syncOpenPartiesClaimExplosionException(level, chunkPos, explosionsAllowed);
+                sourceNeedsBypass |= explosionsAllowed;
+            }
+        }
+
+        if (sourceNeedsBypass && explosion != null) {
+            grantExplosionSourceBypass(level, explosion);
+        }
+    }
+
+    public boolean isBlockProtectedFromExplosion(ServerLevel level, BlockPos pos) {
+        if (!ProtectionConfig.CUSTOM_EXPLOSION_FILTER_ENABLED.get()) {
+            return false;
+        }
+
+        ChunkPos chunkPos = new ChunkPos(pos);
+        TerritoryStatus status = territoryService.getStatus(level, chunkPos);
+        if (status == TerritoryStatus.UNCLAIMED) {
+            return false;
+        }
+        if (status == TerritoryStatus.WAR_CONTESTED && ProtectionConfig.ALLOW_EXPLOSIONS_IN_WAR_CHUNKS.get()) {
+            return false;
+        }
+
+        Optional<PartyId> owner = territoryService.getClaimOwner(level, chunkPos);
+        return owner.filter(partyId -> isPartyExplosionProtectionEnabled(level.getServer(), partyId)).isPresent();
+    }
+
+    private void ensureLoaded(MinecraftServer server) {
+        if (loadedServer == server) {
+            return;
+        }
+
+        synchronized (this) {
+            if (loadedServer == server) {
+                return;
+            }
+
+            partyExplosionProtection.clear();
+            for (String line : dataStorageService.readLines(server, STORAGE_FILE)) {
+                parseStorageLine(line).ifPresent(entry -> partyExplosionProtection.put(entry.partyId(), entry.enabled()));
+            }
+            loadedServer = server;
+        }
+    }
+
+    private Optional<StoredExplosionRule> parseStorageLine(String line) {
+        String trimmed = line.trim();
+        if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+            return Optional.empty();
+        }
+
+        String[] parts = trimmed.split("=", 2);
+        if (parts.length != 2 || parts[0].isBlank()) {
+            LOGGER.warn("Ignoring malformed CustomClaims explosion protection rule: {}", line);
+            return Optional.empty();
+        }
+
+        String value = parts[1].trim();
+        if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
+            LOGGER.warn("Ignoring CustomClaims explosion protection rule with non-boolean value: {}", line);
+            return Optional.empty();
+        }
+
+        return Optional.of(new StoredExplosionRule(parts[0].trim(), Boolean.parseBoolean(value)));
+    }
+
+    private void save(MinecraftServer server) {
+        List<String> lines = new ArrayList<>();
+        partyExplosionProtection.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .forEach(lines::add);
+        dataStorageService.writeLines(server, STORAGE_FILE, lines);
     }
 
     private Optional<Boolean> readOpenPartiesExplosionProtection(MinecraftServer server, PartyId partyId) {
@@ -117,7 +191,7 @@ public final class ExplosionProtectionService {
         }
 
         boolean explosionsAllowed = Boolean.TRUE.equals(
-                partyConfig.getEffective(PlayerConfigOptions.CLAIM_EXCEPTION_BLOCKS_BY_EXPLOSIONS)
+                effectiveClaimConfig(partyConfig).getEffective(PlayerConfigOptions.CLAIM_EXCEPTION_BLOCKS_BY_EXPLOSIONS)
         );
         return Optional.of(!explosionsAllowed);
     }
@@ -141,58 +215,22 @@ public final class ExplosionProtectionService {
         IPlayerConfigAPI partyConfig = api.getPlayerConfigManager().getPartyOwnerConfig(party.getOwner().getUUID());
         if (partyConfig != null) {
             applied = true;
-            success &= setExplosionException(partyConfig, explosionsAllowed);
+            success &= setExplosionExceptionOnConfigAndSubConfigs(partyConfig, explosionsAllowed);
         }
 
-        for (UUID memberId : party.getMemberInfoStream().map(IPartyMemberAPI::getUUID).distinct().toList()) {
+        Set<UUID> playerConfigIds = new LinkedHashSet<>();
+        playerConfigIds.add(party.getOwner().getUUID());
+        party.getMemberInfoStream().map(IPartyMemberAPI::getUUID).forEach(playerConfigIds::add);
+
+        for (UUID memberId : playerConfigIds) {
             IPlayerConfigAPI memberConfig = api.getPlayerConfigManager().getLoadedConfig(memberId);
             if (memberConfig != null) {
                 applied = true;
-                success &= setExplosionException(memberConfig, explosionsAllowed);
+                success &= setExplosionExceptionOnConfigAndSubConfigs(memberConfig, explosionsAllowed);
             }
         }
 
         return applied && success;
-    }
-
-    private boolean shouldBypassOpenPartiesExplosionProtection(ServerLevel level, ChunkPos chunkPos, Explosion explosion) {
-        TerritoryStatus status = territoryService.getStatus(level, chunkPos);
-        if (status == TerritoryStatus.WAR_CONTESTED) {
-            boolean explosionsAllowed = ProtectionConfig.ALLOW_EXPLOSIONS_IN_WAR_CHUNKS.get()
-                    && isContestedExplosionSourceAllowed(level, chunkPos, explosion);
-            syncOpenPartiesClaimExplosionException(level, chunkPos, explosionsAllowed);
-            return explosionsAllowed;
-        }
-
-        if (status == TerritoryStatus.PEACEFUL_CLAIMED || status == TerritoryStatus.POST_WAR_PROTECTED) {
-            boolean explosionsAllowed = isPeacefulExplosionAllowed(level, chunkPos);
-            syncOpenPartiesClaimExplosionException(level, chunkPos, explosionsAllowed);
-            return explosionsAllowed;
-        }
-
-        return false;
-    }
-
-    private boolean isContestedExplosionSourceAllowed(ServerLevel level, ChunkPos chunkPos, Explosion explosion) {
-        if (explosion == null) {
-            return false;
-        }
-        LivingEntity indirectSource = explosion.getIndirectSourceEntity();
-        if (indirectSource instanceof ServerPlayer player
-                && territoryService.getInteractionStatus(player, level, chunkPos) == TerritoryStatus.WAR_CONTESTED) {
-            return true;
-        }
-        Entity directSource = explosion.getDirectSourceEntity();
-        return directSource instanceof ServerPlayer player
-                && territoryService.getInteractionStatus(player, level, chunkPos) == TerritoryStatus.WAR_CONTESTED;
-    }
-
-    private boolean isPeacefulExplosionAllowed(ServerLevel level, ChunkPos chunkPos) {
-        Optional<PartyId> owner = territoryService.getClaimOwner(level, chunkPos);
-        return owner
-                .map(value -> !isPartyExplosionProtectionEnabled(level.getServer(), value))
-                .orElse(false)
-                || !ProtectionConfig.PROTECT_PEACEFUL_CLAIMS_FROM_EXPLOSIONS.get();
     }
 
     private boolean syncOpenPartiesClaimExplosionException(
@@ -205,7 +243,33 @@ public final class ExplosionProtectionService {
         if (claim == null) {
             return false;
         }
-        return setExplosionException(api.getChunkProtection().getConfig(claim), explosionsAllowed);
+        IPlayerConfigAPI config = api.getChunkProtection().getConfig(claim);
+        return setExplosionException(config, explosionsAllowed);
+    }
+
+    private void grantExplosionSourceBypass(ServerLevel level, Explosion explosion) {
+        LivingEntity indirectSource = explosion.getIndirectSourceEntity();
+        if (indirectSource != null) {
+            openPartiesProtectionBypassService.grantUntilNextServerTick(level, indirectSource);
+        }
+
+        Entity directSource = explosion.getDirectSourceEntity();
+        if (directSource != null) {
+            openPartiesProtectionBypassService.grantUntilNextServerTick(level, directSource);
+        }
+    }
+
+    private IPlayerConfigAPI effectiveClaimConfig(IPlayerConfigAPI config) {
+        IPlayerConfigAPI usedSubConfig = config.getUsedSubConfig();
+        return usedSubConfig == null ? config : usedSubConfig;
+    }
+
+    private boolean setExplosionExceptionOnConfigAndSubConfigs(IPlayerConfigAPI config, boolean explosionsAllowed) {
+        boolean success = setExplosionException(config, explosionsAllowed);
+        for (IPlayerConfigAPI subConfig : config.getSubConfigAPIStream().toList()) {
+            success &= setExplosionException(subConfig, explosionsAllowed);
+        }
+        return success;
     }
 
     private boolean setExplosionException(IPlayerConfigAPI config, boolean explosionsAllowed) {
@@ -235,5 +299,8 @@ public final class ExplosionProtectionService {
         } catch (IllegalArgumentException exception) {
             return Optional.empty();
         }
+    }
+
+    private record StoredExplosionRule(String partyId, boolean enabled) {
     }
 }

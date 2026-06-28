@@ -74,6 +74,18 @@ public final class WarConfig {
             .comment("Display name used in logs/messages for the fake contested claim owner.")
             .define("war.contested_owner_name", "CC_Contested");
 
+    public static final ModConfigSpec.IntValue STARTING_LIVES = BUILDER
+            .comment("Personal war lives assigned to each current attacker/defender party member when a war becomes active.")
+            .defineInRange("war.lives.starting_lives", 3, 1, 100);
+
+    public static final ModConfigSpec.BooleanValue SCOREBOARD_SIDEBAR_ENABLED = BUILDER
+            .comment("If true, active war lives are shown in the vanilla sidebar scoreboard.")
+            .define("war.lives.scoreboard_sidebar_enabled", true);
+
+    public static final ModConfigSpec.ConfigValue<String> SCOREBOARD_OBJECTIVE = BUILDER
+            .comment("Objective name used for the war lives sidebar scoreboard.")
+            .define("war.lives.scoreboard_objective", "cc_war_lives");
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private WarConfig() {

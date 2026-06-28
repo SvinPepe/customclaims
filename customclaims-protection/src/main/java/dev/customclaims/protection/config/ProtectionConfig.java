@@ -6,14 +6,6 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class ProtectionConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    public static final ModConfigSpec.BooleanValue PROTECT_PEACEFUL_CLAIMS_FROM_EXPLOSIONS = BUILDER
-            .comment("If true, explosions cannot damage peaceful claimed chunks.")
-            .define("explosions.protect_peaceful_claims", true);
-
-    public static final ModConfigSpec.BooleanValue ALLOW_EXPLOSIONS_IN_WAR_CHUNKS = BUILDER
-            .comment("If true, explosions can damage the exact contested chunk during active wars.")
-            .define("explosions.allow_in_war_chunks", true);
-
     public static final ModConfigSpec.IntValue FOREIGN_BLOCK_BREAK_LIMIT = BUILDER
             .comment("Temporary MVP limit for foreign peaceful claim block breaks per player runtime session.")
             .defineInRange("foreign_interaction.block_break_limit", 0, 0, 100_000);
@@ -25,6 +17,22 @@ public final class ProtectionConfig {
     public static final ModConfigSpec.IntValue FOREIGN_INTERACTION_LIMIT_RESET_INTERVAL_SECONDS = BUILDER
             .comment("Global runtime reset interval for foreign peaceful claim block break/place counters.")
             .defineInRange("foreign_interaction.limit_reset_interval_seconds", 3600, 1, 604_800);
+
+    public static final ModConfigSpec.BooleanValue CUSTOM_EXPLOSION_FILTER_ENABLED = BUILDER
+            .comment("If true, CustomClaims filters block damage from explosions in claimed chunks with party explosion protection enabled.")
+            .define("explosions.custom_filter_enabled", true);
+
+    public static final ModConfigSpec.BooleanValue ALLOW_EXPLOSIONS_IN_WAR_CHUNKS = BUILDER
+            .comment("If true, CustomClaims does not filter explosion block damage in contested war chunks.")
+            .define("explosions.allow_in_war_chunks", true);
+
+    public static final ModConfigSpec.BooleanValue BLOCK_BIG_CANNON_PROJECTILE_LAUNCH_FROM_PROTECTED_CLAIMS = BUILDER
+            .comment("If true, Create Big Cannons projectiles spawned from protected claimed chunks are cancelled.")
+            .define("big_cannons.block_projectile_launch_from_protected_claims", true);
+
+    public static final ModConfigSpec.BooleanValue LOG_BLOCKED_BIG_CANNON_PROJECTILES = BUILDER
+            .comment("If true, log Create Big Cannons projectiles blocked by CustomClaims explosion protection.")
+            .define("big_cannons.log_blocked_projectiles", true);
 
     public static final ModConfigSpec.BooleanValue ALLOW_OPEN_STORAGE_ON_FOREIGN_CLAIMS = BUILDER
             .comment("If true, players can open storage on foreign peaceful claims.")
@@ -100,13 +108,16 @@ public final class ProtectionConfig {
             .define("villager_protection.allow_zombie_damage", true);
 
     public static final ModConfigSpec.BooleanValue PROTECT_VILLAGERS_IN_WAR_CHUNKS = BUILDER
-            .define("villager_protection.protect_villagers_in_war_chunks", true);
+            .comment("If false, villager/trader protection is disabled in contested war chunks.")
+            .define("villager_protection.protect_villagers_in_war_chunks", false);
 
     public static final ModConfigSpec.BooleanValue ALLOW_PLAYER_DAMAGE_TO_VILLAGERS_IN_WAR_CHUNKS = BUILDER
-            .define("villager_protection.allow_player_damage_to_villagers_in_war_chunks", false);
+            .comment("If true, player damage to villagers/traders is allowed in contested war chunks.")
+            .define("villager_protection.allow_player_damage_to_villagers_in_war_chunks", true);
 
     public static final ModConfigSpec.BooleanValue ALLOW_EXPLOSION_DAMAGE_TO_VILLAGERS_IN_WAR_CHUNKS = BUILDER
-            .define("villager_protection.allow_explosion_damage_to_villagers_in_war_chunks", false);
+            .comment("If true, explosion damage to villagers/traders is allowed in contested war chunks.")
+            .define("villager_protection.allow_explosion_damage_to_villagers_in_war_chunks", true);
 
     public static final ModConfigSpec.BooleanValue CLEAR_FIRE_ON_BLOCKED_DAMAGE = BUILDER
             .define("villager_protection.clear_fire_on_blocked_damage", true);

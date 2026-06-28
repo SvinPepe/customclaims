@@ -1,4 +1,13 @@
 dependencies {
     implementation project(':customclaims-core')
     implementation project(':customclaims-war')
+    implementation project(':customclaims-protection')
+
+    compileOnly "maven.modrinth:create:${create_version}"
+    compileOnly "maven.modrinth:rpl:${rpl_version}"
+    compileOnly "maven.modrinth:create-big-cannons:${cbc_version}"
+
+    localRuntime "maven.modrinth:create:${create_version}"
+    localRuntime "maven.modrinth:rpl:${rpl_version}"
+    localRuntime "maven.modrinth:create-big-cannons:${cbc_version}"
 }

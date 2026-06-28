@@ -1,6 +1,7 @@
 package dev.customclaims.xaero.client;
 
 import dev.customclaims.war.model.WarMarkerDto;
+import dev.customclaims.xaero.config.XaeroCompatConfig;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,6 +23,10 @@ public final class ClientOverlayService {
     }
 
     public static void replaceMarkers(List<WarMarkerDto> markers) {
+        if (!XaeroCompatConfig.CUSTOM_OVERLAY_ENABLED.get()) {
+            MARKERS.clear();
+            return;
+        }
         MARKERS.clear();
         for (WarMarkerDto marker : markers) {
             MARKERS.put(key(marker), new MarkerView(marker, MARKER_TTL_TICKS));
@@ -29,10 +34,17 @@ public final class ClientOverlayService {
     }
 
     public static void onClientTick(ClientTickEvent.Post event) {
+        if (!XaeroCompatConfig.CUSTOM_OVERLAY_ENABLED.get()) {
+            MARKERS.clear();
+            return;
+        }
         MARKERS.entrySet().removeIf(entry -> entry.getValue().tickAndExpired());
     }
 
     public static void onRenderGui(RenderGuiEvent.Post event) {
+        if (!XaeroCompatConfig.CUSTOM_OVERLAY_ENABLED.get()) {
+            return;
+        }
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
         if (player == null || MARKERS.isEmpty()) {
@@ -42,6 +54,8 @@ public final class ClientOverlayService {
         GuiGraphics graphics = event.getGuiGraphics();
         Font font = minecraft.font;
         int width = graphics.guiWidth();
+        renderNearestMarkerBanner(graphics, font, player, width);
+
         int x = Math.max(8, width - 228);
         int y = 24;
 
@@ -57,16 +71,39 @@ public final class ClientOverlayService {
 
         for (WarMarkerDto marker : sorted) {
             int color = stateColor(marker);
+            int pulse = pulseColor(marker);
             String firstLine = trim(marker.state() + " " + distanceText(player, marker) + " " + marker.label(), 35);
             String secondLine = trim(Math.round(marker.progress()) + "% "
                     + signedDelta(marker.deltaPerSecond())
                     + "/s ATK " + marker.attackerCount()
                     + " DEF " + marker.defenderCount()
                     + " " + marker.viewerRelation(), 35);
+            graphics.fill(x - 3, y, x - 1, y + 18, pulse);
             graphics.drawString(font, firstLine, x, y, color, true);
             graphics.drawString(font, secondLine, x, y + 10, 0xFFD6D6D6, true);
             y += 21;
         }
+    }
+
+    private static void renderNearestMarkerBanner(GuiGraphics graphics, Font font, LocalPlayer player, int width) {
+        WarMarkerDto nearest = MARKERS.values().stream()
+                .map(MarkerView::marker)
+                .filter(marker -> distanceChunks(player, marker) != Integer.MAX_VALUE)
+                .min(Comparator.comparingInt(marker -> distanceChunks(player, marker)))
+                .orElse(null);
+        if (nearest == null) {
+            return;
+        }
+
+        int color = stateColor(nearest);
+        int pulse = pulseColor(nearest);
+        String text = trim("WAR TARGET " + distanceText(player, nearest) + " " + nearest.label(), 48);
+        int textWidth = font.width(text);
+        int x = Math.max(8, (width - textWidth) / 2);
+        int y = 8;
+        graphics.fill(x - 8, y - 4, x + textWidth + 8, y + 12, 0xAA000000);
+        graphics.fill(x - 8, y - 4, x + textWidth + 8, y - 2, pulse);
+        graphics.drawString(font, text, x, y, color, true);
     }
 
     private static String key(WarMarkerDto marker) {
@@ -101,6 +138,19 @@ public final class ClientOverlayService {
         return switch (marker.state()) {
             case "Preparing" -> blink ? 0xFFFFD166 : 0xFFFFFFFF;
             default -> 0xFFBDBDBD;
+        };
+    }
+
+    private static int pulseColor(WarMarkerDto marker) {
+        boolean blink = (System.currentTimeMillis() / 300L) % 2L == 0L;
+        if (!blink) {
+            return 0x00000000;
+        }
+        return switch (marker.viewerRelation()) {
+            case "attacker" -> 0xFFFF3333;
+            case "defender" -> 0xFF33AAFF;
+            case "admin" -> 0xFFFFD166;
+            default -> 0xFFFF7A59;
         };
     }
 

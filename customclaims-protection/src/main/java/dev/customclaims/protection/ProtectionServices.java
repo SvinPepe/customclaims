@@ -24,6 +24,7 @@ public record ProtectionServices(
         OpenPartiesProtectionBypassService openPartiesProtectionBypassService = new OpenPartiesProtectionBypassService();
         ExplosionProtectionService explosionProtectionService = new ExplosionProtectionService(
                 coreServices.territoryService(),
+                coreServices.dataStorageService(),
                 openPartiesProtectionBypassService
         );
         StorageProtectionService storageProtectionService = new StorageProtectionService(

@@ -79,7 +79,8 @@ public final class ClaimRulesCommand {
                     .explosionProtectionService()
                     .isPartyExplosionProtectionEnabled(source.getServer(), party);
             source.sendSuccess(() -> Component.literal(
-                    "Explosion protection for " + party + ": " + (protectedFromExplosions ? "enabled" : "disabled")
+                    "Explosion protection for " + partyLabel(source, party) + ": "
+                            + (protectedFromExplosions ? "enabled" : "disabled")
             ), false);
             return Command.SINGLE_SUCCESS;
         });
@@ -91,11 +92,12 @@ public final class ClaimRulesCommand {
                     .explosionProtectionService()
                     .setPartyExplosionProtection(source.getServer(), party, enabled);
             if (!updated) {
-                source.sendFailure(Component.literal("Failed to update Open Parties and Claims explosion rules for " + party + "."));
+                source.sendFailure(Component.literal("Failed to save CustomClaims explosion rules for " + partyLabel(source, party) + "."));
                 return 0;
             }
             source.sendSuccess(() -> Component.literal(
-                    "Explosion protection for " + party + " is now " + (enabled ? "enabled" : "disabled")
+                    "Explosion protection for " + partyLabel(source, party) + " is now "
+                            + (enabled ? "enabled" : "disabled")
             ), true);
             return Command.SINGLE_SUCCESS;
         });
@@ -119,5 +121,12 @@ public final class ClaimRulesCommand {
     @FunctionalInterface
     private interface PartyCommand {
         int run(PartyId partyId);
+    }
+
+    private static String partyLabel(CommandSourceStack source, PartyId partyId) {
+        return CustomClaimsCoreMod.services().partyService()
+                .describeParty(source.getServer(), partyId)
+                .map(info -> info.name() + " (owner: " + info.ownerName() + ")")
+                .orElse(partyId.toString());
     }
 }

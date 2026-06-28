@@ -8,9 +8,11 @@ import net.minecraft.server.level.ServerPlayer;
 
 public final class CaptureProgressService {
     private final dev.customclaims.core.service.PartyService partyService;
+    private final WarLivesService livesService;
 
-    public CaptureProgressService(dev.customclaims.core.service.PartyService partyService) {
+    public CaptureProgressService(dev.customclaims.core.service.PartyService partyService, WarLivesService livesService) {
         this.partyService = partyService;
+        this.livesService = livesService;
     }
 
     public CaptureTickResult nextProgress(MinecraftServer server, ServerLevel level, WarData war, AfkTracker afkTracker) {
@@ -25,6 +27,9 @@ public final class CaptureProgressService {
                 continue;
             }
             if (afkTracker.isAfk(player)) {
+                continue;
+            }
+            if (!livesService.canContribute(player, war)) {
                 continue;
             }
 

@@ -20,6 +20,7 @@ First-pass MVP features:
 - preparation and active war phases
 - contested chunk state with temporary OPC fake-owner transfer
 - capture progress ticking, milestones, bossbar, and actionbar
+- personal war lives with vanilla sidebar scoreboard display
 - participant notifications for declaration, start, progress, and end
 - raid window checks
 - basic AFK tracking

@@ -27,14 +27,15 @@ maven.modrinth:open-parties-and-claims:${opc_version}
 - `customclaims-war`: chunk war flow, preparation/active phases, raid windows,
   border validation, contested claim ownership, capture progress, bossbar/actionbar,
   participant notifications, and war admin commands.
-- `customclaims-protection`: block interaction limits, storage rules, explosion
-  rules, Wither rules, villager protection, OPC protection bypass for allowed actions,
-  and `/claimrules`.
-- `customclaims-xaero`: fair-play war overlay payloads and client overlay. It does
-  not write Xaero waypoints or persistent map data.
+- `customclaims-protection`: block interaction limits, storage rules, CustomClaims
+  explosion filtering with best-effort OPC sync, Wither rules, villager protection,
+  OPC protection bypass for allowed actions, and `/claimrules`.
+- `customclaims-xaero`: fair-play war marker payloads, Xaero temporary war
+  waypoints, and an optional legacy client overlay. It does not send global
+  claim-owner map data.
 - `customclaims-create`: placeholder module for Create contraption protection hooks.
-- `customclaims-big-cannons`: placeholder module for Create Big Cannons projectile
-  and ownership rules.
+- `customclaims-big-cannons`: optional Create Big Cannons integration for terrain
+  damage filtering and projectile launch blocking from protected claims.
 
 ## War Flow
 
@@ -63,6 +64,10 @@ While active, Custom Claims treats the chunk as shared only for the attacker and
 defender parties. Those players can break/place and use the configured war protections
 in the contested chunk; outsiders do not get the contested bypass.
 
+At active start, every current attacker/defender OPC party member gets personal war
+lives. The default is `3`. New members who join a party after active start have `0`
+lives for that war.
+
 On finish:
 
 - attacker capture at `100%` transfers the claim to the attacking party through OPC;
@@ -80,6 +85,7 @@ Every second:
 
 - each non-AFK attacker in the contested chunk adds `player_weight_per_second`;
 - each non-AFK defender in the contested chunk subtracts the same weight;
+- players with `0` war lives do not count as attackers or defenders for capture;
 - if at least one attacker is present, attackers also get
   `attacker_presence_bonus_per_second`;
 - if no attacker and no defender is present, progress decays by
@@ -87,7 +93,8 @@ Every second:
 
 Bossbar and actionbar are updated once per second. Participants also receive chat
 notifications for declaration, 60s/10s preparation warnings, active start, capture
-milestones, empty-chunk decay, admin skip, and war end.
+milestones, empty-chunk decay, life loss, admin skip, and war end. Active war lives
+are shown in the vanilla sidebar scoreboard when enabled.
 
 ## Commands
 
@@ -126,9 +133,15 @@ Protection commands:
 /claimrules explosions disable
 ```
 
-`/claimrules explosions enable` enables explosion protection for the player's OPC
-party. `disable` allows explosions for that party by syncing OPC explosion exception
-options where possible.
+`/claimrules explosions enable` enables CustomClaims explosion protection for the
+player's OPC party. `disable` allows explosions for that party. The setting is stored
+by CustomClaims and synced to OPC explosion exception options where possible.
+
+When enabled, CustomClaims removes protected claimed blocks from normal explosion
+damage and blocks Create Big Cannons terrain damage in protected chunks. With the
+Big Cannons compat module loaded, CBC projectiles spawned from protected claimed
+chunks are cancelled before they fly; in this first pass CBC may already have consumed
+the charge or shell before the spawn is cancelled.
 
 ## Permissions
 
@@ -175,14 +188,19 @@ War:
 - `war_ui.bossbar_visible_radius_chunks = 3`
 - `war.contested_owner_uuid = "00000000-0000-0000-0000-00000000cc01"`
 - `war.contested_owner_name = "CC_Contested"`
+- `war.lives.starting_lives = 3`
+- `war.lives.scoreboard_sidebar_enabled = true`
+- `war.lives.scoreboard_objective = "cc_war_lives"`
 
 Protection:
 
-- `explosions.protect_peaceful_claims = true`
-- `explosions.allow_in_war_chunks = true`
 - `foreign_interaction.block_break_limit = 0`
 - `foreign_interaction.block_place_limit = 0`
 - `foreign_interaction.limit_reset_interval_seconds = 3600`
+- `explosions.custom_filter_enabled = true`
+- `explosions.allow_in_war_chunks = true`
+- `big_cannons.block_projectile_launch_from_protected_claims = true`
+- `big_cannons.log_blocked_projectiles = true`
 - `storage_rules.allow_open_storage_on_foreign_claims = true`
 - `storage_rules.protect_storage_from_breaking_on_peaceful_claims = true`
 - `storage_rules.allow_storage_breaking_in_war_chunks = true`
@@ -190,14 +208,21 @@ Protection:
 - `wither_rules.*`
 - `villager_protection.*`
 
-Xaero overlay:
+Xaero:
 
 - `xaero_overlay.visible_radius_chunks = 8`
+- `xaero_overlay.custom_overlay_enabled = false`
+- `xaero_waypoints.enabled = true`
+- `xaero_waypoints.refresh_interval_seconds = 5`
 
-## Xaero Fair-Play Overlay
+## Xaero Fair-Play Markers
 
-The Xaero module sends overlay-only active/preparing war markers to clients. It does
-not create persistent Xaero waypoints and does not expose a global claim-owner map.
+The Xaero module sends active/preparing war markers only to clients allowed by the
+fair-play visibility rules. Compatible clients use those markers to create temporary
+Xaero war waypoints. The old CustomClaims HUD overlay is still present for future
+development, but it is disabled by default through `xaero_overlay.custom_overlay_enabled`.
+
+The module does not expose a global claim-owner map.
 
 A player receives a marker only when:
 
@@ -205,8 +230,9 @@ A player receives a marker only when:
 - they are near the war chunk within `xaero_overlay.visible_radius_chunks`;
 - they have `customclaims.war.admin`.
 
-The client keeps received markers with a short TTL and draws blinking marker text.
-Attackers see `Attack target`, defenders see `Defend target`.
+The client refreshes temporary waypoints at most once per
+`xaero_waypoints.refresh_interval_seconds`. Attackers see `Attack target`, defenders
+see `Defend target` in marker labels and existing war UI.
 
 ## Runtime Data
 
@@ -220,22 +246,24 @@ Important files:
 
 - `wars.txt`: persisted war state, including original claim snapshot for contested chunks.
 - `logs/war.log`: war lifecycle and progress log.
+- `protection/explosion-protection.txt`: CustomClaims party explosion protection toggles.
 
 Foreign interaction counters are runtime-only and are not persisted. They reset globally
 on `foreign_interaction.limit_reset_interval_seconds` or through `/claimrules limits resetall`.
+War lives are persisted with active war data and survive server restart.
 
 ## Build
 
 Compile the main modules:
 
 ```powershell
-gradle --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:compileJava :customclaims-war:compileJava :customclaims-protection:compileJava :customclaims-xaero:compileJava -q
+gradle --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:compileJava :customclaims-war:compileJava :customclaims-protection:compileJava :customclaims-big-cannons:compileJava :customclaims-xaero:compileJava -q
 ```
 
 Build jars for the modules:
 
 ```powershell
-gradle --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:jar :customclaims-war:jar :customclaims-protection:jar :customclaims-xaero:jar -q
+gradle --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:jar :customclaims-war:jar :customclaims-protection:jar :customclaims-big-cannons:jar :customclaims-xaero:jar -q
 ```
 
 Full build:
@@ -264,5 +292,23 @@ After rebuilding jars, copy them into `dvdcraft-test/mods`:
 Copy-Item customclaims-core\build\libs\customclaims_core-0.1.0.jar dvdcraft-test\mods\customclaims_core-0.1.0.jar -Force
 Copy-Item customclaims-war\build\libs\customclaims_war-0.1.0.jar dvdcraft-test\mods\customclaims_war-0.1.0.jar -Force
 Copy-Item customclaims-protection\build\libs\customclaims_protection-0.1.0.jar dvdcraft-test\mods\customclaims_protection-0.1.0.jar -Force
+Copy-Item customclaims-big-cannons\build\libs\customclaims_big_cannons-0.1.0.jar dvdcraft-test\mods\customclaims_big_cannons-0.1.0.jar -Force
 Copy-Item customclaims-xaero\build\libs\customclaims_xaero-0.1.0.jar dvdcraft-test\mods\customclaims_xaero-0.1.0.jar -Force
 ```
+
+Suggested test pass:
+
+1. Start `dvdcraft-test` with OPC `0.27.5`.
+2. Create two OPC parties and claim chunks for the defender.
+3. Stand in a defender border chunk and run `/war start`.
+4. Run `/waradmin skipprep here` for a fast active-phase test.
+5. Verify the claim owner becomes the configured contested fake owner.
+6. Verify attacker and defender can break/place in the contested chunk.
+7. Verify outsiders do not receive contested access.
+8. Verify sidebar objective `cc_war_lives` shows online attacker/defender lives.
+9. Kill a participant and verify lives decrement; at `0`, the player no longer changes ATK/DEF presence.
+10. Verify progress starts at `50%`, attacker bonus applies, and empty chunk decay works.
+11. Verify `/claimrules explosions status|enable|disable` changes CustomClaims explosion filtering and best-effort OPC settings.
+12. With Create Big Cannons installed, verify CBC impacts cannot damage protected chunks and CBC projectiles do not fly when spawned from protected claims.
+13. Finish capture or cancel the war and verify the claim is transferred/restored.
+14. Check `/war list`, `/war near`, bossbar/actionbar, notifications, and temporary Xaero waypoint visibility.

@@ -10,12 +10,13 @@ version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://github.com/customclaims/customclaims"
 authors="${mod_authors}"
-credits="Fair-play war overlay compatible with Xaero minimap/worldmap clients."
+credits="Fair-play temporary war waypoint sync compatible with Xaero minimap/worldmap clients."
 description='''
 ${mod_description}
 
-Shows temporary active/preparing war markers sent by the server.
-No persistent Xaero waypoints or global claim-owner map data are created.
+Creates temporary Xaero war waypoints from server-visible active/preparing war markers.
+The legacy CustomClaims HUD overlay is disabled by default and can be re-enabled in config.
+No global claim-owner map data is sent.
 '''
 
 [[dependencies.${mod_id}]]

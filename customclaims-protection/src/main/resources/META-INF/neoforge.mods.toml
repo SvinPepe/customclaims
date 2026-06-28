@@ -15,11 +15,9 @@ description='''
 ${mod_description}
 
 First-pass MVP features:
-- peaceful claim explosion filtering
-- contested chunk explosion allowance
 - limited foreign block interactions with runtime reset commands
 - OPC protection bypass for allowed foreign and contested interactions
-- party explosion-protection status/toggle commands synced to OPC where possible
+- CustomClaims explosion block filtering with party status/toggle commands and best-effort OPC sync
 - storage opening/breaking rules
 - Wither blocking in configured dimensions
 - basic villager and wandering trader damage protection
