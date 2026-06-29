@@ -1,0 +1,58 @@
+def bundledProjects = [
+        project(':customclaims-core'),
+        project(':customclaims-war'),
+        project(':customclaims-protection'),
+        project(':customclaims-create'),
+        project(':customclaims-big-cannons'),
+        project(':customclaims-xaero')
+]
+
+base {
+    archivesName = 'opac-warfare'
+}
+
+dependencies {
+    implementation project(':customclaims-core')
+    implementation project(':customclaims-war')
+    implementation project(':customclaims-protection')
+    implementation project(':customclaims-create')
+    implementation project(':customclaims-big-cannons')
+    implementation project(':customclaims-xaero')
+
+    compileOnly "maven.modrinth:open-parties-and-claims:${opc_version}"
+    compileOnly "maven.modrinth:create:${create_version}"
+    compileOnly "maven.modrinth:rpl:${rpl_version}"
+    compileOnly "maven.modrinth:create-big-cannons:${cbc_version}"
+
+    localRuntime "maven.modrinth:open-parties-and-claims:${opc_version}"
+    localRuntime "maven.modrinth:create:${create_version}"
+    localRuntime "maven.modrinth:rpl:${rpl_version}"
+    localRuntime "maven.modrinth:create-big-cannons:${cbc_version}"
+}
+
+tasks.named('jar', Jar).configure {
+    archiveBaseName.set('opac-warfare')
+    archiveVersion.set(rootProject.version.toString())
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    dependsOn bundledProjects.collect { it.tasks.named('classes') }
+
+    bundledProjects.each { bundledProject ->
+        from(bundledProject.sourceSets.main.output) {
+            exclude 'META-INF/neoforge.mods.toml'
+            exclude 'META-INF/mods.toml'
+        }
+    }
+
+    manifest {
+        attributes([
+                'Specification-Title'   : 'Open Parties and Claims: Warfare',
+                'Specification-Vendor'  : 'svinpepe',
+                'Specification-Version' : rootProject.version.toString(),
+                'Implementation-Title'  : 'Open Parties and Claims: Warfare',
+                'Implementation-Vendor' : 'svinpepe',
+                'Implementation-Version': rootProject.version.toString()
+        ])
+    }
+}

@@ -26,16 +26,10 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build
-        run: ./gradlew --no-daemon build
+        run: ./gradlew --no-daemon build :opac-warfare:jar
 
-      - name: Upload jars
+      - name: Upload release jar
         uses: actions/upload-artifact@v4
         with:
-          name: opac-warfare-jars
-          path: |
-            customclaims-core/build/libs/*.jar
-            customclaims-war/build/libs/*.jar
-            customclaims-protection/build/libs/*.jar
-            customclaims-create/build/libs/*.jar
-            customclaims-big-cannons/build/libs/*.jar
-            customclaims-xaero/build/libs/*.jar
+          name: opac-warfare-jar
+          path: opac-warfare/build/libs/opac-warfare-*.jar

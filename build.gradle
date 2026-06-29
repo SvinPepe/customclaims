@@ -38,6 +38,11 @@ ext.customClaimsModules = [
                 modId      : 'customclaims_xaero',
                 modName    : 'OPaC Warfare - Xaero Compat',
                 description: 'Fair-play Xaero temporary waypoint sync for active Open Parties and Claims: Warfare conflicts.'
+        ],
+        'opac-warfare'            : [
+                modId      : 'opac_warfare',
+                modName    : 'Open Parties and Claims: Warfare',
+                description: 'Single-jar distribution for the unofficial Open Parties and Claims: Warfare addon.'
         ]
 ]
 
