@@ -19,5 +19,10 @@ public final class ProtectionNetwork {
                 ServerboundSetClaimRulePayload.STREAM_CODEC,
                 ServerboundSetClaimRulePayload::handle
         );
+        registrar.playToServer(
+                ServerboundOpenClaimRulesPayload.TYPE,
+                ServerboundOpenClaimRulesPayload.STREAM_CODEC,
+                ServerboundOpenClaimRulesPayload::handle
+        );
     }
 }

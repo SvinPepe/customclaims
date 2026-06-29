@@ -154,9 +154,11 @@ to OPC explosion exception options where possible.
 on the side's territory. `enable` allows those Create machines on that side's
 territory. Create machines are blocked by default until the side enables them.
 
-`/claimrules gui` opens the optional Open Parties and Claims: Warfare client screen with the explosion
+`/claimrules gui` opens the optional CustomClaims client screen with the explosion
 and Create toggles. If the client module is not installed, the commands remain the
-full fallback.
+full fallback. Client installs also get an `Open Claim Rules` keybind in the
+`CustomClaims` controls category, defaulting to `K`. Cooldown timers tick down live
+in the GUI and disabled toggle buttons show the remaining time.
 
 Side-level toggles have a cooldown from `claimrules.toggle_cooldown_seconds`
 (default `600`). Status commands and `/claimrules gui` do not spend cooldown.

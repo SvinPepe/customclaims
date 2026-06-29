@@ -2,6 +2,7 @@ package dev.customclaims.protection;
 
 import com.mojang.logging.LogUtils;
 import dev.customclaims.core.CustomClaimsCoreMod;
+import dev.customclaims.protection.client.ClaimRulesClientEventRegistrar;
 import dev.customclaims.protection.command.ClaimRulesCommand;
 import dev.customclaims.protection.config.ProtectionConfig;
 import dev.customclaims.protection.event.BlockInteractionHandler;
@@ -12,12 +13,14 @@ import dev.customclaims.protection.event.VillagerDamageHandler;
 import dev.customclaims.protection.event.WitherEventHandler;
 import dev.customclaims.protection.network.ProtectionNetwork;
 import java.time.Instant;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
@@ -34,6 +37,9 @@ public final class CustomClaimsProtectionMod {
         modEventBus.addListener(ProtectionNetwork::registerPayloads);
         modEventBus.addListener(CustomClaimsProtectionMod::onConfigLoading);
         modEventBus.addListener(CustomClaimsProtectionMod::onConfigReloading);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            ClaimRulesClientEventRegistrar.register(modEventBus);
+        }
 
         NeoForge.EVENT_BUS.addListener(ClaimRulesCommand::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, BlockInteractionHandler::onLeftClickBlock);

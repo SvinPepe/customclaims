@@ -13,11 +13,15 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class ClaimRulesScreen extends Screen {
     private ClaimRulesStateDto state;
     private String message;
+    private long explosionCooldownSeconds;
+    private long createCooldownSeconds;
+    private int cooldownTickCounter;
 
     private ClaimRulesScreen(ClaimRulesStateDto state, String message) {
         super(Component.literal("CustomClaims Rules"));
         this.state = state;
         this.message = message == null ? "" : message;
+        resetCooldowns(state);
     }
 
     public static void applyState(ClaimRulesStateDto state, String message, boolean openScreen) {
@@ -25,6 +29,7 @@ public final class ClaimRulesScreen extends Screen {
         if (minecraft.screen instanceof ClaimRulesScreen screen) {
             screen.state = state;
             screen.message = message == null ? "" : message;
+            screen.resetCooldowns(state);
             screen.rebuildWidgets();
             return;
         }
@@ -52,7 +57,7 @@ public final class ClaimRulesScreen extends Screen {
                 .bounds(center - 105, y, 210, 20)
                 .build()).active = state.hasSide()
                 && state.canToggleExplosions()
-                && state.explosionCooldownSeconds() <= 0L;
+                && explosionCooldownSeconds <= 0L;
 
         addRenderableWidget(Button.builder(createButtonLabel(), button ->
                         PacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
@@ -62,11 +67,32 @@ public final class ClaimRulesScreen extends Screen {
                 .bounds(center - 105, y + 24, 210, 20)
                 .build()).active = state.hasSide()
                 && state.canToggleCreate()
-                && state.createCooldownSeconds() <= 0L;
+                && createCooldownSeconds <= 0L;
 
         addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
                 .bounds(center - 50, y + 62, 100, 20)
                 .build());
+    }
+
+    @Override
+    public void tick() {
+        if (explosionCooldownSeconds <= 0L && createCooldownSeconds <= 0L) {
+            return;
+        }
+
+        cooldownTickCounter++;
+        if (cooldownTickCounter < 20) {
+            return;
+        }
+
+        cooldownTickCounter = 0;
+        boolean wasBlocked = explosionCooldownSeconds > 0L || createCooldownSeconds > 0L;
+        explosionCooldownSeconds = Math.max(0L, explosionCooldownSeconds - 1L);
+        createCooldownSeconds = Math.max(0L, createCooldownSeconds - 1L);
+        boolean isBlocked = explosionCooldownSeconds > 0L || createCooldownSeconds > 0L;
+        if (wasBlocked != isBlocked || explosionCooldownSeconds == 0L || createCooldownSeconds == 0L) {
+            rebuildWidgets();
+        }
     }
 
     @Override
@@ -77,8 +103,8 @@ public final class ClaimRulesScreen extends Screen {
         graphics.drawCenteredString(font, title, center, y, 0xFFFFFFFF);
         graphics.drawCenteredString(font, state.sideLabel(), center, y + 18, state.hasSide() ? 0xFFD6F4FF : 0xFFFFAAAA);
 
-        String explosionCooldown = cooldownLine("Explosions", state.explosionCooldownSeconds());
-        String createCooldown = cooldownLine("Create", state.createCooldownSeconds());
+        String explosionCooldown = cooldownLine("Explosions", explosionCooldownSeconds);
+        String createCooldown = cooldownLine("Create", createCooldownSeconds);
         graphics.drawCenteredString(font, explosionCooldown, center, y + 40, 0xFFBDBDBD);
         graphics.drawCenteredString(font, createCooldown, center, y + 52, 0xFFBDBDBD);
 
@@ -95,14 +121,26 @@ public final class ClaimRulesScreen extends Screen {
 
     private Component explosionButtonLabel() {
         String status = state.explosionProtectionEnabled() ? "enabled" : "disabled";
+        if (explosionCooldownSeconds > 0L) {
+            return Component.literal("Explosions: " + status + " | Cooldown " + ClaimRulesService.formatDuration(explosionCooldownSeconds));
+        }
         String action = state.explosionProtectionEnabled() ? "Disable" : "Enable";
         return Component.literal("Explosions: " + status + " | " + action);
     }
 
     private Component createButtonLabel() {
         String status = state.createMachinesEnabled() ? "allowed" : "blocked";
+        if (createCooldownSeconds > 0L) {
+            return Component.literal("Create machines: " + status + " | Cooldown " + ClaimRulesService.formatDuration(createCooldownSeconds));
+        }
         String action = state.createMachinesEnabled() ? "Block" : "Allow";
         return Component.literal("Create machines: " + status + " | " + action);
+    }
+
+    private void resetCooldowns(ClaimRulesStateDto state) {
+        explosionCooldownSeconds = Math.max(0L, state.explosionCooldownSeconds());
+        createCooldownSeconds = Math.max(0L, state.createCooldownSeconds());
+        cooldownTickCounter = 0;
     }
 
     private static String cooldownLine(String label, long seconds) {
