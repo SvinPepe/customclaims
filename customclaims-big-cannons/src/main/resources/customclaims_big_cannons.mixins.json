@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "dev.customclaims.bigcannons.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MountedBigCannonContraptionMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

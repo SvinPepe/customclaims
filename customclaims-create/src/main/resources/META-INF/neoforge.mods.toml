@@ -1,14 +1,14 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-issueTrackerURL="https://github.com/customclaims/customclaims/issues"
+issueTrackerURL="https://github.com/SvinPepe/customclaims/issues"
 showAsResourcePack=false
 
 [[mods]]
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-displayURL="https://github.com/customclaims/customclaims"
+displayURL="https://github.com/SvinPepe/customclaims"
 authors="${mod_authors}"
 credits="Integrates CustomClaims claim rules with Create contraption movement and block-breaking."
 description='''

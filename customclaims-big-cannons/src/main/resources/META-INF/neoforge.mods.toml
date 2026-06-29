@@ -1,14 +1,14 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-issueTrackerURL="https://github.com/customclaims/customclaims/issues"
+issueTrackerURL="https://github.com/SvinPepe/customclaims/issues"
 showAsResourcePack=false
 
 [[mods]]
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-displayURL="https://github.com/customclaims/customclaims"
+displayURL="https://github.com/SvinPepe/customclaims"
 authors="${mod_authors}"
 credits="Integrates CustomClaims protection rules with Create Big Cannons terrain damage and projectile launch."
 description='''
@@ -16,11 +16,15 @@ ${mod_description}
 
 When Create Big Cannons is loaded, this module:
 - cancels CBC terrain damage in CustomClaims protected chunks
-- cancels CBC projectile spawns from protected claimed chunks
+- cancels protected-claim launches before CBC consumes loaded munitions
+- keeps spawn-cancel fallback for unsupported CBC launch paths
 - follows /claimrules explosions enable|disable
 
 When Create Big Cannons is absent, this module starts without active integration.
 '''
+
+[[mixins]]
+config="customclaims_big_cannons.mixins.json"
 
 [[dependencies.${mod_id}]]
 modId="neoforge"
