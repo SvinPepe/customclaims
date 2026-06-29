@@ -1,7 +1,7 @@
 package dev.customclaims.protection.service;
 
 import com.mojang.logging.LogUtils;
-import dev.customclaims.core.api.model.PartyId;
+import dev.customclaims.core.api.model.ClaimSideId;
 import dev.customclaims.core.permissions.CustomClaimsPermissions;
 import dev.customclaims.core.service.DataStorageService;
 import dev.customclaims.core.service.PermissionService;
@@ -34,14 +34,14 @@ public final class ClaimRulesCooldownService {
         this.permissionService = permissionService;
     }
 
-    public long remainingSeconds(MinecraftServer server, PartyId partyId, String ruleId, Instant now) {
+    public long remainingSeconds(MinecraftServer server, ClaimSideId sideId, String ruleId, Instant now) {
         ensureLoaded(server);
         int cooldownSeconds = ProtectionConfig.CLAIMRULES_TOGGLE_COOLDOWN_SECONDS.get();
         if (cooldownSeconds <= 0) {
             return 0L;
         }
 
-        Instant lastToggle = lastToggles.get(key(partyId, ruleId));
+        Instant lastToggle = lastToggles.get(key(sideId, ruleId));
         if (lastToggle == null) {
             return 0L;
         }
@@ -62,9 +62,9 @@ public final class ClaimRulesCooldownService {
         return permissionService.hasPermission(player, CustomClaimsPermissions.ADMIN);
     }
 
-    public void recordToggle(MinecraftServer server, PartyId partyId, String ruleId, Instant now) {
+    public void recordToggle(MinecraftServer server, ClaimSideId sideId, String ruleId, Instant now) {
         ensureLoaded(server);
-        lastToggles.put(key(partyId, ruleId), now);
+        lastToggles.put(key(sideId, ruleId), now);
         save(server);
     }
 
@@ -99,9 +99,12 @@ public final class ClaimRulesCooldownService {
         }
 
         try {
-            return Optional.of(new StoredCooldown(parts[0].trim(), Instant.ofEpochSecond(Long.parseLong(parts[1].trim()))));
-        } catch (NumberFormatException exception) {
-            LOGGER.warn("Ignoring CustomClaims claimrules cooldown line with invalid timestamp: {}", line);
+            return Optional.of(new StoredCooldown(
+                    normalizeStoredKey(parts[0].trim()),
+                    Instant.ofEpochSecond(Long.parseLong(parts[1].trim()))
+            ));
+        } catch (IllegalArgumentException exception) {
+            LOGGER.warn("Ignoring CustomClaims claimrules cooldown line with invalid key or timestamp: {}", line);
             return Optional.empty();
         }
     }
@@ -115,8 +118,16 @@ public final class ClaimRulesCooldownService {
         dataStorageService.writeLines(server, STORAGE_FILE, lines);
     }
 
-    private String key(PartyId partyId, String ruleId) {
-        return partyId.value() + "|" + ruleId;
+    private String key(ClaimSideId sideId, String ruleId) {
+        return sideId.storageKey() + "|" + ruleId;
+    }
+
+    private String normalizeStoredKey(String key) {
+        String[] parts = key.split("\\|", 2);
+        if (parts.length != 2) {
+            return key;
+        }
+        return ClaimSideId.parse(parts[0]).storageKey() + "|" + parts[1];
     }
 
     private record StoredCooldown(String key, Instant lastToggle) {

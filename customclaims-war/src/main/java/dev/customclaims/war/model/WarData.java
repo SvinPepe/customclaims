@@ -2,7 +2,7 @@ package dev.customclaims.war.model;
 
 import dev.customclaims.core.api.model.ChunkPosKey;
 import dev.customclaims.core.api.model.ClaimSnapshot;
-import dev.customclaims.core.api.model.PartyId;
+import dev.customclaims.core.api.model.ClaimSideId;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,8 +15,8 @@ import java.util.UUID;
 
 public final class WarData {
     private final UUID id;
-    private final PartyId attackerParty;
-    private final PartyId defenderParty;
+    private final ClaimSideId attackerSide;
+    private final ClaimSideId defenderSide;
     private final ChunkPosKey targetChunk;
     private final Instant createdAt;
     private WarState state;
@@ -39,10 +39,10 @@ public final class WarData {
     private final Map<UUID, Integer> attackerLives = new LinkedHashMap<>();
     private final Map<UUID, Integer> defenderLives = new LinkedHashMap<>();
 
-    public WarData(UUID id, PartyId attackerParty, PartyId defenderParty, ChunkPosKey targetChunk, Instant createdAt) {
+    public WarData(UUID id, ClaimSideId attackerSide, ClaimSideId defenderSide, ChunkPosKey targetChunk, Instant createdAt) {
         this.id = id;
-        this.attackerParty = attackerParty;
-        this.defenderParty = defenderParty;
+        this.attackerSide = attackerSide;
+        this.defenderSide = defenderSide;
         this.targetChunk = targetChunk;
         this.createdAt = createdAt;
         this.state = WarState.PREPARING;
@@ -54,12 +54,12 @@ public final class WarData {
         return id;
     }
 
-    public PartyId attackerParty() {
-        return attackerParty;
+    public ClaimSideId attackerSide() {
+        return attackerSide;
     }
 
-    public PartyId defenderParty() {
-        return defenderParty;
+    public ClaimSideId defenderSide() {
+        return defenderSide;
     }
 
     public ChunkPosKey targetChunk() {
@@ -245,8 +245,8 @@ public final class WarData {
     public String toStorageLine() {
         return String.join("|",
                 id.toString(),
-                encode(attackerParty.value()),
-                encode(defenderParty.value()),
+                encode(attackerSide.storageKey()),
+                encode(defenderSide.storageKey()),
                 encode(targetChunk.levelId()),
                 Integer.toString(targetChunk.x()),
                 Integer.toString(targetChunk.z()),
@@ -275,8 +275,8 @@ public final class WarData {
         try {
             WarData data = new WarData(
                     UUID.fromString(parts[0]),
-                    PartyId.of(decode(parts[1])),
-                    PartyId.of(decode(parts[2])),
+                    ClaimSideId.parse(decode(parts[1])),
+                    ClaimSideId.parse(decode(parts[2])),
                     new ChunkPosKey(decode(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5])),
                     Instant.parse(parts[8])
             );

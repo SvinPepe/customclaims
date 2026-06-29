@@ -2,8 +2,8 @@ package dev.customclaims.war.service;
 
 import dev.customclaims.core.CoreServices;
 import dev.customclaims.core.api.model.ChunkPosKey;
-import dev.customclaims.core.api.model.PartyDisplayInfo;
-import dev.customclaims.core.api.model.PartyId;
+import dev.customclaims.core.api.model.ClaimSideDisplayInfo;
+import dev.customclaims.core.api.model.ClaimSideId;
 import dev.customclaims.war.config.WarConfig;
 import dev.customclaims.war.model.WarData;
 import dev.customclaims.war.model.WarState;
@@ -24,8 +24,8 @@ public final class WarDisplayService {
     public String formatWarStatus(MinecraftServer server, WarData war, Instant now) {
         return label(server, war)
                 + "\nState: " + stateName(war.state()) + " | " + progressText(war)
-                + "\nAttackers: " + partySummary(server, war.attackerParty())
-                + "\nDefenders: " + partySummary(server, war.defenderParty())
+                + "\nAttackers: " + sideSummary(server, war.attackerSide())
+                + "\nDefenders: " + sideSummary(server, war.defenderSide())
                 + "\nPresence: ATK " + war.lastAttackersPresent() + " DEF " + war.lastDefendersPresent()
                 + " | Lives: ATK " + remainingLives(war.attackerLives()) + " DEF " + remainingLives(war.defenderLives())
                 + " | Time: " + timeText(war, now);
@@ -40,8 +40,8 @@ public final class WarDisplayService {
 
     public String formatStart(MinecraftServer server, WarData war) {
         return "War started: " + label(server, war)
-                + "\nAttackers: " + partySummary(server, war.attackerParty())
-                + "\nDefenders: " + partySummary(server, war.defenderParty())
+                + "\nAttackers: " + sideSummary(server, war.attackerSide())
+                + "\nDefenders: " + sideSummary(server, war.defenderSide())
                 + "\nPreparation: " + formatDuration(WarConfig.PREPARATION_SECONDS.get());
     }
 
@@ -50,23 +50,27 @@ public final class WarDisplayService {
     }
 
     public String label(MinecraftServer server, WarData war) {
-        return partyName(server, war.attackerParty())
-                + " vs " + partyName(server, war.defenderParty())
+        return sideName(server, war.attackerSide())
+                + " vs " + sideName(server, war.defenderSide())
                 + " @ " + chunkLabel(war.targetChunk());
     }
 
-    public String partyName(MinecraftServer server, PartyId partyId) {
-        return coreServices.partyService().describeParty(server, partyId)
-                .map(PartyDisplayInfo::name)
-                .orElse("Unknown party");
+    public String sideName(MinecraftServer server, ClaimSideId sideId) {
+        return coreServices.partyService().describeSide(server, sideId)
+                .map(ClaimSideDisplayInfo::name)
+                .orElse(sideId.shortLabel());
     }
 
-    public String partySummary(MinecraftServer server, PartyId partyId) {
-        return coreServices.partyService().describeParty(server, partyId)
+    public String sideSummary(MinecraftServer server, ClaimSideId sideId) {
+        return coreServices.partyService().describeSide(server, sideId)
                 .map(info -> info.name()
                         + " (owner " + info.ownerName()
                         + ", online " + info.onlineCount() + "/" + info.memberCount() + ")")
-                .orElse("Unknown party");
+                .orElse(sideId.shortLabel());
+    }
+
+    public String matchupName(MinecraftServer server, WarData war) {
+        return sideName(server, war.attackerSide()) + " vs " + sideName(server, war.defenderSide());
     }
 
     public String chunkLabel(ChunkPosKey key) {

@@ -20,8 +20,8 @@ public final class WarLivesService {
             return false;
         }
         war.initializeLives(
-                coreServices.partyService().memberIds(server, war.attackerParty()),
-                coreServices.partyService().memberIds(server, war.defenderParty()),
+                coreServices.partyService().sideMemberIds(server, war.attackerSide()),
+                coreServices.partyService().sideMemberIds(server, war.defenderSide()),
                 WarConfig.STARTING_LIVES.get()
         );
         return true;

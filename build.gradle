@@ -12,12 +12,12 @@ ext.customClaimsModules = [
         'customclaims-core'       : [
                 modId      : 'customclaims_core',
                 modName    : 'Custom Claims Core',
-                description: 'Core API, Open Parties and Claims adapter layer, shared services, configs, and storage.'
+                description: 'Core API, Open Parties and Claims side adapter layer, shared services, configs, and storage.'
         ],
         'customclaims-war'        : [
                 modId      : 'customclaims_war',
                 modName    : 'Custom Claims War',
-                description: 'Chunk war MVP: war data, raid windows, contested chunks, capture progress, and commands.'
+                description: 'Chunk war MVP for party and solo sides: war data, raid windows, contested chunks, capture progress, and commands.'
         ],
         'customclaims-protection' : [
                 modId      : 'customclaims_protection',

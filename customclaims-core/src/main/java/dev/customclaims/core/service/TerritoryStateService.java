@@ -1,7 +1,7 @@
 package dev.customclaims.core.service;
 
 import dev.customclaims.core.api.model.ChunkPosKey;
-import dev.customclaims.core.api.model.PartyId;
+import dev.customclaims.core.api.model.ClaimSideId;
 import dev.customclaims.core.api.model.TerritoryStatus;
 import java.time.Instant;
 import java.util.Map;
@@ -9,15 +9,15 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class TerritoryStateService {
-    private record ContestedParties(PartyId attacker, PartyId defender) {
-        private boolean contains(PartyId partyId) {
-            return attacker.equals(partyId) || defender.equals(partyId);
+    private record ContestedSides(ClaimSideId attacker, ClaimSideId defender) {
+        private boolean contains(ClaimSideId sideId) {
+            return attacker.equals(sideId) || defender.equals(sideId);
         }
     }
 
     private final Map<ChunkPosKey, TerritoryStatus> statusOverrides = new ConcurrentHashMap<>();
-    private final Map<ChunkPosKey, PartyId> ownerOverrides = new ConcurrentHashMap<>();
-    private final Map<ChunkPosKey, ContestedParties> contestedParties = new ConcurrentHashMap<>();
+    private final Map<ChunkPosKey, ClaimSideId> ownerOverrides = new ConcurrentHashMap<>();
+    private final Map<ChunkPosKey, ContestedSides> contestedParties = new ConcurrentHashMap<>();
     private final Map<ChunkPosKey, Instant> postWarProtectionUntil = new ConcurrentHashMap<>();
 
     public Optional<TerritoryStatus> statusOverride(ChunkPosKey key) {
@@ -32,19 +32,19 @@ public final class TerritoryStateService {
         return Optional.ofNullable(statusOverrides.get(key));
     }
 
-    public Optional<PartyId> ownerOverride(ChunkPosKey key) {
+    public Optional<ClaimSideId> ownerOverride(ChunkPosKey key) {
         return Optional.ofNullable(ownerOverrides.get(key));
     }
 
-    public void markContested(ChunkPosKey key, PartyId attacker, PartyId defender) {
+    public void markContested(ChunkPosKey key, ClaimSideId attacker, ClaimSideId defender) {
         statusOverrides.put(key, TerritoryStatus.WAR_CONTESTED);
-        contestedParties.put(key, new ContestedParties(attacker, defender));
+        contestedParties.put(key, new ContestedSides(attacker, defender));
         postWarProtectionUntil.remove(key);
     }
 
-    public boolean isContestedParticipant(ChunkPosKey key, PartyId partyId) {
-        ContestedParties parties = contestedParties.get(key);
-        return parties != null && parties.contains(partyId);
+    public boolean isContestedParticipant(ChunkPosKey key, ClaimSideId sideId) {
+        ContestedSides sides = contestedParties.get(key);
+        return sides != null && sides.contains(sideId);
     }
 
     public void markPostWarProtected(ChunkPosKey key, Instant until) {
@@ -59,7 +59,7 @@ public final class TerritoryStateService {
         contestedParties.remove(key);
     }
 
-    public void setOwnerOverride(ChunkPosKey key, PartyId owner) {
+    public void setOwnerOverride(ChunkPosKey key, ClaimSideId owner) {
         ownerOverrides.put(key, owner);
     }
 

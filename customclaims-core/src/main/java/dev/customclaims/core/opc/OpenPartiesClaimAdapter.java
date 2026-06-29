@@ -3,6 +3,7 @@ package dev.customclaims.core.opc;
 import dev.customclaims.core.api.ClaimAdapter;
 import dev.customclaims.core.api.PartyAdapter;
 import dev.customclaims.core.api.model.ClaimSnapshot;
+import dev.customclaims.core.api.model.ClaimSideId;
 import dev.customclaims.core.api.model.PartyDisplayInfo;
 import dev.customclaims.core.api.model.PartyId;
 import java.util.Collection;
@@ -27,14 +28,40 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
 
     @Override
     public Optional<PartyId> getClaimOwner(ServerLevel level, ChunkPos chunkPos) {
-        return getClaimOwner(api(level.getServer()), level, chunkPos);
+        return getClaimSideOwner(level, chunkPos).flatMap(ClaimSideId::partyId);
+    }
+
+    @Override
+    public Optional<ClaimSideId> getClaimSideOwner(ServerLevel level, ChunkPos chunkPos) {
+        return getClaimSideOwner(api(level.getServer()), level, chunkPos);
     }
 
     @Override
     public boolean transferClaim(ServerLevel level, ChunkPos chunkPos, PartyId newOwner) {
+        return transferClaimToSide(level, chunkPos, ClaimSideId.party(newOwner));
+    }
+
+    @Override
+    public boolean transferClaimToSide(ServerLevel level, ChunkPos chunkPos, ClaimSideId newOwner) {
+        if (newOwner.isPlayer()) {
+            UUID ownerUuid = newOwner.playerUuid().orElse(null);
+            if (ownerUuid == null) {
+                return false;
+            }
+
+            IPlayerChunkClaimAPI oldClaim = api(level.getServer()).getServerClaimsManager()
+                    .get(level.dimension().location(), chunkPos);
+            int subConfigIndex = oldClaim == null ? 0 : oldClaim.getSubConfigIndex();
+            boolean forceload = oldClaim != null && oldClaim.isForceloadable();
+            return claimForPlayer(level, chunkPos, ownerUuid, subConfigIndex, forceload)
+                    && getClaimSnapshot(level, chunkPos)
+                    .map(snapshot -> snapshot.ownerId().equals(ownerUuid))
+                    .orElse(false);
+        }
+
         OpenPACServerAPI api = api(level.getServer());
 
-        Optional<UUID> partyUuid = parsePartyUuid(newOwner);
+        Optional<UUID> partyUuid = newOwner.partyId().flatMap(this::parsePartyUuid);
         if (partyUuid.isEmpty()) {
             return false;
         }
@@ -50,7 +77,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
         int subConfigIndex = oldClaim == null ? 0 : oldClaim.getSubConfigIndex();
         boolean forceload = oldClaim != null && oldClaim.isForceloadable();
         claimsManager.claim(level.dimension().location(), ownerUuid, subConfigIndex, chunkPos.x, chunkPos.z, forceload);
-        return getClaimOwner(level, chunkPos).filter(newOwner::equals).isPresent();
+        return getClaimSideOwner(level, chunkPos).filter(newOwner::equals).isPresent();
     }
 
     @Override
@@ -158,23 +185,24 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
         ));
     }
 
-    private Optional<PartyId> getClaimOwner(OpenPACServerAPI api, ServerLevel level, ChunkPos chunkPos) {
+    private Optional<ClaimSideId> getClaimSideOwner(OpenPACServerAPI api, ServerLevel level, ChunkPos chunkPos) {
         IPlayerChunkClaimAPI claim = api.getServerClaimsManager().get(level.dimension().location(), chunkPos);
         if (claim == null) {
             return Optional.empty();
         }
 
         IServerPartyAPI party;
-        if (api.getServerClaimsManager().getPlayerInfo(claim.getPlayerId()).isPartyOwned()) {
+        var playerInfo = api.getServerClaimsManager().getPlayerInfo(claim.getPlayerId());
+        if (playerInfo != null && playerInfo.isPartyOwned()) {
             party = api.getPartyManager().getPartyByOwner(claim.getPlayerId());
         } else {
             party = api.getPartyManager().getPartyByMember(claim.getPlayerId());
         }
 
-        if (party == null) {
-            return Optional.empty();
+        if (party != null) {
+            return Optional.of(ClaimSideId.party(PartyId.of(party.getId().toString())));
         }
-        return Optional.of(PartyId.of(party.getId().toString()));
+        return Optional.of(ClaimSideId.player(claim.getPlayerId()));
     }
 
     private OpenPACServerAPI api(MinecraftServer server) {

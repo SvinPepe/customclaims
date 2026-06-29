@@ -65,9 +65,9 @@ public final class WarNotificationService {
     private void send(MinecraftServer server, WarData war, String message) {
         Component component = Component.literal(message);
         Map<UUID, ServerPlayer> recipients = new LinkedHashMap<>();
-        coreServices.partyService().onlineMembers(server, war.attackerParty())
+        coreServices.partyService().onlineSideMembers(server, war.attackerSide())
                 .forEach(player -> recipients.put(player.getUUID(), player));
-        coreServices.partyService().onlineMembers(server, war.defenderParty())
+        coreServices.partyService().onlineSideMembers(server, war.defenderSide())
                 .forEach(player -> recipients.put(player.getUUID(), player));
         recipients.values().forEach(player -> player.sendSystemMessage(component));
     }

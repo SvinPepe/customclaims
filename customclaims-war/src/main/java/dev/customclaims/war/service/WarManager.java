@@ -3,7 +3,7 @@ package dev.customclaims.war.service;
 import dev.customclaims.core.CoreServices;
 import dev.customclaims.core.api.model.ChunkPosKey;
 import dev.customclaims.core.api.model.ClaimSnapshot;
-import dev.customclaims.core.api.model.PartyId;
+import dev.customclaims.core.api.model.ClaimSideId;
 import dev.customclaims.war.config.WarConfig;
 import dev.customclaims.war.model.WarData;
 import dev.customclaims.war.model.WarMarkerDto;
@@ -78,19 +78,16 @@ public final class WarManager {
         MinecraftServer server = player.server;
         ensureLoaded(server);
 
-        Optional<PartyId> attackerParty = coreServices.partyService().getPlayerParty(player);
-        if (attackerParty.isEmpty()) {
-            return WarOperationResult.fail("You must be in a party to start a war.");
-        }
+        ClaimSideId attackerSide = coreServices.partyService().getPlayerSide(player);
 
         ServerLevel level = player.serverLevel();
         ChunkPos target = player.chunkPosition();
-        Optional<PartyId> defenderParty = coreServices.territoryService().getClaimOwner(level, target);
-        if (defenderParty.isEmpty()) {
-            return WarOperationResult.fail("This chunk is not claimed by another party.");
+        Optional<ClaimSideId> defenderSide = coreServices.territoryService().getClaimOwnerSide(level, target);
+        if (defenderSide.isEmpty()) {
+            return WarOperationResult.fail("This chunk is not claimed by another side.");
         }
-        if (defenderParty.get().equals(attackerParty.get())) {
-            return WarOperationResult.fail("You cannot attack your own party claim.");
+        if (defenderSide.get().equals(attackerSide)) {
+            return WarOperationResult.fail("You cannot attack your own claim.");
         }
         if (raidWindowService.isWarStartBlockedNow()) {
             return WarOperationResult.fail("Wars are blocked by the current raid window.");
@@ -98,8 +95,8 @@ public final class WarManager {
         if (!borderChunkService.isBorderChunk(
                 level,
                 target,
-                attackerParty.get(),
-                defenderParty.get(),
+                attackerSide,
+                defenderSide.get(),
                 WarConfig.ALLOW_DIAGONAL_BORDER_CHUNKS.get()
         )) {
             return WarOperationResult.fail("Target chunk must border wilderness or attacker territory.");
@@ -109,17 +106,17 @@ public final class WarManager {
         if (findByChunk(key).isPresent()) {
             return WarOperationResult.fail("This chunk is already involved in a war.");
         }
-        if (activeWarsByParty(attackerParty.get()) >= WarConfig.MAX_ACTIVE_WARS_PER_PARTY.get()) {
-            return WarOperationResult.fail("Your party is already involved in a war.");
+        if (activeWarsBySide(attackerSide) >= WarConfig.MAX_ACTIVE_WARS_PER_PARTY.get()) {
+            return WarOperationResult.fail("Your side is already involved in a war.");
         }
-        if (activeWarsByParty(defenderParty.get()) >= WarConfig.MAX_ACTIVE_WARS_PER_PARTY.get()) {
-            return WarOperationResult.fail("The defending party is already involved in a war.");
+        if (activeWarsBySide(defenderSide.get()) >= WarConfig.MAX_ACTIVE_WARS_PER_PARTY.get()) {
+            return WarOperationResult.fail("The defending side is already involved in a war.");
         }
-        if (!hasOnlineNonAfkDefender(server, defenderParty.get())) {
-            return WarOperationResult.fail("The defending party has no online non-AFK members.");
+        if (!hasOnlineNonAfkDefender(server, defenderSide.get())) {
+            return WarOperationResult.fail("The defending side has no online non-AFK members.");
         }
 
-        WarData war = new WarData(UUID.randomUUID(), attackerParty.get(), defenderParty.get(), key, Instant.now());
+        WarData war = new WarData(UUID.randomUUID(), attackerSide, defenderSide.get(), key, Instant.now());
         wars.put(war.id(), war);
         save(server);
         coreServices.warLogService().log(server, "START " + describe(war));
@@ -251,8 +248,8 @@ public final class WarManager {
         ensureLoaded(server);
         Optional<WarData> war = activeWars()
                 .filter(value -> value.state() == WarState.ACTIVE)
-                .filter(value -> coreServices.partyService().isSameParty(player, value.attackerParty())
-                        || coreServices.partyService().isSameParty(player, value.defenderParty()))
+                .filter(value -> coreServices.partyService().isSameSide(player, value.attackerSide())
+                        || coreServices.partyService().isSameSide(player, value.defenderSide()))
                 .findFirst();
         if (war.isEmpty()) {
             return;
@@ -335,7 +332,7 @@ public final class WarManager {
                 + " defenders=" + capture.defendersPresent());
 
         if (war.progress() >= 100.0D) {
-            boolean transferred = coreServices.territoryService().transferClaim(level.get(), war.targetChunk().toChunkPos(), war.attackerParty());
+            boolean transferred = coreServices.territoryService().transferClaimToSide(level.get(), war.targetChunk().toChunkPos(), war.attackerSide());
             if (!transferred) {
                 finish(server, war, WarState.FAILED, "claim_transfer_failed");
                 return true;
@@ -374,7 +371,7 @@ public final class WarManager {
         war.setActiveAt(now);
         war.setProgress(Math.max(war.progress(), WarConfig.STARTING_PROGRESS.get()));
         livesService.initializeIfNeeded(server, war);
-        coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerParty(), war.defenderParty());
+        coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerSide(), war.defenderSide());
         coreServices.warLogService().log(server, "ACTIVE " + describe(war));
         notificationService.notifyActive(server, war);
         notifyProgressMilestones(server, war);
@@ -397,15 +394,15 @@ public final class WarManager {
         save(server);
     }
 
-    private boolean hasOnlineNonAfkDefender(MinecraftServer server, PartyId defenderParty) {
-        return coreServices.partyService().onlineMembers(server, defenderParty).stream()
+    private boolean hasOnlineNonAfkDefender(MinecraftServer server, ClaimSideId defenderSide) {
+        return coreServices.partyService().onlineSideMembers(server, defenderSide).stream()
                 .anyMatch(player -> !afkTracker.isAfk(player));
     }
 
-    private long activeWarsByParty(PartyId party) {
+    private long activeWarsBySide(ClaimSideId side) {
         return wars.values().stream()
                 .filter(war -> !war.isTerminal())
-                .filter(war -> war.attackerParty().equals(party) || war.defenderParty().equals(party))
+                .filter(war -> war.attackerSide().equals(side) || war.defenderSide().equals(side))
                 .count();
     }
 
@@ -434,10 +431,10 @@ public final class WarManager {
         if (coreServices.permissionService().hasPermission(player, dev.customclaims.core.permissions.CustomClaimsPermissions.WAR_ADMIN)) {
             return Optional.of("admin");
         }
-        if (coreServices.partyService().isSameParty(player, war.attackerParty())) {
+        if (coreServices.partyService().isSameSide(player, war.attackerSide())) {
             return Optional.of("attacker");
         }
-        if (coreServices.partyService().isSameParty(player, war.defenderParty())) {
+        if (coreServices.partyService().isSameSide(player, war.defenderSide())) {
             return Optional.of("defender");
         }
         if (isNear(player, war, radiusChunks)) {
@@ -457,11 +454,12 @@ public final class WarManager {
     }
 
     private WarMarkerDto markerFor(ServerPlayer player, WarData war, int radiusChunks) {
-        String attackerName = displayService.partyName(player.server, war.attackerParty());
-        String defenderName = displayService.partyName(player.server, war.defenderParty());
+        String attackerName = displayService.sideName(player.server, war.attackerSide());
+        String defenderName = displayService.sideName(player.server, war.defenderSide());
         String relation = viewerRelation(player, war, radiusChunks).orElse("hidden");
         return new WarMarkerDto(
                 markerLabel(player.server, war, relation),
+                waypointName(player.server, war, relation),
                 displayService.stateName(war.state()),
                 war.targetChunk().levelId(),
                 war.targetChunk().x(),
@@ -485,6 +483,15 @@ public final class WarManager {
         };
     }
 
+    private String waypointName(MinecraftServer server, WarData war, String relation) {
+        String matchup = displayService.matchupName(server, war);
+        return switch (relation) {
+            case "attacker" -> "Attack: " + matchup;
+            case "defender" -> "Defend: " + matchup;
+            default -> "War: " + matchup;
+        };
+    }
+
     private String formatWarList(MinecraftServer server, Collection<WarData> wars, Instant now) {
         return wars.stream()
                 .sorted(Comparator.comparing(WarData::createdAt))
@@ -501,7 +508,7 @@ public final class WarManager {
         boolean changed = false;
         for (WarData war : wars.values()) {
             if (war.state() == WarState.ACTIVE) {
-                coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerParty(), war.defenderParty());
+                coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerSide(), war.defenderSide());
                 resolveLevel(server, war.targetChunk()).ifPresent(level -> ensureContestedClaimOwner(level, war));
                 changed |= livesService.initializeIfNeeded(server, war);
             }
@@ -617,8 +624,8 @@ public final class WarManager {
 
     private String describe(WarData war) {
         return war.id()
-                + " attacker=" + war.attackerParty()
-                + " defender=" + war.defenderParty()
+                + " attacker=" + war.attackerSide()
+                + " defender=" + war.defenderSide()
                 + " chunk=" + war.targetChunk().storageKey()
                 + " progress=" + Math.round(war.progress());
     }

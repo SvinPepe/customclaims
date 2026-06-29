@@ -50,7 +50,7 @@ public final class ClaimRulesScreen extends Screen {
                                 !state.explosionProtectionEnabled()
                         )))
                 .bounds(center - 105, y, 210, 20)
-                .build()).active = state.inParty()
+                .build()).active = state.hasSide()
                 && state.canToggleExplosions()
                 && state.explosionCooldownSeconds() <= 0L;
 
@@ -60,7 +60,7 @@ public final class ClaimRulesScreen extends Screen {
                                 !state.createMachinesEnabled()
                         )))
                 .bounds(center - 105, y + 24, 210, 20)
-                .build()).active = state.inParty()
+                .build()).active = state.hasSide()
                 && state.canToggleCreate()
                 && state.createCooldownSeconds() <= 0L;
 
@@ -75,7 +75,7 @@ public final class ClaimRulesScreen extends Screen {
         int center = width / 2;
         int y = Math.max(30, height / 2 - 92);
         graphics.drawCenteredString(font, title, center, y, 0xFFFFFFFF);
-        graphics.drawCenteredString(font, state.partyLabel(), center, y + 18, state.inParty() ? 0xFFD6F4FF : 0xFFFFAAAA);
+        graphics.drawCenteredString(font, state.sideLabel(), center, y + 18, state.hasSide() ? 0xFFD6F4FF : 0xFFFFAAAA);
 
         String explosionCooldown = cooldownLine("Explosions", state.explosionCooldownSeconds());
         String createCooldown = cooldownLine("Create", state.createCooldownSeconds());

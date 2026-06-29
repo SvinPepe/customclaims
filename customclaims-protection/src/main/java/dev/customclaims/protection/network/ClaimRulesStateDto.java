@@ -4,8 +4,8 @@ import dev.customclaims.protection.service.ClaimRulesState;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 
 public record ClaimRulesStateDto(
-        boolean inParty,
-        String partyLabel,
+        boolean hasSide,
+        String sideLabel,
         boolean explosionProtectionEnabled,
         boolean createMachinesEnabled,
         long explosionCooldownSeconds,
@@ -15,8 +15,8 @@ public record ClaimRulesStateDto(
 ) {
     public static ClaimRulesStateDto from(ClaimRulesState state) {
         return new ClaimRulesStateDto(
-                state.inParty(),
-                state.partyLabel(),
+                state.hasSide(),
+                state.sideLabel(),
                 state.explosionProtectionEnabled(),
                 state.createMachinesEnabled(),
                 state.explosionCooldownSeconds(),
@@ -27,8 +27,8 @@ public record ClaimRulesStateDto(
     }
 
     public void write(RegistryFriendlyByteBuf buffer) {
-        buffer.writeBoolean(inParty);
-        buffer.writeUtf(partyLabel);
+        buffer.writeBoolean(hasSide);
+        buffer.writeUtf(sideLabel);
         buffer.writeBoolean(explosionProtectionEnabled);
         buffer.writeBoolean(createMachinesEnabled);
         buffer.writeVarLong(explosionCooldownSeconds);

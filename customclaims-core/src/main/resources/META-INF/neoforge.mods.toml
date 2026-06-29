@@ -10,14 +10,14 @@ version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://github.com/customclaims/customclaims"
 authors="${mod_authors}"
-credits="Built for NeoForge servers that use Open Parties and Claims as the source of party and claim ownership."
+credits="Built for NeoForge servers that use Open Parties and Claims as the source of party and personal claim ownership."
 description='''
 ${mod_description}
 
 This module owns the shared server-side foundation:
 - adapter interfaces for Open Parties and Claims
-- Open Parties and Claims party and claim integration
-- party, claim, chunk, and territory models
+- Open Parties and Claims party, personal claim, and side integration
+- party, player-side, claim, chunk, and territory models
 - shared permission, message, config, storage, log, and rollback service contracts
 
 Other Custom Claims modules should depend on this module instead of calling external claim APIs directly.

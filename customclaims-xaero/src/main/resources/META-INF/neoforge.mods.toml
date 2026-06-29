@@ -14,7 +14,7 @@ credits="Fair-play temporary war waypoint sync compatible with Xaero minimap/wor
 description='''
 ${mod_description}
 
-Creates temporary Xaero war waypoints from server-visible active/preparing war markers.
+Creates named temporary Xaero war waypoints from server-visible active/preparing war markers.
 The legacy CustomClaims HUD overlay is disabled by default and can be re-enabled in config.
 No global claim-owner map data is sent.
 '''

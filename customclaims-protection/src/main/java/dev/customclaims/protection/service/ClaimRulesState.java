@@ -1,11 +1,11 @@
 package dev.customclaims.protection.service;
 
-import dev.customclaims.core.api.model.PartyId;
+import dev.customclaims.core.api.model.ClaimSideId;
 
 public record ClaimRulesState(
-        boolean inParty,
-        PartyId partyId,
-        String partyLabel,
+        boolean hasSide,
+        ClaimSideId sideId,
+        String sideLabel,
         boolean explosionProtectionEnabled,
         boolean createMachinesEnabled,
         long explosionCooldownSeconds,
@@ -13,11 +13,11 @@ public record ClaimRulesState(
         boolean canToggleExplosions,
         boolean canToggleCreate
 ) {
-    public static ClaimRulesState noParty(boolean canToggleExplosions, boolean canToggleCreate) {
+    public static ClaimRulesState noSide(boolean canToggleExplosions, boolean canToggleCreate) {
         return new ClaimRulesState(
                 false,
                 null,
-                "No party",
+                "No claim owner",
                 false,
                 false,
                 0L,

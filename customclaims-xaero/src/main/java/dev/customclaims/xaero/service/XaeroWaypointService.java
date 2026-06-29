@@ -3,6 +3,7 @@ package dev.customclaims.xaero.service;
 import dev.customclaims.war.model.WarMarkerDto;
 import dev.customclaims.xaero.CustomClaimsXaeroMod;
 import dev.customclaims.xaero.config.XaeroCompatConfig;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
@@ -64,6 +65,14 @@ public final class XaeroWaypointService {
         Throwable failure = null;
 
         try {
+            if (createNamedThroughWorldMapSupport(marker.waypointName(), blockX, blockY, blockZ)) {
+                return true;
+            }
+        } catch (ReflectiveOperationException | LinkageError exception) {
+            failure = exception;
+        }
+
+        try {
             if (createThroughMinimapSession(blockX, blockY, blockZ)) {
                 return true;
             }
@@ -90,6 +99,68 @@ public final class XaeroWaypointService {
             logMissingXaeroOnce();
         }
         return false;
+    }
+
+    private static boolean createNamedThroughWorldMapSupport(String waypointName, int blockX, int blockY, int blockZ)
+            throws ReflectiveOperationException {
+        Class<?> supportModsClass = findClass("xaero.map.mods.SupportMods");
+        Class<?> waypointClass = findClass("xaero.map.mods.gui.Waypoint");
+        if (supportModsClass == null || waypointClass == null) {
+            return false;
+        }
+
+        Object minimapSupport = supportModsClass.getField("xaeroMinimap").get(null);
+        if (minimapSupport == null) {
+            return false;
+        }
+
+        Method toggleTemporaryWaypoint = minimapSupport.getClass()
+                .getMethod("toggleTemporaryWaypoint", waypointClass);
+        Constructor<?> constructor = waypointClass.getConstructor(
+                Object.class,
+                int.class,
+                int.class,
+                int.class,
+                String.class,
+                String.class,
+                int.class,
+                int.class,
+                boolean.class,
+                String.class,
+                boolean.class,
+                double.class
+        );
+        Object waypoint = constructor.newInstance(
+                null,
+                blockX,
+                blockY,
+                blockZ,
+                trimWaypointName(waypointName),
+                "W",
+                0,
+                0,
+                false,
+                "",
+                false,
+                dimDiv(minimapSupport)
+        );
+
+        try {
+            waypointClass.getMethod("setTemporary", boolean.class).invoke(waypoint, true);
+        } catch (NoSuchMethodException ignored) {
+            // Older compatible APIs can still accept the waypoint through toggleTemporaryWaypoint.
+        }
+        try {
+            Method waypointExists = minimapSupport.getClass().getMethod("waypointExists", waypointClass);
+            Object exists = waypointExists.invoke(minimapSupport, waypoint);
+            if (Boolean.TRUE.equals(exists)) {
+                return true;
+            }
+        } catch (NoSuchMethodException ignored) {
+            // If the compatibility API cannot check existence, fall through to the old toggle path.
+        }
+        toggleTemporaryWaypoint.invoke(minimapSupport, waypoint);
+        return true;
     }
 
     private static boolean createThroughMinimapSession(int blockX, int blockY, int blockZ)
@@ -145,6 +216,26 @@ public final class XaeroWaypointService {
         } catch (ClassNotFoundException exception) {
             return null;
         }
+    }
+
+    private static double dimDiv(Object minimapSupport) {
+        try {
+            Object value = minimapSupport.getClass().getMethod("getDimDiv").invoke(minimapSupport);
+            if (value instanceof Number number) {
+                return number.doubleValue();
+            }
+        } catch (ReflectiveOperationException | LinkageError ignored) {
+            // Fallback to overworld scale if the optional method is unavailable.
+        }
+        return 1.0D;
+    }
+
+    private static String trimWaypointName(String value) {
+        String name = value == null || value.isBlank() ? "CustomClaims War" : value.trim();
+        if (name.length() <= 32) {
+            return name;
+        }
+        return name.substring(0, 29) + "...";
     }
 
     private static void logMissingXaeroOnce() {

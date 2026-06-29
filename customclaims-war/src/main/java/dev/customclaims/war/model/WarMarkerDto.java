@@ -2,6 +2,7 @@ package dev.customclaims.war.model;
 
 public record WarMarkerDto(
         String label,
+        String waypointName,
         String state,
         String dimension,
         int chunkX,

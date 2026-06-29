@@ -31,7 +31,7 @@ public final class WarConfig {
             .defineInRange("war.capture.empty_chunk_decay_per_second", 0.50D, 0.0D, 100.0D);
 
     public static final ModConfigSpec.IntValue MAX_ACTIVE_WARS_PER_PARTY = BUILDER
-            .comment("Maximum simultaneous active/preparing wars involving one party.")
+            .comment("Maximum simultaneous active/preparing wars involving one side.")
             .defineInRange("max_active_wars_per_party", 1, 1, 128);
 
     public static final ModConfigSpec.BooleanValue ALLOW_DIAGONAL_BORDER_CHUNKS = BUILDER
@@ -72,10 +72,10 @@ public final class WarConfig {
 
     public static final ModConfigSpec.ConfigValue<String> CONTESTED_OWNER_NAME = BUILDER
             .comment("Display name used in logs/messages for the fake contested claim owner.")
-            .define("war.contested_owner_name", "CC_Contested");
+            .define("war.contested_owner_name", "Contested War");
 
     public static final ModConfigSpec.IntValue STARTING_LIVES = BUILDER
-            .comment("Personal war lives assigned to each current attacker/defender party member when a war becomes active.")
+            .comment("Personal war lives assigned to each current attacker/defender side member when a war becomes active.")
             .defineInRange("war.lives.starting_lives", 3, 1, 100);
 
     public static final ModConfigSpec.BooleanValue SCOREBOARD_SIDEBAR_ENABLED = BUILDER

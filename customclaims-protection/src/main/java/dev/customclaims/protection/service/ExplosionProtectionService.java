@@ -1,6 +1,7 @@
 package dev.customclaims.protection.service;
 
 import com.mojang.logging.LogUtils;
+import dev.customclaims.core.api.model.ClaimSideId;
 import dev.customclaims.core.api.model.PartyId;
 import dev.customclaims.core.api.model.TerritoryStatus;
 import dev.customclaims.core.service.DataStorageService;
@@ -37,7 +38,7 @@ public final class ExplosionProtectionService {
     private final TerritoryService territoryService;
     private final DataStorageService dataStorageService;
     private final OpenPartiesProtectionBypassService openPartiesProtectionBypassService;
-    private final Map<String, Boolean> partyExplosionProtection = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> explosionProtection = new ConcurrentHashMap<>();
 
     private MinecraftServer loadedServer;
 
@@ -52,30 +53,38 @@ public final class ExplosionProtectionService {
     }
 
     public boolean isPartyExplosionProtectionEnabled(MinecraftServer server, PartyId partyId) {
+        return isExplosionProtectionEnabled(server, ClaimSideId.party(partyId));
+    }
+
+    public boolean isExplosionProtectionEnabled(MinecraftServer server, ClaimSideId sideId) {
         ensureLoaded(server);
-        Boolean local = partyExplosionProtection.get(partyId.value());
+        Boolean local = explosionProtection.get(sideId.storageKey());
         if (local != null) {
             return local;
         }
-        return readOpenPartiesExplosionProtection(server, partyId).orElse(true);
+        return readOpenPartiesExplosionProtection(server, sideId).orElse(true);
     }
 
     public boolean setPartyExplosionProtection(MinecraftServer server, PartyId partyId, boolean enabled) {
+        return setExplosionProtection(server, ClaimSideId.party(partyId), enabled);
+    }
+
+    public boolean setExplosionProtection(MinecraftServer server, ClaimSideId sideId, boolean enabled) {
         try {
             ensureLoaded(server);
-            partyExplosionProtection.put(partyId.value(), enabled);
+            explosionProtection.put(sideId.storageKey(), enabled);
             save(server);
         } catch (RuntimeException exception) {
-            LOGGER.error("Failed to persist CustomClaims explosion protection rule for {}", partyId, exception);
+            LOGGER.error("Failed to persist CustomClaims explosion protection rule for {}", sideId, exception);
             return false;
         }
 
         try {
-            if (!syncOpenPartiesExplosionProtection(server, partyId, enabled)) {
-                LOGGER.warn("CustomClaims explosion rule for {} was saved, but OPC sync did not apply cleanly", partyId);
+            if (!syncOpenPartiesExplosionProtection(server, sideId, enabled)) {
+                LOGGER.warn("CustomClaims explosion rule for {} was saved, but OPC sync did not apply cleanly", sideId);
             }
         } catch (RuntimeException exception) {
-            LOGGER.warn("CustomClaims explosion rule for {} was saved, but OPC sync failed", partyId, exception);
+            LOGGER.warn("CustomClaims explosion rule for {} was saved, but OPC sync failed", sideId, exception);
         }
 
         return true;
@@ -121,8 +130,8 @@ public final class ExplosionProtectionService {
             return false;
         }
 
-        Optional<PartyId> owner = territoryService.getClaimOwner(level, chunkPos);
-        return owner.filter(partyId -> isPartyExplosionProtectionEnabled(level.getServer(), partyId)).isPresent();
+        Optional<ClaimSideId> owner = territoryService.getClaimOwnerSide(level, chunkPos);
+        return owner.filter(sideId -> isExplosionProtectionEnabled(level.getServer(), sideId)).isPresent();
     }
 
     private void ensureLoaded(MinecraftServer server) {
@@ -135,9 +144,9 @@ public final class ExplosionProtectionService {
                 return;
             }
 
-            partyExplosionProtection.clear();
+            explosionProtection.clear();
             for (String line : dataStorageService.readLines(server, STORAGE_FILE)) {
-                parseStorageLine(line).ifPresent(entry -> partyExplosionProtection.put(entry.partyId(), entry.enabled()));
+                parseStorageLine(line).ifPresent(entry -> explosionProtection.put(entry.sideId(), entry.enabled()));
             }
             loadedServer = server;
         }
@@ -161,20 +170,47 @@ public final class ExplosionProtectionService {
             return Optional.empty();
         }
 
-        return Optional.of(new StoredExplosionRule(parts[0].trim(), Boolean.parseBoolean(value)));
+        try {
+            return Optional.of(new StoredExplosionRule(
+                    ClaimSideId.parse(parts[0].trim()).storageKey(),
+                    Boolean.parseBoolean(value)
+            ));
+        } catch (IllegalArgumentException exception) {
+            LOGGER.warn("Ignoring CustomClaims explosion protection rule with invalid side id: {}", line);
+            return Optional.empty();
+        }
     }
 
     private void save(MinecraftServer server) {
         List<String> lines = new ArrayList<>();
-        partyExplosionProtection.entrySet().stream()
+        explosionProtection.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(entry -> entry.getKey() + "=" + entry.getValue())
                 .forEach(lines::add);
         dataStorageService.writeLines(server, STORAGE_FILE, lines);
     }
 
-    private Optional<Boolean> readOpenPartiesExplosionProtection(MinecraftServer server, PartyId partyId) {
-        Optional<UUID> partyUuid = parsePartyUuid(partyId);
+    private Optional<Boolean> readOpenPartiesExplosionProtection(MinecraftServer server, ClaimSideId sideId) {
+        if (sideId.isPlayer()) {
+            Optional<UUID> playerUuid = sideId.playerUuid();
+            if (playerUuid.isEmpty()) {
+                return Optional.empty();
+            }
+
+            IPlayerConfigAPI config = OpenPACServerAPI.get(server)
+                    .getPlayerConfigManager()
+                    .getLoadedConfig(playerUuid.get());
+            if (config == null) {
+                return Optional.empty();
+            }
+
+            boolean explosionsAllowed = Boolean.TRUE.equals(
+                    effectiveClaimConfig(config).getEffective(PlayerConfigOptions.CLAIM_EXCEPTION_BLOCKS_BY_EXPLOSIONS)
+            );
+            return Optional.of(!explosionsAllowed);
+        }
+
+        Optional<UUID> partyUuid = sideId.partyId().flatMap(this::parsePartyUuid);
         if (partyUuid.isEmpty()) {
             return Optional.empty();
         }
@@ -196,8 +232,20 @@ public final class ExplosionProtectionService {
         return Optional.of(!explosionsAllowed);
     }
 
-    private boolean syncOpenPartiesExplosionProtection(MinecraftServer server, PartyId partyId, boolean enabled) {
-        Optional<UUID> partyUuid = parsePartyUuid(partyId);
+    private boolean syncOpenPartiesExplosionProtection(MinecraftServer server, ClaimSideId sideId, boolean enabled) {
+        if (sideId.isPlayer()) {
+            Optional<UUID> playerUuid = sideId.playerUuid();
+            if (playerUuid.isEmpty()) {
+                return false;
+            }
+
+            IPlayerConfigAPI config = OpenPACServerAPI.get(server)
+                    .getPlayerConfigManager()
+                    .getLoadedConfig(playerUuid.get());
+            return config != null && setExplosionExceptionOnConfigAndSubConfigs(config, !enabled);
+        }
+
+        Optional<UUID> partyUuid = sideId.partyId().flatMap(this::parsePartyUuid);
         if (partyUuid.isEmpty()) {
             return false;
         }
@@ -301,6 +349,6 @@ public final class ExplosionProtectionService {
         }
     }
 
-    private record StoredExplosionRule(String partyId, boolean enabled) {
+    private record StoredExplosionRule(String sideId, boolean enabled) {
     }
 }

@@ -49,6 +49,7 @@ public record ClientboundWarMarkersPayload(List<WarMarkerDto> markers) implement
 
     private static void writeMarker(RegistryFriendlyByteBuf buffer, WarMarkerDto marker) {
         buffer.writeUtf(marker.label());
+        buffer.writeUtf(marker.waypointName());
         buffer.writeUtf(marker.state());
         buffer.writeUtf(marker.dimension());
         buffer.writeVarInt(marker.chunkX());
@@ -64,6 +65,7 @@ public record ClientboundWarMarkersPayload(List<WarMarkerDto> markers) implement
 
     private static WarMarkerDto readMarker(RegistryFriendlyByteBuf buffer) {
         return new WarMarkerDto(
+                buffer.readUtf(),
                 buffer.readUtf(),
                 buffer.readUtf(),
                 buffer.readUtf(),

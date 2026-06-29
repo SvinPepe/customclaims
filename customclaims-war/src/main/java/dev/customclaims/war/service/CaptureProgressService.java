@@ -33,9 +33,9 @@ public final class CaptureProgressService {
                 continue;
             }
 
-            if (partyService.isSameParty(player, war.attackerParty())) {
+            if (partyService.isSameSide(player, war.attackerSide())) {
                 attackers++;
-            } else if (partyService.isSameParty(player, war.defenderParty())) {
+            } else if (partyService.isSameSide(player, war.defenderSide())) {
                 defenders++;
             }
         }

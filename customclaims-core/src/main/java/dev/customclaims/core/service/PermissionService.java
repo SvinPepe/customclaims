@@ -10,6 +10,7 @@ public final class PermissionService {
     public boolean hasPermission(ServerPlayer player, String permission) {
         return player.getTags().contains(permission)
                 || player.getTags().contains(CustomClaimsPermissions.BYPASS)
+                || CoreConfig.DEFAULT_PLAYER_PERMISSIONS.get().contains(permission)
                 || player.createCommandSourceStack().hasPermission(CoreConfig.OP_PERMISSION_LEVEL.get());
     }
 

@@ -1,8 +1,8 @@
 package dev.customclaims.protection.service;
 
 import com.mojang.logging.LogUtils;
-import dev.customclaims.core.api.model.PartyId;
 import dev.customclaims.core.api.model.ChunkPosKey;
+import dev.customclaims.core.api.model.ClaimSideId;
 import dev.customclaims.core.api.model.TerritoryStatus;
 import dev.customclaims.core.service.DataStorageService;
 import dev.customclaims.core.service.PartyService;
@@ -29,7 +29,7 @@ public final class CreateMachinesProtectionService {
     private final TerritoryStateService territoryStateService;
     private final PartyService partyService;
     private final DataStorageService dataStorageService;
-    private final Map<String, Boolean> partyCreateMachinesEnabled = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> createMachinesEnabled = new ConcurrentHashMap<>();
 
     private MinecraftServer loadedServer;
 
@@ -45,19 +45,19 @@ public final class CreateMachinesProtectionService {
         this.dataStorageService = dataStorageService;
     }
 
-    public boolean isPartyCreateMachinesEnabled(MinecraftServer server, PartyId partyId) {
+    public boolean isCreateMachinesEnabled(MinecraftServer server, ClaimSideId sideId) {
         ensureLoaded(server);
-        return partyCreateMachinesEnabled.getOrDefault(partyId.value(), false);
+        return createMachinesEnabled.getOrDefault(sideId.storageKey(), false);
     }
 
-    public boolean setPartyCreateMachinesEnabled(MinecraftServer server, PartyId partyId, boolean enabled) {
+    public boolean setCreateMachinesEnabled(MinecraftServer server, ClaimSideId sideId, boolean enabled) {
         try {
             ensureLoaded(server);
-            partyCreateMachinesEnabled.put(partyId.value(), enabled);
+            createMachinesEnabled.put(sideId.storageKey(), enabled);
             save(server);
             return true;
         } catch (RuntimeException exception) {
-            LOGGER.error("Failed to persist CustomClaims Create machine rule for {}", partyId, exception);
+            LOGGER.error("Failed to persist CustomClaims Create machine rule for {}", sideId, exception);
             return false;
         }
     }
@@ -76,8 +76,8 @@ public final class CreateMachinesProtectionService {
             return actorId == null || isContestedParticipant(level, chunkPos, actorId);
         }
 
-        Optional<PartyId> owner = territoryService.getClaimOwner(level, chunkPos);
-        return owner.map(partyId -> isPartyCreateMachinesEnabled(level.getServer(), partyId)).orElse(true);
+        Optional<ClaimSideId> owner = territoryService.getClaimOwnerSide(level, chunkPos);
+        return owner.map(sideId -> isCreateMachinesEnabled(level.getServer(), sideId)).orElse(true);
     }
 
     private boolean isContestedParticipant(ServerLevel level, ChunkPos chunkPos, UUID actorId) {
@@ -87,9 +87,8 @@ public final class CreateMachinesProtectionService {
         }
 
         ChunkPosKey key = ChunkPosKey.from(level, chunkPos);
-        return partyService.getPlayerParty(player)
-                .filter(partyId -> territoryStateService.isContestedParticipant(key, partyId))
-                .isPresent();
+        return territoryStateService.isContestedParticipant(key, partyService.getPlayerSide(player))
+                || territoryStateService.isContestedParticipant(key, ClaimSideId.player(player.getUUID()));
     }
 
     private void ensureLoaded(MinecraftServer server) {
@@ -102,9 +101,9 @@ public final class CreateMachinesProtectionService {
                 return;
             }
 
-            partyCreateMachinesEnabled.clear();
+            createMachinesEnabled.clear();
             for (String line : dataStorageService.readLines(server, STORAGE_FILE)) {
-                parseStorageLine(line).ifPresent(entry -> partyCreateMachinesEnabled.put(entry.partyId(), entry.enabled()));
+                parseStorageLine(line).ifPresent(entry -> createMachinesEnabled.put(entry.sideId(), entry.enabled()));
             }
             loadedServer = server;
         }
@@ -128,18 +127,26 @@ public final class CreateMachinesProtectionService {
             return Optional.empty();
         }
 
-        return Optional.of(new StoredCreateRule(parts[0].trim(), Boolean.parseBoolean(value)));
+        try {
+            return Optional.of(new StoredCreateRule(
+                    ClaimSideId.parse(parts[0].trim()).storageKey(),
+                    Boolean.parseBoolean(value)
+            ));
+        } catch (IllegalArgumentException exception) {
+            LOGGER.warn("Ignoring CustomClaims Create machine rule with invalid side id: {}", line);
+            return Optional.empty();
+        }
     }
 
     private void save(MinecraftServer server) {
         List<String> lines = new ArrayList<>();
-        partyCreateMachinesEnabled.entrySet().stream()
+        createMachinesEnabled.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(entry -> entry.getKey() + "=" + entry.getValue())
                 .forEach(lines::add);
         dataStorageService.writeLines(server, STORAGE_FILE, lines);
     }
 
-    private record StoredCreateRule(String partyId, boolean enabled) {
+    private record StoredCreateRule(String sideId, boolean enabled) {
     }
 }

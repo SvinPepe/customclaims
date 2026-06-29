@@ -10,13 +10,14 @@ version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://github.com/customclaims/customclaims"
 authors="${mod_authors}"
-credits="Depends on Custom Claims Core for territory and party ownership abstractions."
+credits="Depends on Custom Claims Core for territory side ownership abstractions."
 description='''
 ${mod_description}
 
 First-pass MVP features:
 - /war start, /war status, /war list, and /war near
 - /waradmin stop, skipprep, and setprogress by current/chosen chunk
+- party-vs-party, party-vs-solo, and solo-vs-solo war sides
 - preparation and active war phases
 - contested chunk state with temporary OPC fake-owner transfer
 - capture progress ticking, milestones, bossbar, and actionbar
@@ -26,7 +27,7 @@ First-pass MVP features:
 - basic AFK tracking
 - active war persistence after restart
 
-The module is server-side first and delegates claim ownership to Custom Claims Core.
+The module is server-side first and delegates side ownership to Custom Claims Core.
 '''
 
 [[dependencies.${mod_id}]]

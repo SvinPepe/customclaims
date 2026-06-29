@@ -4,8 +4,8 @@ Custom Claims is a NeoForge 1.21.1 multi-module mod project for server-side nati
 Open Parties and Claims territories, chunk wars, and claim protection.
 
 The project currently assumes Open Parties and Claims is installed. OPC is the source
-of party membership and claim ownership; the old scoreboard/local fallback is no longer
-part of the runtime path.
+of party membership and claim ownership; CustomClaims maps OPC claims to a war side:
+either `party:<uuid>` or `player:<uuid>`.
 
 ## Requirements
 
@@ -22,14 +22,14 @@ maven.modrinth:open-parties-and-claims:${opc_version}
 
 ## Modules
 
-- `customclaims-core`: shared services, permissions, storage, logs, OPC party and
-  claim adapter, party display info, territory state, and contested participant checks.
+- `customclaims-core`: shared services, permissions, storage, logs, OPC party/personal
+  claim adapter, side display info, territory state, and contested participant checks.
 - `customclaims-war`: chunk war flow, preparation/active phases, raid windows,
   border validation, contested claim ownership, capture progress, bossbar/actionbar,
   participant notifications, and war admin commands.
 - `customclaims-protection`: block interaction limits, storage rules, CustomClaims
   explosion filtering with best-effort OPC sync, Wither rules, villager protection,
-  OPC protection bypass for allowed actions, party claimrules cooldowns, the
+  OPC protection bypass for allowed actions, side claimrules cooldowns, the
   CustomClaims client rules GUI, and `/claimrules`.
 - `customclaims-xaero`: fair-play war marker payloads, Xaero temporary war
   waypoints, and an optional legacy client overlay. It does not send global
@@ -41,38 +41,44 @@ maven.modrinth:open-parties-and-claims:${opc_version}
 
 ## War Flow
 
-`/war start` starts a war for the chunk the player is standing in.
+`/war start` starts a war for the chunk the player is standing in. The attacker can
+be an OPC party or a solo player without a party.
 
 The target chunk must:
 
-- be claimed by another OPC party;
+- be claimed by another side;
 - not already be in a non-terminal war;
 - be attackable from a border, meaning at least one 4-neighbor chunk is wilderness
-  or owned by the attacking party;
+  or owned by the attacking side;
 - pass the optional diagonal border rule if `allow_diagonal_border_chunks` is enabled;
 - have at least one online non-AFK defender.
 
-Each party can be involved in only one non-terminal war at a time. `PREPARING` and
-`ACTIVE` both count; `FINISHED`, `FAILED`, and `CANCELLED` do not.
+Each side can be involved in only one non-terminal war at a time by default.
+`PREPARING` and `ACTIVE` both count; `FINISHED`, `FAILED`, and `CANCELLED` do not.
+
+Personal claims are treated as follows:
+
+- if the claim owner is in an OPC party, the claim belongs to that party side;
+- if the claim owner is not in a party, the claim belongs to that solo player side.
 
 When the war becomes active, the target OPC claim is temporarily assigned to the fake
 contested owner:
 
 - UUID: `00000000-0000-0000-0000-00000000cc01`
-- Name config label: `CC_Contested`
+- Name config label: `Contested War`
 
 The original claim owner, sub-config index, and forceload flag are saved in war data.
 While active, Custom Claims treats the chunk as shared only for the attacker and
-defender parties. Those players can break/place and use the configured war protections
+defender sides. Those players can break/place and use the configured war protections
 in the contested chunk; outsiders do not get the contested bypass.
 
-At active start, every current attacker/defender OPC party member gets personal war
-lives. The default is `3`. New members who join a party after active start have `0`
-lives for that war.
+At active start, every current attacker/defender side member gets personal war lives.
+The default is `3`. A solo side has one member. New party members who join after
+active start have `0` lives for that war.
 
 On finish:
 
-- attacker capture at `100%` transfers the claim to the attacking party through OPC;
+- attacker capture at `100%` transfers the claim to the attacking side through OPC;
 - cancel/fail restores the original claim owner snapshot;
 - post-war protection is applied for the configured duration.
 
@@ -140,19 +146,20 @@ Protection commands:
 ```
 
 `/claimrules explosions enable` enables CustomClaims explosion protection for the
-player's OPC party. `disable` allows explosions for that party. The setting is stored
-by CustomClaims and synced to OPC explosion exception options where possible.
+player's current side. Players in a party manage nation rules; players without a
+party manage personal-claim rules. The setting is stored by CustomClaims and synced
+to OPC explosion exception options where possible.
 
 `/claimrules create disable` blocks Create drills, saws, other shared
 `BlockBreakingMovementBehaviour` machines, and contraption movement of claimed blocks
-on the party's territory. `enable` allows those Create machines on that party's
-territory. Create machines are blocked by default until a party enables them.
+on the side's territory. `enable` allows those Create machines on that side's
+territory. Create machines are blocked by default until the side enables them.
 
 `/claimrules gui` opens the optional CustomClaims client screen with the explosion
 and Create toggles. If the client module is not installed, the commands remain the
 full fallback.
 
-Party-level toggles have a cooldown from `claimrules.toggle_cooldown_seconds`
+Side-level toggles have a cooldown from `claimrules.toggle_cooldown_seconds`
 (default `600`). Status commands and `/claimrules gui` do not spend cooldown.
 Console and `customclaims.admin` bypass the cooldown.
 
@@ -164,8 +171,8 @@ the charge or shell before the spawn is cancelled.
 
 ## Permissions
 
-Players can satisfy permissions either through player tags or by being at the configured
-operator level. Console has admin-level access.
+Players can satisfy permissions through player tags, configured default-player
+permissions, or the configured operator level. Console has admin-level access.
 
 - `customclaims.war.start`
 - `customclaims.war.status`
@@ -179,6 +186,9 @@ operator level. Console has admin-level access.
 - `customclaims.admin`
 
 The operator threshold is configured by `op_permission_level` in the core common config.
+By default, ordinary players can use `/war start`, `/war status/list/near`, and
+`/claimrules explosions|create status/enable/disable`; admin commands and limits
+reset commands are not granted by default.
 
 ## Common Config
 
@@ -189,6 +199,7 @@ Core:
 
 - `debug_logging = false`
 - `op_permission_level = 2`
+- `permissions.default_player_permissions = ["customclaims.war.start", "customclaims.war.status", "customclaims.explosions.status", "customclaims.explosions.toggle", "customclaims.create.status", "customclaims.create.toggle"]`
 
 War:
 
@@ -208,7 +219,7 @@ War:
 - `post_war_protection_seconds = 1800`
 - `war_ui.bossbar_visible_radius_chunks = 3`
 - `war.contested_owner_uuid = "00000000-0000-0000-0000-00000000cc01"`
-- `war.contested_owner_name = "CC_Contested"`
+- `war.contested_owner_name = "Contested War"`
 - `war.lives.starting_lives = 3`
 - `war.lives.scoreboard_sidebar_enabled = true`
 - `war.lives.scoreboard_objective = "cc_war_lives"`
@@ -248,13 +259,14 @@ The module does not expose a global claim-owner map.
 
 A player receives a marker only when:
 
-- their party attacks or defends that war;
+- their side attacks or defends that war;
 - they are near the war chunk within `xaero_overlay.visible_radius_chunks`;
 - they have `customclaims.war.admin`.
 
 The client refreshes temporary waypoints at most once per
-`xaero_waypoints.refresh_interval_seconds`. Attackers see `Attack target`, defenders
-see `Defend target` in marker labels and existing war UI.
+`xaero_waypoints.refresh_interval_seconds`. Attackers see `Attack: A vs B`, defenders
+see `Defend: A vs B` in named waypoints when the installed Xaero API supports it;
+otherwise CustomClaims falls back to the existing temporary coordinate waypoint.
 
 ## Runtime Data
 
@@ -268,9 +280,9 @@ Important files:
 
 - `wars.txt`: persisted war state, including original claim snapshot for contested chunks.
 - `logs/war.log`: war lifecycle and progress log.
-- `protection/explosion-protection.txt`: CustomClaims party explosion protection toggles.
-- `protection/create-machines.txt`: party Create-machine allow/block toggles.
-- `protection/claimrule-toggle-cooldowns.txt`: last party toggle timestamps for cooldowns.
+- `protection/explosion-protection.txt`: CustomClaims side explosion protection toggles.
+- `protection/create-machines.txt`: side Create-machine allow/block toggles.
+- `protection/claimrule-toggle-cooldowns.txt`: last side toggle timestamps for cooldowns.
 
 Foreign interaction counters are runtime-only and are not persisted. They reset globally
 on `foreign_interaction.limit_reset_interval_seconds` or through `/claimrules limits resetall`.
@@ -324,7 +336,7 @@ Copy-Item customclaims-xaero\build\libs\customclaims_xaero-0.1.0.jar dvdcraft-te
 Suggested test pass:
 
 1. Start `dvdcraft-test` with OPC `0.27.5`.
-2. Create two OPC parties and claim chunks for the defender.
+2. Create two OPC parties and claim chunks for the defender; also test one personal claim owned by a no-party player.
 3. Stand in a defender border chunk and run `/war start`.
 4. Run `/waradmin skipprep here` for a fast active-phase test.
 5. Verify the claim owner becomes the configured contested fake owner.
@@ -336,7 +348,7 @@ Suggested test pass:
 11. Verify `/claimrules explosions status|enable|disable` changes CustomClaims explosion filtering and best-effort OPC settings.
 12. Verify `/claimrules create disable` blocks Create drills/saws and contraption movement in claimed chunks; `enable` allows them again.
 13. Verify repeated `/claimrules explosions enable|disable` and `/claimrules create enable|disable` are limited by the cooldown, while status commands are not.
-14. Verify `/claimrules gui` shows party name, both toggles, and cooldown remaining on clients with the protection module installed.
+14. Verify `/claimrules gui` shows `Nation: ...` for party players and `Personal claims: ...` for solo players.
 15. With Create Big Cannons installed, verify CBC impacts cannot damage protected chunks and CBC projectiles do not fly when spawned from protected claims.
 16. Finish capture or cancel the war and verify the claim is transferred/restored.
-17. Check `/war list`, `/war near`, bossbar/actionbar, notifications, and temporary Xaero waypoint visibility.
+17. Check `/war list`, `/war near`, bossbar/actionbar, notifications, and named temporary Xaero waypoint visibility.

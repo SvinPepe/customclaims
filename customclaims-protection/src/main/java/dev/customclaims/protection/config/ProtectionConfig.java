@@ -19,11 +19,11 @@ public final class ProtectionConfig {
             .defineInRange("foreign_interaction.limit_reset_interval_seconds", 3600, 1, 604_800);
 
     public static final ModConfigSpec.IntValue CLAIMRULES_TOGGLE_COOLDOWN_SECONDS = BUILDER
-            .comment("Cooldown for party-level /claimrules toggles such as explosions and Create machines.")
+            .comment("Cooldown for side-level /claimrules toggles such as explosions and Create machines.")
             .defineInRange("claimrules.toggle_cooldown_seconds", 600, 0, 86_400);
 
     public static final ModConfigSpec.BooleanValue CUSTOM_EXPLOSION_FILTER_ENABLED = BUILDER
-            .comment("If true, CustomClaims filters block damage from explosions in claimed chunks with party explosion protection enabled.")
+            .comment("If true, CustomClaims filters block damage from explosions in claimed chunks with side explosion protection enabled.")
             .define("explosions.custom_filter_enabled", true);
 
     public static final ModConfigSpec.BooleanValue ALLOW_EXPLOSIONS_IN_WAR_CHUNKS = BUILDER

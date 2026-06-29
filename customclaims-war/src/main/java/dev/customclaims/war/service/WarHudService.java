@@ -95,8 +95,8 @@ public final class WarHudService {
     }
 
     private boolean shouldSeeBossbar(ServerPlayer player, WarData war) {
-        if (coreServices.partyService().isSameParty(player, war.attackerParty())
-                || coreServices.partyService().isSameParty(player, war.defenderParty())) {
+        if (coreServices.partyService().isSameSide(player, war.attackerSide())
+                || coreServices.partyService().isSameSide(player, war.defenderSide())) {
             return true;
         }
         if (!player.level().dimension().location().toString().equals(war.targetChunk().levelId())) {
