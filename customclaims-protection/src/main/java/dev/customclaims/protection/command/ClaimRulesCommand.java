@@ -2,15 +2,20 @@ package dev.customclaims.protection.command;
 
 import com.mojang.brigadier.Command;
 import dev.customclaims.core.CustomClaimsCoreMod;
-import dev.customclaims.core.api.model.PartyId;
 import dev.customclaims.core.permissions.CustomClaimsPermissions;
 import dev.customclaims.protection.CustomClaimsProtectionMod;
+import dev.customclaims.protection.network.ClientboundClaimRulesStatePayload;
+import dev.customclaims.protection.network.ClaimRulesStateDto;
+import dev.customclaims.protection.service.ClaimRuleUpdateResult;
+import dev.customclaims.protection.service.ClaimRulesService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 public final class ClaimRulesCommand {
     private ClaimRulesCommand() {
@@ -37,15 +42,30 @@ public final class ClaimRulesCommand {
                         .then(Commands.literal("status")
                                 .requires(source -> CustomClaimsCoreMod.services().permissionService()
                                         .hasPermission(source, CustomClaimsPermissions.EXPLOSIONS_STATUS))
-                                .executes(context -> explosionStatus(context.getSource())))
+                                .executes(context -> ruleStatus(context.getSource(), ClaimRulesService.RULE_EXPLOSIONS)))
                         .then(Commands.literal("enable")
                                 .requires(source -> CustomClaimsCoreMod.services().permissionService()
                                         .hasPermission(source, CustomClaimsPermissions.EXPLOSIONS_TOGGLE))
-                                .executes(context -> setExplosionProtection(context.getSource(), true)))
+                                .executes(context -> setRule(context.getSource(), ClaimRulesService.RULE_EXPLOSIONS, true)))
                         .then(Commands.literal("disable")
                                 .requires(source -> CustomClaimsCoreMod.services().permissionService()
                                         .hasPermission(source, CustomClaimsPermissions.EXPLOSIONS_TOGGLE))
-                                .executes(context -> setExplosionProtection(context.getSource(), false)))));
+                                .executes(context -> setRule(context.getSource(), ClaimRulesService.RULE_EXPLOSIONS, false))))
+                .then(Commands.literal("create")
+                        .then(Commands.literal("status")
+                                .requires(source -> CustomClaimsCoreMod.services().permissionService()
+                                        .hasPermission(source, CustomClaimsPermissions.CREATE_STATUS))
+                                .executes(context -> ruleStatus(context.getSource(), ClaimRulesService.RULE_CREATE)))
+                        .then(Commands.literal("enable")
+                                .requires(source -> CustomClaimsCoreMod.services().permissionService()
+                                        .hasPermission(source, CustomClaimsPermissions.CREATE_TOGGLE))
+                                .executes(context -> setRule(context.getSource(), ClaimRulesService.RULE_CREATE, true)))
+                        .then(Commands.literal("disable")
+                                .requires(source -> CustomClaimsCoreMod.services().permissionService()
+                                        .hasPermission(source, CustomClaimsPermissions.CREATE_TOGGLE))
+                                .executes(context -> setRule(context.getSource(), ClaimRulesService.RULE_CREATE, false))))
+                .then(Commands.literal("gui")
+                        .executes(context -> openGui(context.getSource()))));
     }
 
     private static int limitsMe(CommandSourceStack source) {
@@ -73,60 +93,64 @@ public final class ClaimRulesCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int explosionStatus(CommandSourceStack source) {
-        return withPlayerParty(source, party -> {
-            boolean protectedFromExplosions = CustomClaimsProtectionMod.services()
-                    .explosionProtectionService()
-                    .isPartyExplosionProtectionEnabled(source.getServer(), party);
-            source.sendSuccess(() -> Component.literal(
-                    "Explosion protection for " + partyLabel(source, party) + ": "
-                            + (protectedFromExplosions ? "enabled" : "disabled")
-            ), false);
-            return Command.SINGLE_SUCCESS;
-        });
+    private static int ruleStatus(CommandSourceStack source, String ruleId) {
+        source.sendSuccess(() -> Component.literal(CustomClaimsProtectionMod.services()
+                .claimRulesService()
+                .statusMessage(source, ruleId)), false);
+        return Command.SINGLE_SUCCESS;
     }
 
-    private static int setExplosionProtection(CommandSourceStack source, boolean enabled) {
-        return withPlayerParty(source, party -> {
-            boolean updated = CustomClaimsProtectionMod.services()
-                    .explosionProtectionService()
-                    .setPartyExplosionProtection(source.getServer(), party, enabled);
-            if (!updated) {
-                source.sendFailure(Component.literal("Failed to save CustomClaims explosion rules for " + partyLabel(source, party) + "."));
-                return 0;
-            }
-            source.sendSuccess(() -> Component.literal(
-                    "Explosion protection for " + partyLabel(source, party) + " is now "
-                            + (enabled ? "enabled" : "disabled")
-            ), true);
-            return Command.SINGLE_SUCCESS;
-        });
+    private static int setRule(CommandSourceStack source, String ruleId, boolean enabled) {
+        ClaimRuleUpdateResult result = CustomClaimsProtectionMod.services()
+                .claimRulesService()
+                .setRule(source, ruleId, enabled);
+        if (!result.success()) {
+            source.sendFailure(Component.literal(result.message()));
+            sendGuiRefreshIfOpen(source, result);
+            return 0;
+        }
+
+        source.sendSuccess(() -> Component.literal(result.message()), result.changed());
+        sendGuiRefreshIfOpen(source, result);
+        return Command.SINGLE_SUCCESS;
     }
 
-    private static int withPlayerParty(CommandSourceStack source, PartyCommand action) {
+    private static int openGui(CommandSourceStack source) {
         try {
             ServerPlayer player = source.getPlayerOrException();
-            return CustomClaimsCoreMod.services().partyService().getPlayerParty(player)
-                    .map(action::run)
-                    .orElseGet(() -> {
-                        source.sendFailure(Component.literal("You must be in a party."));
-                        return 0;
-                    });
+            if (!NetworkRegistry.hasChannel(player.connection, ClientboundClaimRulesStatePayload.TYPE.id())) {
+                source.sendFailure(Component.literal("Install CustomClaims Protection on the client to use /claimrules gui. Commands still work."));
+                return 0;
+            }
+
+            PacketDistributor.sendToPlayer(player, new ClientboundClaimRulesStatePayload(
+                    ClaimRulesStateDto.from(CustomClaimsProtectionMod.services().claimRulesService().stateFor(player)),
+                    "",
+                    true
+            ));
+            return Command.SINGLE_SUCCESS;
         } catch (Exception exception) {
-            source.sendFailure(Component.literal("Only players can manage party claim rules."));
+            source.sendFailure(Component.literal("Only players can open the claim rules GUI."));
             return 0;
         }
     }
 
-    @FunctionalInterface
-    private interface PartyCommand {
-        int run(PartyId partyId);
-    }
-
-    private static String partyLabel(CommandSourceStack source, PartyId partyId) {
-        return CustomClaimsCoreMod.services().partyService()
-                .describeParty(source.getServer(), partyId)
-                .map(info -> info.name() + " (owner: " + info.ownerName() + ")")
-                .orElse(partyId.toString());
+    private static void sendGuiRefreshIfOpen(CommandSourceStack source, ClaimRuleUpdateResult result) {
+        if (result.state() == null) {
+            return;
+        }
+        try {
+            ServerPlayer player = source.getPlayerOrException();
+            if (!NetworkRegistry.hasChannel(player.connection, ClientboundClaimRulesStatePayload.TYPE.id())) {
+                return;
+            }
+            PacketDistributor.sendToPlayer(player, new ClientboundClaimRulesStatePayload(
+                    ClaimRulesStateDto.from(result.state()),
+                    result.message(),
+                    false
+            ));
+        } catch (Exception ignored) {
+            // Commands still work without a player/client payload.
+        }
     }
 }

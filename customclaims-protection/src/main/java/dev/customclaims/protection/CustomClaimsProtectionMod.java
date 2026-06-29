@@ -10,6 +10,7 @@ import dev.customclaims.protection.event.ForeignInteractionLimitTickHandler;
 import dev.customclaims.protection.event.StorageProtectionHandler;
 import dev.customclaims.protection.event.VillagerDamageHandler;
 import dev.customclaims.protection.event.WitherEventHandler;
+import dev.customclaims.protection.network.ProtectionNetwork;
 import java.time.Instant;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
@@ -30,6 +31,7 @@ public final class CustomClaimsProtectionMod {
     public CustomClaimsProtectionMod(IEventBus modEventBus, ModContainer modContainer) {
         modContainer.registerConfig(ModConfig.Type.COMMON, ProtectionConfig.SPEC);
         services = ProtectionServices.create(CustomClaimsCoreMod.services());
+        modEventBus.addListener(ProtectionNetwork::registerPayloads);
         modEventBus.addListener(CustomClaimsProtectionMod::onConfigLoading);
         modEventBus.addListener(CustomClaimsProtectionMod::onConfigReloading);
 

@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "dev.customclaims.create.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BlockBreakingMovementBehaviourMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

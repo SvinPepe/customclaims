@@ -1,6 +1,9 @@
 package dev.customclaims.protection;
 
 import dev.customclaims.core.CoreServices;
+import dev.customclaims.protection.service.ClaimRulesCooldownService;
+import dev.customclaims.protection.service.ClaimRulesService;
+import dev.customclaims.protection.service.CreateMachinesProtectionService;
 import dev.customclaims.protection.service.ExplosionProtectionService;
 import dev.customclaims.protection.service.ForeignInteractionLimitService;
 import dev.customclaims.protection.service.OpenPartiesProtectionBypassService;
@@ -10,6 +13,9 @@ import dev.customclaims.protection.service.WitherRulesService;
 
 public record ProtectionServices(
         ExplosionProtectionService explosionProtectionService,
+        CreateMachinesProtectionService createMachinesProtectionService,
+        ClaimRulesCooldownService claimRulesCooldownService,
+        ClaimRulesService claimRulesService,
         ForeignInteractionLimitService foreignInteractionLimitService,
         OpenPartiesProtectionBypassService openPartiesProtectionBypassService,
         StorageProtectionService storageProtectionService,
@@ -27,6 +33,23 @@ public record ProtectionServices(
                 coreServices.dataStorageService(),
                 openPartiesProtectionBypassService
         );
+        CreateMachinesProtectionService createMachinesProtectionService = new CreateMachinesProtectionService(
+                coreServices.territoryService(),
+                coreServices.territoryStateService(),
+                coreServices.partyService(),
+                coreServices.dataStorageService()
+        );
+        ClaimRulesCooldownService claimRulesCooldownService = new ClaimRulesCooldownService(
+                coreServices.dataStorageService(),
+                coreServices.permissionService()
+        );
+        ClaimRulesService claimRulesService = new ClaimRulesService(
+                coreServices.partyService(),
+                coreServices.permissionService(),
+                explosionProtectionService,
+                createMachinesProtectionService,
+                claimRulesCooldownService
+        );
         StorageProtectionService storageProtectionService = new StorageProtectionService(
                 coreServices.territoryService(),
                 coreServices.permissionService()
@@ -36,6 +59,9 @@ public record ProtectionServices(
 
         return new ProtectionServices(
                 explosionProtectionService,
+                createMachinesProtectionService,
+                claimRulesCooldownService,
+                claimRulesService,
                 foreignInteractionLimitService,
                 openPartiesProtectionBypassService,
                 storageProtectionService,

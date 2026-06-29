@@ -10,20 +10,20 @@ version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://github.com/customclaims/customclaims"
 authors="${mod_authors}"
-credits="Placeholder compat module for Create protection rules."
+credits="Integrates CustomClaims claim rules with Create contraption movement and block-breaking."
 description='''
 ${mod_description}
 
-This first-pass module intentionally contains only architectural hooks and TODO service classes.
-Planned scope:
-- Create drill protection
-- saw protection
-- deployer interaction rules
-- contraption movement checks
-- Create mechanism ownership resolution
+When Create is loaded, this module:
+- blocks drills, saws, and other BlockBreakingMovementBehaviour machines in protected claims
+- blocks contraptions from assembling or moving protected claimed blocks
+- follows /claimrules create enable|disable
 
-No deep Create API integration is active yet.
+When Create is absent, this module starts without active integration.
 '''
+
+[[mixins]]
+config="customclaims_create.mixins.json"
 
 [[dependencies.${mod_id}]]
 modId="neoforge"
@@ -47,8 +47,15 @@ ordering="AFTER"
 side="BOTH"
 
 [[dependencies.${mod_id}]]
+modId="customclaims_protection"
+type="required"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
 modId="create"
 type="optional"
-versionRange="[0,)"
+versionRange="[6.0.9,)"
 ordering="AFTER"
 side="BOTH"

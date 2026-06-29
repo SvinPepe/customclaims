@@ -29,11 +29,13 @@ maven.modrinth:open-parties-and-claims:${opc_version}
   participant notifications, and war admin commands.
 - `customclaims-protection`: block interaction limits, storage rules, CustomClaims
   explosion filtering with best-effort OPC sync, Wither rules, villager protection,
-  OPC protection bypass for allowed actions, and `/claimrules`.
+  OPC protection bypass for allowed actions, party claimrules cooldowns, the
+  CustomClaims client rules GUI, and `/claimrules`.
 - `customclaims-xaero`: fair-play war marker payloads, Xaero temporary war
   waypoints, and an optional legacy client overlay. It does not send global
   claim-owner map data.
-- `customclaims-create`: placeholder module for Create contraption protection hooks.
+- `customclaims-create`: optional Create integration for claimrules-controlled
+  contraption block-breaking and claimed-block movement protection.
 - `customclaims-big-cannons`: optional Create Big Cannons integration for terrain
   damage filtering and projectile launch blocking from protected claims.
 
@@ -131,11 +133,28 @@ Protection commands:
 /claimrules explosions status
 /claimrules explosions enable
 /claimrules explosions disable
+/claimrules create status
+/claimrules create enable
+/claimrules create disable
+/claimrules gui
 ```
 
 `/claimrules explosions enable` enables CustomClaims explosion protection for the
 player's OPC party. `disable` allows explosions for that party. The setting is stored
 by CustomClaims and synced to OPC explosion exception options where possible.
+
+`/claimrules create disable` blocks Create drills, saws, other shared
+`BlockBreakingMovementBehaviour` machines, and contraption movement of claimed blocks
+on the party's territory. `enable` allows those Create machines on that party's
+territory. Create machines are blocked by default until a party enables them.
+
+`/claimrules gui` opens the optional CustomClaims client screen with the explosion
+and Create toggles. If the client module is not installed, the commands remain the
+full fallback.
+
+Party-level toggles have a cooldown from `claimrules.toggle_cooldown_seconds`
+(default `600`). Status commands and `/claimrules gui` do not spend cooldown.
+Console and `customclaims.admin` bypass the cooldown.
 
 When enabled, CustomClaims removes protected claimed blocks from normal explosion
 damage and blocks Create Big Cannons terrain damage in protected chunks. With the
@@ -154,6 +173,8 @@ operator level. Console has admin-level access.
 - `customclaims.limits.reset`
 - `customclaims.explosions.status`
 - `customclaims.explosions.toggle`
+- `customclaims.create.status`
+- `customclaims.create.toggle`
 - `customclaims.bypass`
 - `customclaims.admin`
 
@@ -197,6 +218,7 @@ Protection:
 - `foreign_interaction.block_break_limit = 0`
 - `foreign_interaction.block_place_limit = 0`
 - `foreign_interaction.limit_reset_interval_seconds = 3600`
+- `claimrules.toggle_cooldown_seconds = 600`
 - `explosions.custom_filter_enabled = true`
 - `explosions.allow_in_war_chunks = true`
 - `big_cannons.block_projectile_launch_from_protected_claims = true`
@@ -247,6 +269,8 @@ Important files:
 - `wars.txt`: persisted war state, including original claim snapshot for contested chunks.
 - `logs/war.log`: war lifecycle and progress log.
 - `protection/explosion-protection.txt`: CustomClaims party explosion protection toggles.
+- `protection/create-machines.txt`: party Create-machine allow/block toggles.
+- `protection/claimrule-toggle-cooldowns.txt`: last party toggle timestamps for cooldowns.
 
 Foreign interaction counters are runtime-only and are not persisted. They reset globally
 on `foreign_interaction.limit_reset_interval_seconds` or through `/claimrules limits resetall`.
@@ -257,13 +281,13 @@ War lives are persisted with active war data and survive server restart.
 Compile the main modules:
 
 ```powershell
-gradle --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:compileJava :customclaims-war:compileJava :customclaims-protection:compileJava :customclaims-big-cannons:compileJava :customclaims-xaero:compileJava -q
+gradle --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:compileJava :customclaims-war:compileJava :customclaims-protection:compileJava :customclaims-create:compileJava :customclaims-big-cannons:compileJava :customclaims-xaero:compileJava -q
 ```
 
 Build jars for the modules:
 
 ```powershell
-gradle --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:jar :customclaims-war:jar :customclaims-protection:jar :customclaims-big-cannons:jar :customclaims-xaero:jar -q
+gradle --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:jar :customclaims-war:jar :customclaims-protection:jar :customclaims-create:jar :customclaims-big-cannons:jar :customclaims-xaero:jar -q
 ```
 
 Full build:
@@ -292,6 +316,7 @@ After rebuilding jars, copy them into `dvdcraft-test/mods`:
 Copy-Item customclaims-core\build\libs\customclaims_core-0.1.0.jar dvdcraft-test\mods\customclaims_core-0.1.0.jar -Force
 Copy-Item customclaims-war\build\libs\customclaims_war-0.1.0.jar dvdcraft-test\mods\customclaims_war-0.1.0.jar -Force
 Copy-Item customclaims-protection\build\libs\customclaims_protection-0.1.0.jar dvdcraft-test\mods\customclaims_protection-0.1.0.jar -Force
+Copy-Item customclaims-create\build\libs\customclaims_create-0.1.0.jar dvdcraft-test\mods\customclaims_create-0.1.0.jar -Force
 Copy-Item customclaims-big-cannons\build\libs\customclaims_big_cannons-0.1.0.jar dvdcraft-test\mods\customclaims_big_cannons-0.1.0.jar -Force
 Copy-Item customclaims-xaero\build\libs\customclaims_xaero-0.1.0.jar dvdcraft-test\mods\customclaims_xaero-0.1.0.jar -Force
 ```
@@ -309,6 +334,9 @@ Suggested test pass:
 9. Kill a participant and verify lives decrement; at `0`, the player no longer changes ATK/DEF presence.
 10. Verify progress starts at `50%`, attacker bonus applies, and empty chunk decay works.
 11. Verify `/claimrules explosions status|enable|disable` changes CustomClaims explosion filtering and best-effort OPC settings.
-12. With Create Big Cannons installed, verify CBC impacts cannot damage protected chunks and CBC projectiles do not fly when spawned from protected claims.
-13. Finish capture or cancel the war and verify the claim is transferred/restored.
-14. Check `/war list`, `/war near`, bossbar/actionbar, notifications, and temporary Xaero waypoint visibility.
+12. Verify `/claimrules create disable` blocks Create drills/saws and contraption movement in claimed chunks; `enable` allows them again.
+13. Verify repeated `/claimrules explosions enable|disable` and `/claimrules create enable|disable` are limited by the cooldown, while status commands are not.
+14. Verify `/claimrules gui` shows party name, both toggles, and cooldown remaining on clients with the protection module installed.
+15. With Create Big Cannons installed, verify CBC impacts cannot damage protected chunks and CBC projectiles do not fly when spawned from protected claims.
+16. Finish capture or cancel the war and verify the claim is transferred/restored.
+17. Check `/war list`, `/war near`, bossbar/actionbar, notifications, and temporary Xaero waypoint visibility.

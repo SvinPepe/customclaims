@@ -27,7 +27,7 @@ ext.customClaimsModules = [
         'customclaims-create'     : [
                 modId      : 'customclaims_create',
                 modName    : 'Custom Claims Create Compat',
-                description: 'Architectural placeholder for Create contraption protection hooks.'
+                description: 'Create compat for claimrules-controlled contraption movement and block-breaking protection.'
         ],
         'customclaims-big-cannons': [
                 modId      : 'customclaims_big_cannons',

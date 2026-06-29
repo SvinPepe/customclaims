@@ -11,6 +11,8 @@ public final class CustomClaimsPermissions {
     public static final String LIMITS_RESET = "customclaims.limits.reset";
     public static final String EXPLOSIONS_STATUS = "customclaims.explosions.status";
     public static final String EXPLOSIONS_TOGGLE = "customclaims.explosions.toggle";
+    public static final String CREATE_STATUS = "customclaims.create.status";
+    public static final String CREATE_TOGGLE = "customclaims.create.toggle";
 
     private CustomClaimsPermissions() {
     }
