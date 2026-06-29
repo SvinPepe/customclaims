@@ -1,11 +1,10 @@
-# Custom Claims
+# Open Parties and Claims: Warfare
 
-Custom Claims is a NeoForge 1.21.1 multi-module mod project for server-side nations,
-Open Parties and Claims territories, chunk wars, and claim protection.
+**Open Parties and Claims: Warfare** is an unofficial NeoForge server-side addon for Open Parties and Claims.
 
-The project currently assumes Open Parties and Claims is installed. OPC is the source
-of party membership and claim ownership; CustomClaims maps OPC claims to a war side:
-either `party:<uuid>` or `player:<uuid>`.
+It adds chunk wars, contested claims, configurable protection rules, Create machine control, Create Big Cannons protection, and optional Xaero war waypoints.
+
+Open Parties and Claims remains the source of party membership and claim ownership. This addon builds warfare and protection mechanics on top of OPaC territories.
 
 ## Requirements
 
@@ -27,7 +26,7 @@ maven.modrinth:open-parties-and-claims:${opc_version}
 - `customclaims-war`: chunk war flow, preparation/active phases, raid windows,
   border validation, contested claim ownership, capture progress, bossbar/actionbar,
   participant notifications, and war admin commands.
-- `customclaims-protection`: block interaction limits, storage rules, CustomClaims
+- `customclaims-protection`: block interaction limits, storage rules, Open Parties and Claims: Warfare
   explosion filtering with best-effort OPC sync, Wither rules, villager protection,
   OPC protection bypass for allowed actions, side claimrules cooldowns, the
   CustomClaims client rules GUI, and `/claimrules`.
@@ -145,9 +144,9 @@ Protection commands:
 /claimrules gui
 ```
 
-`/claimrules explosions enable` enables CustomClaims explosion protection for the
+`/claimrules explosions enable` enables Open Parties and Claims: Warfare explosion protection for the
 player's current side. Players in a party manage nation rules; players without a
-party manage personal-claim rules. The setting is stored by CustomClaims and synced
+party manage personal-claim rules. The setting is stored by Open Parties and Claims: Warfare and synced
 to OPC explosion exception options where possible.
 
 `/claimrules create disable` blocks Create drills, saws, other shared
@@ -155,7 +154,7 @@ to OPC explosion exception options where possible.
 on the side's territory. `enable` allows those Create machines on that side's
 territory. Create machines are blocked by default until the side enables them.
 
-`/claimrules gui` opens the optional CustomClaims client screen with the explosion
+`/claimrules gui` opens the optional Open Parties and Claims: Warfare client screen with the explosion
 and Create toggles. If the client module is not installed, the commands remain the
 full fallback.
 
@@ -163,7 +162,7 @@ Side-level toggles have a cooldown from `claimrules.toggle_cooldown_seconds`
 (default `600`). Status commands and `/claimrules gui` do not spend cooldown.
 Console and `customclaims.admin` bypass the cooldown.
 
-When enabled, CustomClaims removes protected claimed blocks from normal explosion
+When enabled, Open Parties and Claims: Warfare removes protected claimed blocks from normal explosion
 damage and blocks Create Big Cannons terrain damage in protected chunks. With the
 Big Cannons compat module loaded, mounted big cannon shots and drop mortar shots
 from protected claimed chunks are cancelled before CBC consumes the loaded munition.
@@ -253,7 +252,7 @@ Xaero:
 
 The Xaero module sends active/preparing war markers only to clients allowed by the
 fair-play visibility rules. Compatible clients use those markers to create temporary
-Xaero war waypoints. The old CustomClaims HUD overlay is still present for future
+Xaero war waypoints. The old Open Parties and Claims: Warfare HUD overlay is still present for future
 development, but it is disabled by default through `xaero_overlay.custom_overlay_enabled`.
 
 The module does not expose a global claim-owner map.
@@ -267,7 +266,7 @@ A player receives a marker only when:
 The client refreshes temporary waypoints at most once per
 `xaero_waypoints.refresh_interval_seconds`. Attackers see `Attack: A vs B`, defenders
 see `Defend: A vs B` in named waypoints when the installed Xaero API supports it;
-otherwise CustomClaims falls back to the existing temporary coordinate waypoint.
+otherwise Open Parties and Claims: Warfare falls back to the existing temporary coordinate waypoint.
 
 ## Runtime Data
 
@@ -281,7 +280,7 @@ Important files:
 
 - `wars.txt`: persisted war state, including original claim snapshot for contested chunks.
 - `logs/war.log`: war lifecycle and progress log.
-- `protection/explosion-protection.txt`: CustomClaims side explosion protection toggles.
+- `protection/explosion-protection.txt`: Open Parties and Claims: Warfare side explosion protection toggles.
 - `protection/create-machines.txt`: side Create-machine allow/block toggles.
 - `protection/claimrule-toggle-cooldowns.txt`: last side toggle timestamps for cooldowns.
 

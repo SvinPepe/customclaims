@@ -11,33 +11,33 @@ version = mod_version
 ext.customClaimsModules = [
         'customclaims-core'       : [
                 modId      : 'customclaims_core',
-                modName    : 'Custom Claims Core',
-                description: 'Core API, Open Parties and Claims side adapter layer, shared services, configs, and storage.'
+                modName    : 'OPaC Warfare - Core',
+                description: 'Core services for the unofficial Open Parties and Claims: Warfare addon.'
         ],
         'customclaims-war'        : [
                 modId      : 'customclaims_war',
-                modName    : 'Custom Claims War',
-                description: 'Chunk war MVP for party and solo sides: war data, raid windows, contested chunks, capture progress, and commands.'
+                modName    : 'OPaC Warfare - War',
+                description: 'Chunk wars, contested claims, raid windows, capture progress, and war commands for Open Parties and Claims.'
         ],
         'customclaims-protection' : [
                 modId      : 'customclaims_protection',
-                modName    : 'Custom Claims Protection',
-                description: 'Claim protection MVP for explosion filtering, foreign interactions, Wither rules, storage, and villagers.'
+                modName    : 'OPaC Warfare - Protection',
+                description: 'Claim protection rules for explosions, storage, Withers, villagers, and foreign interactions.'
         ],
         'customclaims-create'     : [
                 modId      : 'customclaims_create',
-                modName    : 'Custom Claims Create Compat',
-                description: 'Create compat for claimrules-controlled contraption movement and block-breaking protection.'
+                modName    : 'OPaC Warfare - Create Compat',
+                description: 'Create compat for contraption movement and block-breaking protection in claimed territories.'
         ],
         'customclaims-big-cannons': [
                 modId      : 'customclaims_big_cannons',
-                modName    : 'Custom Claims Big Cannons Compat',
-                description: 'Create Big Cannons compat for CustomClaims explosion protection and projectile launch rules.'
+                modName    : 'OPaC Warfare - Big Cannons Compat',
+                description: 'Create Big Cannons compat for protected-claim launches and terrain damage rules.'
         ],
         'customclaims-xaero'      : [
                 modId      : 'customclaims_xaero',
-                modName    : 'Custom Claims Xaero Compat',
-                description: 'Fair-play Xaero temporary waypoint sync for active Custom Claims wars, with an optional legacy HUD overlay.'
+                modName    : 'OPaC Warfare - Xaero Compat',
+                description: 'Fair-play Xaero temporary waypoint sync for active Open Parties and Claims: Warfare conflicts.'
         ]
 ]
 
