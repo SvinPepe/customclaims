@@ -3,6 +3,7 @@ def bundledProjects = [
         project(':customclaims-war'),
         project(':customclaims-protection'),
         project(':customclaims-create'),
+        project(':customclaims-aeronautics'),
         project(':customclaims-big-cannons'),
         project(':customclaims-xaero')
 ]
@@ -16,6 +17,7 @@ dependencies {
     implementation project(':customclaims-war')
     implementation project(':customclaims-protection')
     implementation project(':customclaims-create')
+    implementation project(':customclaims-aeronautics')
     implementation project(':customclaims-big-cannons')
     implementation project(':customclaims-xaero')
 

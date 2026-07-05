@@ -1,0 +1,13 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "dev.customclaims.aeronautics.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MultiMiningBlockBreakingDataMixin",
+    "MultiMiningServerManagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

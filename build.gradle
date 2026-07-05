@@ -29,6 +29,11 @@ ext.customClaimsModules = [
                 modName    : 'OPaC Warfare - Create Compat',
                 description: 'Create compat for contraption movement and block-breaking protection in claimed territories.'
         ],
+        'customclaims-aeronautics': [
+                modId      : 'customclaims_aeronautics',
+                modName    : 'OPaC Warfare - Aeronautics Compat',
+                description: 'Aeronautics/Offroad compat for Borehead Bearing and Rock Cutting Wheel protection in claimed territories.'
+        ],
         'customclaims-big-cannons': [
                 modId      : 'customclaims_big_cannons',
                 modName    : 'OPaC Warfare - Big Cannons Compat',

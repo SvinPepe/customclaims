@@ -1,0 +1,10 @@
+dependencies {
+    implementation project(':customclaims-core')
+    implementation project(':customclaims-protection')
+
+    compileOnly "maven.modrinth:create:${create_version}"
+    compileOnly files(rootProject.file('libs/create-aeronautics-bundled-1.21.1-1.3.0.jar'))
+
+    localRuntime "maven.modrinth:create:${create_version}"
+    localRuntime files(rootProject.file('libs/create-aeronautics-bundled-1.21.1-1.3.0.jar'))
+}
