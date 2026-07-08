@@ -13,6 +13,9 @@ config="customclaims_aeronautics.mixins.json"
 [[mixins]]
 config="customclaims_big_cannons.mixins.json"
 
+[[mixins]]
+config="customclaims_xaero.mixins.json"
+
 [[mods]]
 modId="customclaims_core"
 version="${mod_version}"

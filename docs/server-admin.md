@@ -52,6 +52,12 @@ Aeronautics/Offroad compat, Big Cannons compat, and Xaero compat modules.
 `/war start` starts a war for the chunk where the player is standing. The
 attacker can be an OPaC party or a solo player without a party.
 
+Compatible Xaero World Map clients can also right-click a map position and
+choose `Start war here`. That action is only a request: the server checks
+`customclaims.war.start`, `xaero_map_war_start.enabled`, current dimension,
+`xaero_map_war_start.max_distance_chunks`, and all normal war target rules
+before creating a war.
+
 The target chunk must:
 
 - be claimed by another side;
@@ -243,6 +249,11 @@ A player receives a marker only when:
 Compatible clients use markers to create named temporary Xaero war waypoints.
 Attackers see attack-oriented names, defenders see defense-oriented names, and
 war waypoints are removed when the marker is no longer visible.
+
+Xaero World Map clients also get a `Start war here` entry in the map right-click
+menu. It does not expose claim-owner map data; it sends only the clicked
+dimension and chunk, then the server returns the normal war start success or
+failure message.
 
 ## Runtime Data
 

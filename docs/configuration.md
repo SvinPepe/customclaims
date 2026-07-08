@@ -112,6 +112,8 @@ storage_rules.protected_storage_blocks = [
 | `xaero_overlay.custom_overlay_enabled` | `false` | Renders the old CustomClaims client HUD overlay when enabled. |
 | `xaero_waypoints.enabled` | `true` | Creates Xaero temporary waypoints from visible war markers on compatible clients. |
 | `xaero_waypoints.refresh_interval_seconds` | `5` | Minimum seconds between refreshing the same temporary war waypoint. |
+| `xaero_map_war_start.enabled` | `true` | Allows players with `customclaims.war.start` to start wars from the Xaero World Map right-click menu. |
+| `xaero_map_war_start.max_distance_chunks` | `32` | Maximum same-dimension chunk distance for Xaero map war-start requests. |
 
 ## Operational Defaults To Review
 

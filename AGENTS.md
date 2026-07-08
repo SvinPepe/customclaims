@@ -55,8 +55,8 @@ must be checked against Java source.
 - `customclaims-create`: optional Create hooks.
 - `customclaims-aeronautics`: optional Aeronautics/Offroad bore mining hooks.
 - `customclaims-big-cannons`: optional Create Big Cannons hooks.
-- `customclaims-xaero`: fair-play war marker sync and client waypoint/overlay
-  behavior.
+- `customclaims-xaero`: fair-play war marker sync, client waypoint/overlay
+  behavior, and Xaero World Map right-click war-start requests.
 - `opac-warfare`: single-jar distribution; keep it bundling functional modules.
 
 ## Do Not Break
@@ -65,8 +65,10 @@ must be checked against Java source.
 - Active contested chunks must preserve original claim snapshots for restore
   paths.
 - Contested access is only for attacker and defender sides.
-- Xaero marker sync must stay fair-play scoped; do not expose global claim-owner
-  map data.
+- Xaero marker sync and map war-start must stay fair-play scoped; do not expose
+  global claim-owner map data. Map war-start packets must remain server
+  validated for permission, current dimension, configured distance, and normal
+  war target rules.
 - Optional Create, Aeronautics/Offroad, and CBC integrations must stay safe when
   target mods are not loaded.
 - Do not add multi-version Gradle targets, widen `minecraft_version_range`, or

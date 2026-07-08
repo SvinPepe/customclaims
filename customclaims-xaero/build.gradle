@@ -1,4 +1,8 @@
 dependencies {
     implementation project(':customclaims-core')
     implementation project(':customclaims-war')
+
+    compileOnly files(rootProject.file('libs/xaeroworldmap-neoforge-1.21.1-1.41.2.jar'))
+
+    localRuntime files(rootProject.file('libs/xaeroworldmap-neoforge-1.21.1-1.41.2.jar'))
 }

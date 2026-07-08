@@ -75,13 +75,22 @@ public final class WarManager {
     }
 
     public WarOperationResult startWar(ServerPlayer player) {
+        return startWarAt(player, ChunkPosKey.from(player.serverLevel(), player.chunkPosition()));
+    }
+
+    public WarOperationResult startWarAt(ServerPlayer player, ChunkPosKey targetKey) {
         MinecraftServer server = player.server;
         ensureLoaded(server);
 
         ClaimSideId attackerSide = coreServices.partyService().getPlayerSide(player);
 
-        ServerLevel level = player.serverLevel();
-        ChunkPos target = player.chunkPosition();
+        Optional<ServerLevel> resolvedLevel = resolveLevel(server, targetKey);
+        if (resolvedLevel.isEmpty()) {
+            return WarOperationResult.fail("Target dimension is not loaded.");
+        }
+
+        ServerLevel level = resolvedLevel.get();
+        ChunkPos target = targetKey.toChunkPos();
         Optional<ClaimSideId> defenderSide = coreServices.territoryService().getClaimOwnerSide(level, target);
         if (defenderSide.isEmpty()) {
             return WarOperationResult.fail("This chunk is not claimed by another side.");
@@ -524,9 +533,13 @@ public final class WarManager {
     }
 
     private Optional<ServerLevel> resolveLevel(MinecraftServer server, ChunkPosKey key) {
-        ResourceLocation location = ResourceLocation.parse(key.levelId());
-        ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, location);
-        return Optional.ofNullable(server.getLevel(dimension));
+        try {
+            ResourceLocation location = ResourceLocation.parse(key.levelId());
+            ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, location);
+            return Optional.ofNullable(server.getLevel(dimension));
+        } catch (RuntimeException exception) {
+            return Optional.empty();
+        }
     }
 
     private boolean setupContestedClaim(ServerLevel level, WarData war) {

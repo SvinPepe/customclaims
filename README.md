@@ -27,7 +27,8 @@ Optional integrations activate only when their target mods are installed:
 - Create `mc1.21.1-6.0.9` or newer
 - Create Aeronautics/Offroad `1.3.0` or newer for bore protection
 - Create Big Cannons `5.11.7` or newer
-- Xaero Minimap or Xaero World Map on compatible clients
+- Xaero Minimap or Xaero World Map on compatible clients; Xaero World Map
+  also enables a right-click map war-start action
 
 ## What To Install
 
@@ -83,6 +84,10 @@ Player war commands:
 /war near <radius_chunks>
 ```
 
+Compatible Xaero World Map clients can also right-click the map and choose
+`Start war here`. The server still enforces war-start permission, same-dimension
+and distance limits, and all normal war target rules.
+
 Admin war commands:
 
 ```text
@@ -128,8 +133,9 @@ Protection commands:
 - Make world backups before first production use and before upgrades.
 - Active wars and claim-rule toggles are persisted under
   `world/customclaims/`.
-- The Xaero module sends only fair-play war markers to eligible clients; it does
-  not publish a global claim-owner map.
+- The Xaero module sends only fair-play war markers to eligible clients and
+  validates map war-start requests server-side; it does not publish a global
+  claim-owner map.
 - Create, Aeronautics/Offroad, and Create Big Cannons hooks are guarded by
   mod-load checks and stay inactive when the target mods are absent.
 

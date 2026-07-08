@@ -15,7 +15,7 @@ rules, and optional compat behavior.
 | `customclaims-create` | `customclaims_create` | Optional Create contraption movement and block-breaking hooks. |
 | `customclaims-aeronautics` | `customclaims_aeronautics` | Optional Aeronautics/Offroad Borehead Bearing and Rock Cutting Wheel mining hooks. |
 | `customclaims-big-cannons` | `customclaims_big_cannons` | Optional Create Big Cannons launch and terrain-damage hooks. |
-| `customclaims-xaero` | `customclaims_xaero` | Fair-play server marker sync and optional client waypoint/overlay behavior. |
+| `customclaims-xaero` | `customclaims_xaero` | Fair-play server marker sync, optional client waypoints/overlay, and Xaero World Map war-start action. |
 | `opac-warfare` | multiple mod ids | Single-jar distribution that bundles the seven functional modules. |
 
 ## Dependency Shape
@@ -45,8 +45,9 @@ External dependencies:
   by `ModList.get().isLoaded("offroad")` and optional mixins.
 - `customclaims-big-cannons` has optional Create Big Cannons integration guarded
   by `ModList.get().isLoaded("createbigcannons")`.
-- `customclaims-xaero` has optional client-side Xaero behavior and still keeps
-  server marker visibility fair-play scoped.
+- `customclaims-xaero` has optional client-side Xaero behavior, including a
+  Xaero World Map right-click war-start mixin, and still keeps server marker
+  visibility fair-play scoped.
 
 ## Service Records
 
@@ -93,8 +94,10 @@ Compat:
 - `CustomClaimsAeronauticsMod` activates Offroad bore-mining hooks only when Offroad is loaded.
 - `CustomClaimsBigCannonsMod` activates CBC hooks only when Create Big Cannons
   is loaded.
-- `CustomClaimsXaeroMod` registers marker payloads, server tick marker sync, and
-  client-only waypoint/overlay behavior.
+- `CustomClaimsXaeroMod` registers marker payloads, the serverbound Xaero map
+  war-start payload, server tick marker sync, and client-only waypoint/overlay
+  behavior. The map action sends only dimension and chunk; server permission,
+  same-dimension, distance, and normal war checks remain authoritative.
 
 ## Persistence
 

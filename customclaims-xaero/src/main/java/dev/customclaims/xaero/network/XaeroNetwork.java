@@ -14,5 +14,10 @@ public final class XaeroNetwork {
                 ClientboundWarMarkersPayload.STREAM_CODEC,
                 ClientboundWarMarkersPayload::handle
         );
+        registrar.playToServer(
+                ServerboundStartWarAtPayload.TYPE,
+                ServerboundStartWarAtPayload.STREAM_CODEC,
+                ServerboundStartWarAtPayload::handle
+        );
     }
 }
