@@ -31,7 +31,7 @@ opc_version=neoforge-1.21.1-0.27.5
 create_version=mc1.21.1-6.0.9
 cbc_version=5.11.7
 rpl_version=2.1.2
-mod_version=1.6.1
+mod_version=1.6.2
 ```
 
 ## CI-Parity Build
