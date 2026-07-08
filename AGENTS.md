@@ -10,6 +10,9 @@ For full context, read `docs/architecture.md` and `docs/development.md`.
 - OPaC is the authority for parties and claims; this repo adds wars,
   protection, and compat integrations.
 - Normal server artifact: `opac-warfare/build/libs/opac-warfare-*.jar`.
+- Compatibility anchor: one official jar for `Minecraft 1.21.1 + NeoForge
+  21.1.x`; do not promise older/newer Minecraft, `26.x`, Forge, Fabric, or
+  Quilt from this artifact.
 
 ## Read First
 
@@ -64,8 +67,11 @@ must be checked against Java source.
 - Contested access is only for attacker and defender sides.
 - Xaero marker sync must stay fair-play scoped; do not expose global claim-owner
   map data.
-- Optional Create, Aeronautics/Offroad, and CBC integrations must stay safe when target mods are not
-  loaded.
+- Optional Create, Aeronautics/Offroad, and CBC integrations must stay safe when
+  target mods are not loaded.
+- Do not add multi-version Gradle targets, widen `minecraft_version_range`, or
+  claim adjacent-version support without the compatibility probe in
+  `docs/compatibility.md`.
 - Client-only code must stay behind client-side checks.
 - Runtime data stays under `world/customclaims/`.
 
@@ -76,7 +82,8 @@ must be checked against Java source.
 - `CaptureBoostItemService` has a placeholder for configured boost items.
 - Some Big Cannons service classes contain TODO placeholders for deeper CBC API
   ownership/impact integration.
-- Aeronautics/Offroad bore protection currently shares `/claimrules create` rather than a dedicated config key.
+- Aeronautics/Offroad bore protection currently shares `/claimrules create`
+  rather than a dedicated config key.
 
 ## Docs Maintenance
 

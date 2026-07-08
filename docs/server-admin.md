@@ -17,17 +17,23 @@ Required server mods:
 - Open Parties and Claims `0.27.5` or newer
 - Open Parties and Claims: Warfare
 
+The public jar is the one modern full-compat artifact for
+`Minecraft 1.21.1 + NeoForge 21.1.x`. It is not promised to work on older
+`1.20.x`, newer `1.21.x`, `26.x`, Forge, Fabric, or Quilt targets. See
+[Compatibility](compatibility.md) before testing adjacent versions.
+
 Optional integrations:
 
 - Create enables Create contraption and block-breaking protection.
-- Create Aeronautics/Offroad enables Borehead Bearing and Rock Cutting Wheel protection through the same Create-machine claim rule.
+- Create Aeronautics/Offroad enables Borehead Bearing and Rock Cutting Wheel
+  protection through the same Create-machine claim rule.
 - Create Big Cannons enables cannon launch and terrain-damage protection.
 - Xaero Minimap or Xaero World Map on clients enables temporary war waypoints
   when the client is compatible.
 
 The `opac-warfare` jar declares multiple mod ids inside one jar. That is
-expected: the jar contains core, war, protection, Create compat, Aeronautics/Offroad
-compat, Big Cannons compat, and Xaero compat modules.
+expected: the jar contains core, war, protection, Create compat,
+Aeronautics/Offroad compat, Big Cannons compat, and Xaero compat modules.
 
 ## First Start Checklist
 
@@ -273,4 +279,3 @@ survive server restart.
 - If players report unexpected claim damage, inspect side `/claimrules`
   settings, protection config, and whether the chunk is currently contested.
 - Use `/waradmin list` before stopping or modifying a war manually.
-

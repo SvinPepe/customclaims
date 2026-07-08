@@ -13,7 +13,14 @@ Required locally:
 
 The build resolves Minecraft/NeoForge and mod dependencies through configured
 Maven repositories, including Modrinth Maven for Open Parties and Claims,
-Create, Create Big Cannons, and related compat dependencies. Aeronautics/Offroad compat uses the local bundled jar in `libs/` for development runtime coverage.
+Create, Create Big Cannons, and related compat dependencies.
+Aeronautics/Offroad compat uses the local bundled jar in `libs/` for
+development runtime coverage.
+
+This repository intentionally keeps one official modern artifact for
+`Minecraft 1.21.1 + NeoForge 21.1.x`. Do not add multi-version Gradle targets
+or widen `minecraft_version_range` unless the compatibility probe in
+[Compatibility](compatibility.md) passes.
 
 Important version properties live in `gradle.properties`:
 
@@ -46,6 +53,28 @@ The uploaded release artifact comes from:
 ```text
 opac-warfare/build/libs/opac-warfare-*.jar
 ```
+
+## Release Checklist
+
+Before release, run:
+
+```powershell
+.\gradlew.bat --no-daemon build :opac-warfare:jar
+```
+
+Smoke-test the built jar on `Minecraft 1.21.1 + NeoForge 21.1.x` with OPaC:
+
+- server boots without mixin, classloading, packet, or config errors;
+- `/war status`, `/war start`, and `/claimrules create status` work;
+- protection blocks foreign peaceful interactions;
+- Create machine protection works when Create is installed;
+- Aeronautics/Offroad bore protection works when Aeronautics/Offroad is
+  installed;
+- Xaero war waypoint names and cleanup work on a compatible client.
+
+Adjacent NeoForge versions are probes only. Install the same jar there, run the
+same smoke checks, and document the target as unsupported if boot or gameplay
+checks fail.
 
 ## Focused Commands
 
@@ -121,4 +150,6 @@ For docs-only changes, verify:
 - Markdown links resolve.
 
 For gameplay changes, test in a NeoForge server run with OPaC installed and
-exercise the affected commands or event paths in-game. For Aeronautics/Offroad, test Borehead Bearing + Rock Cutting Wheel mining against protected and allowed claims.
+exercise the affected commands or event paths in-game. For Aeronautics/Offroad,
+test Borehead Bearing + Rock Cutting Wheel mining against protected and allowed
+claims.
