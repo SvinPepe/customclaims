@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.6.3
+
+Balance and compatibility update focused on limiting territory fight spam and clarifying the supported runtime range.
+
+### Added
+
+* Added daily outgoing territory fight limits for attacking sides.
+* Added daily incoming territory fight limits for defending sides.
+* Added configurable daily limit keys:
+
+  * `war.daily_start_limit.max_started_chunks_per_attacker_side`
+  * `war.daily_start_limit.max_accepted_chunks_per_defender_side`
+* Added persistent per-day tracking for successful war starts.
+* Added documentation for the new daily war-start limit configuration.
+
+### Changed
+
+* Updated the mod version to `1.6.3`.
+* Updated metadata to keep Minecraft `1.21.1` as the tested baseline while allowing experimental same-jar probes up to Minecraft `1.27`.
+* Updated metadata to keep NeoForge `21.1.232` as the tested baseline while allowing experimental probes through NeoForge `26.x`.
+* Updated README and compatibility documentation to explain the baseline vs experimental support policy.
+* Updated server/admin documentation to mention daily outgoing and incoming territory fight limits.
+
+### Fixed
+
+* Prevented one side from repeatedly starting too many territory fights in a single configured day.
+* Prevented a defending side from being targeted by too many incoming territory fights in a single configured day.
+
+### Notes
+
+* By default, one attacking side can start up to `5` successful target chunk fights per configured day.
+* By default, one defending side can receive up to `10` successful incoming target chunk fights per configured day.
+* Setting either daily limit to `0` disables that specific limit.
+* The daily reset uses the configured raid-window timezone.
+* The fully tested baseline remains Minecraft `1.21.1` with NeoForge `21.1.232`; wider version metadata should be treated as experimental until smoke-tested.
+
+
 ## 1.6.2
 
 
