@@ -1,7 +1,7 @@
 # Development
 
-This repository uses Gradle, NeoForge userdev, Java `21`, and Minecraft
-`1.21.1`.
+This repository uses Gradle, NeoForge userdev, Java `21`, and a `1.21.1`
+compile baseline.
 
 ## Setup
 
@@ -17,21 +17,24 @@ Create, Create Big Cannons, and related compat dependencies.
 Aeronautics/Offroad compat uses the local bundled jar in `libs/` for
 development runtime coverage.
 
-This repository intentionally keeps one official modern artifact for
-`Minecraft 1.21.1 + NeoForge 21.1.x`. Do not add multi-version Gradle targets
-or widen `minecraft_version_range` unless the compatibility probe in
-[Compatibility](compatibility.md) passes.
+This repository intentionally keeps one official jar. It compiles against
+`Minecraft 1.21.1 + NeoForge 21.1.232`, while metadata allows experimental
+same-jar probes on Minecraft `[1.21.1,1.27)` and NeoForge `[21.1.232,27.0)`.
+Do not add multi-version Gradle targets or widen those ranges without updating
+[Compatibility](compatibility.md) and smoke-test expectations.
 
 Important version properties live in `gradle.properties`:
 
 ```properties
 minecraft_version=1.21.1
+minecraft_version_range=[1.21.1,1.27)
 neo_version=21.1.232
+neo_version_range=[21.1.232,27.0)
 opc_version=neoforge-1.21.1-0.27.5
 create_version=mc1.21.1-6.0.9
 cbc_version=5.11.7
 rpl_version=2.1.2
-mod_version=1.6.2
+mod_version=1.6.3
 ```
 
 ## CI-Parity Build
@@ -62,19 +65,22 @@ Before release, run:
 .\gradlew.bat --no-daemon build :opac-warfare:jar
 ```
 
-Smoke-test the built jar on `Minecraft 1.21.1 + NeoForge 21.1.x` with OPaC:
+Smoke-test the built jar on the baseline `Minecraft 1.21.1 + NeoForge 21.1.232` with OPaC:
 
 - server boots without mixin, classloading, packet, or config errors;
 - `/war status`, `/war start`, and `/claimrules create status` work;
+- daily territory fight limits block the 6th successful outgoing start when the
+  attacker default is `5` and the 11th successful incoming start when the
+  defender default is `10`;
 - protection blocks foreign peaceful interactions;
 - Create machine protection works when Create is installed;
 - Aeronautics/Offroad bore protection works when Aeronautics/Offroad is
   installed;
 - Xaero war waypoint names and cleanup work on a compatible client.
 
-Adjacent NeoForge versions are probes only. Install the same jar there, run the
-same smoke checks, and document the target as unsupported if boot or gameplay
-checks fail.
+NeoForge `21.x` through `26.x` candidates are probes only. Install the same jar
+there, run the same smoke checks, and document the target as unsupported if boot
+or gameplay checks fail.
 
 ## Focused Commands
 

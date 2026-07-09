@@ -1,7 +1,9 @@
 # Architecture
 
-This repository is a Gradle multi-module NeoForge project for Minecraft
-`1.21.1`. Open Parties and Claims is the source of party membership and claim
+This repository is a Gradle multi-module NeoForge project with a Minecraft
+`1.21.1` compile baseline and experimental metadata for Minecraft
+`[1.21.1,1.27)` on NeoForge `[21.1.232,27.0)`. Open Parties and
+Claims is the source of party membership and claim
 ownership. This project adds territory-aware services, war state, protection
 rules, and optional compat behavior.
 
@@ -55,9 +57,9 @@ The code uses small service containers created by module entrypoints:
 
 - `CoreServices` creates OPaC adapters, party/claim/territory services,
   permission service, data storage, logs, message service, and rollback service.
-- `WarServices` builds war storage, raid windows, border checks, AFK tracking,
-  capture progress, post-war protection, display/HUD, notifications, lives,
-  scoreboard, and `WarManager`.
+- `WarServices` builds war storage, daily outgoing/accepted start-limit storage, raid windows,
+  border checks, AFK tracking, capture progress, post-war protection,
+  display/HUD, notifications, lives, scoreboard, and `WarManager`.
 - `ProtectionServices` builds foreign interaction limits, OPaC bypass service,
   explosion protection, Create machine rules, claim-rule cooldowns,
   `/claimrules` orchestration, storage protection, Wither rules, and
@@ -110,6 +112,8 @@ world/customclaims/
 Current file names:
 
 - `war/active-wars.dat`: non-terminal wars and original claim snapshots.
+- `war/daily-starts.dat`: successful current-day war starts per attacking side.
+- `war/daily-accepted-starts.dat`: successful current-day incoming war starts per defending side.
 - `logs/war.log`: war lifecycle/progress log.
 - `logs/actions.log`: general action log.
 - `protection/explosion-protection.txt`: side explosion rule state.

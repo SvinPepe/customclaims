@@ -26,7 +26,7 @@ Other Custom Claims modules should depend on this module instead of calling exte
 [[dependencies.customclaims_core]]
 modId="neoforge"
 type="required"
-versionRange="[${neo_version},)"
+versionRange="${neo_version_range}"
 ordering="NONE"
 side="BOTH"
 

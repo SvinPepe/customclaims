@@ -11,16 +11,21 @@ Use the `opac-warfare` distribution jar for normal server installs:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
+For this release, that file is `opac-warfare-1.6.3.jar`.
+
 Required server mods:
 
-- NeoForge for Minecraft `1.21.1`
-- Open Parties and Claims `0.27.5` or newer
+- NeoForge for Minecraft `1.21.1` baseline, with experimental same-jar
+  probes allowed through Minecraft `[1.21.1,1.27)` and NeoForge
+  `[21.1.232,27.0)`
+- Open Parties and Claims `0.27.5` or newer on the baseline stack
 - Open Parties and Claims: Warfare
 
-The public jar is the one modern full-compat artifact for
-`Minecraft 1.21.1 + NeoForge 21.1.x`. It is not promised to work on older
-`1.20.x`, newer `1.21.x`, `26.x`, Forge, Fabric, or Quilt targets. See
-[Compatibility](compatibility.md) before testing adjacent versions.
+The public jar is one modern artifact. `Minecraft 1.21.1 + NeoForge 21.1.232`
+is the full tested baseline; NeoForge `21.x` through `26.x` is experimental
+metadata-enabled support and must pass smoke tests before being called verified.
+Forge, Fabric, Quilt, older `1.20.x`, and Minecraft `1.27+` are not promised.
+See [Compatibility](compatibility.md) before testing adjacent versions.
 
 Optional integrations:
 
@@ -71,6 +76,16 @@ The target chunk must:
 By default, each side can be involved in only one non-terminal war at a time.
 `PREPARING` and `ACTIVE` both count; `FINISHED`, `FAILED`, and `CANCELLED` do
 not.
+
+By default, each attacking side can also start up to `5` target chunks per
+configured day, and each defending side can receive up to `10` successful
+incoming target chunk starts per configured day. The daily window uses
+`raid_window.timezone`. Only successful starts consume quota; invalid attempts
+do not. Cancelling, failing, or finishing a war does not refund either daily
+count. Set `war.daily_start_limit.max_started_chunks_per_attacker_side = 0` to
+disable the outgoing quota, or
+`war.daily_start_limit.max_accepted_chunks_per_defender_side = 0` to disable the
+incoming accepted-war quota.
 
 Personal claims are resolved as follows:
 
@@ -267,6 +282,10 @@ Important files:
 
 - `war/active-wars.dat`: persisted non-terminal war state, including original
   claim snapshots for contested chunks.
+- `war/daily-starts.dat`: current-day successful war starts per attacking side
+  for the daily outgoing territory fight limit.
+- `war/daily-accepted-starts.dat`: current-day successful incoming war starts
+  per defending side for the accepted-war limit.
 - `logs/war.log`: war lifecycle and progress log.
 - `logs/actions.log`: general action log.
 - `protection/explosion-protection.txt`: side explosion protection toggles.
@@ -286,7 +305,8 @@ survive server restart.
 - Keep Open Parties and Claims installed and healthy; this addon relies on OPaC
   as the authority for parties and claims.
 - If players report unexpected war starts, inspect raid-window config,
-  `max_active_wars_per_party`, AFK settings, and border settings first.
+  `max_active_wars_per_party`, daily start/accepted limits, AFK settings, and border
+  settings first.
 - If players report unexpected claim damage, inspect side `/claimrules`
   settings, protection config, and whether the chunk is currently contested.
 - Use `/waradmin list` before stopping or modifying a war manually.

@@ -3,7 +3,7 @@
 **Open Parties and Claims: Warfare** is an unofficial NeoForge addon for
 [Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims).
 
-It adds chunk wars, contested claims, configurable claim protection rules,
+It adds chunk wars, contested claims, daily outgoing/incoming territory fight limits, configurable claim protection rules,
 Create machine controls, Aeronautics/Offroad bore protection, Create Big
 Cannons protection, and fair-play Xaero war markers. Open Parties and Claims
 remains the source of party membership and claim ownership; this project builds
@@ -11,16 +11,17 @@ warfare and protection mechanics on top of OPaC territories.
 
 ## Requirements
 
-- Minecraft `1.21.1`
-- NeoForge `21.1.x`; the build is anchored on `21.1.232`
+- Minecraft `1.21.1` baseline; metadata allows experimental `[1.21.1,1.27)` probes
+- NeoForge `21.1.232` baseline; metadata allows experimental `[21.1.232,27.0)` probes
 - Java `21`
-- Open Parties and Claims `neoforge-1.21.1-0.27.5` or newer
+- Open Parties and Claims `neoforge-1.21.1-0.27.5` or newer on the baseline stack
 
-The official jar is a single modern artifact for the `Minecraft 1.21.1 +
-NeoForge 21.1.x` ecosystem. Older `1.20.x`, newer `1.21.x`, `26.x`, Forge,
-Fabric, and Quilt targets are not promised by this jar. See
-[Compatibility](docs/compatibility.md) for the support policy and probe
-workflow.
+The official jar is one modern artifact. `Minecraft 1.21.1 + NeoForge 21.1.232`
+is the fully tested baseline; NeoForge `21.x` through `26.x` is experimental
+same-jar support that must pass boot and gameplay smoke tests before being
+called verified. Forge, Fabric, Quilt, older `1.20.x`, and Minecraft `1.27+`
+are not promised. See [Compatibility](docs/compatibility.md) for the support
+policy and probe workflow.
 
 Optional integrations activate only when their target mods are installed:
 
@@ -49,6 +50,8 @@ server artifact is:
 ```text
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
+
+For this release, that artifact is `opac-warfare-1.6.3.jar`.
 
 ## Quick Start
 
@@ -86,7 +89,7 @@ Player war commands:
 
 Compatible Xaero World Map clients can also right-click the map and choose
 `Start war here`. The server still enforces war-start permission, same-dimension
-and distance limits, and all normal war target rules.
+and distance limits, daily outgoing/accepted quotas, and all normal war target rules.
 
 Admin war commands:
 

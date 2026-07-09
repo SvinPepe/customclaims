@@ -32,6 +32,7 @@ public final class WarManager {
 
     private final CoreServices coreServices;
     private final WarStorage warStorage;
+    private final DailyWarStartLimitService dailyWarStartLimitService;
     private final RaidWindowService raidWindowService;
     private final BorderChunkService borderChunkService;
     private final AfkTracker afkTracker;
@@ -49,6 +50,7 @@ public final class WarManager {
     public WarManager(
             CoreServices coreServices,
             WarStorage warStorage,
+            DailyWarStartLimitService dailyWarStartLimitService,
             RaidWindowService raidWindowService,
             BorderChunkService borderChunkService,
             AfkTracker afkTracker,
@@ -62,6 +64,7 @@ public final class WarManager {
     ) {
         this.coreServices = coreServices;
         this.warStorage = warStorage;
+        this.dailyWarStartLimitService = dailyWarStartLimitService;
         this.raidWindowService = raidWindowService;
         this.borderChunkService = borderChunkService;
         this.afkTracker = afkTracker;
@@ -125,9 +128,22 @@ public final class WarManager {
             return WarOperationResult.fail("The defending side has no online non-AFK members.");
         }
 
+        DailyWarStartLimitService.DailyStartLimitResult dailyLimit = dailyWarStartLimitService.checkAttacker(server, attackerSide);
+        if (!dailyLimit.allowed()) {
+            return WarOperationResult.fail("Your side has reached the daily territory fight limit ("
+                    + dailyLimit.used() + "/" + dailyLimit.limit() + ") for " + dailyLimit.day() + ".");
+        }
+
+        DailyWarStartLimitService.DailyStartLimitResult acceptedDailyLimit = dailyWarStartLimitService.checkDefender(server, defenderSide.get());
+        if (!acceptedDailyLimit.allowed()) {
+            return WarOperationResult.fail("The defending side has reached the daily incoming territory fight limit ("
+                    + acceptedDailyLimit.used() + "/" + acceptedDailyLimit.limit() + ") for " + acceptedDailyLimit.day() + ".");
+        }
+
         WarData war = new WarData(UUID.randomUUID(), attackerSide, defenderSide.get(), key, Instant.now());
         wars.put(war.id(), war);
         save(server);
+        dailyWarStartLimitService.recordStart(server, attackerSide, defenderSide.get());
         coreServices.warLogService().log(server, "START " + describe(war));
         notificationService.notifyDeclared(server, war);
         return WarOperationResult.ok(displayService.formatStart(server, war));

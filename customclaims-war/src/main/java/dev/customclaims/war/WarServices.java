@@ -6,6 +6,7 @@ import dev.customclaims.war.service.AfkTracker;
 import dev.customclaims.war.service.BorderChunkService;
 import dev.customclaims.war.service.CaptureBoostItemService;
 import dev.customclaims.war.service.CaptureProgressService;
+import dev.customclaims.war.service.DailyWarStartLimitService;
 import dev.customclaims.war.service.PostWarProtectionService;
 import dev.customclaims.war.service.RaidWindowService;
 import dev.customclaims.war.service.WarManager;
@@ -19,6 +20,7 @@ import dev.customclaims.war.service.WarScoreboardService;
 public record WarServices(
         WarManager warManager,
         WarStorage warStorage,
+        DailyWarStartLimitService dailyWarStartLimitService,
         RaidWindowService raidWindowService,
         BorderChunkService borderChunkService,
         AfkTracker afkTracker,
@@ -34,6 +36,7 @@ public record WarServices(
 ) {
     static WarServices create(CoreServices coreServices) {
         WarStorage warStorage = new WarStorage(coreServices.dataStorageService());
+        DailyWarStartLimitService dailyWarStartLimitService = new DailyWarStartLimitService(coreServices.dataStorageService());
         RaidWindowService raidWindowService = new RaidWindowService();
         BorderChunkService borderChunkService = new BorderChunkService(coreServices.territoryService());
         AfkTracker afkTracker = new AfkTracker();
@@ -49,6 +52,7 @@ public record WarServices(
         WarManager warManager = new WarManager(
                 coreServices,
                 warStorage,
+                dailyWarStartLimitService,
                 raidWindowService,
                 borderChunkService,
                 afkTracker,
@@ -64,6 +68,7 @@ public record WarServices(
         return new WarServices(
                 warManager,
                 warStorage,
+                dailyWarStartLimitService,
                 raidWindowService,
                 borderChunkService,
                 afkTracker,

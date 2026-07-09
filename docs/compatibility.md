@@ -1,19 +1,29 @@
 # Compatibility Policy
 
-This project currently publishes one official server jar:
+This project publishes one official server jar:
 
 ```text
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-That jar is anchored on the current full-compat stack:
+## Baseline And Experimental Range
+
+The full tested baseline remains:
 
 - Minecraft `1.21.1`
-- NeoForge `21.1.x`
+- NeoForge `21.1.232`
 - Java `21`
 - Open Parties and Claims `neoforge-1.21.1-0.27.5` or newer for `1.21.1`
 
-Optional integrations are preserved for this stack:
+The jar metadata is intentionally wider for experimental same-jar probes:
+
+- Minecraft range: `[1.21.1,1.27)`
+- NeoForge range: `[21.1.232,27.0)`
+
+That means NeoForge `21.x` through `26.x` can try the same jar, but only the
+baseline is considered verified until a server boot and gameplay smoke test pass.
+
+Optional integrations are compiled against the `1.21.1` stack:
 
 - Create `mc1.21.1-6.0.9` or newer
 - Create Aeronautics/Offroad `1.3.0` or newer
@@ -22,21 +32,18 @@ Optional integrations are preserved for this stack:
 
 ## Unsupported Targets
 
-The official jar is not promised to work on older `1.20.x`, newer `1.21.x`,
-`26.x`, Forge, Fabric, or Quilt targets.
+The official jar is not promised to work on older `1.20.x`, Minecraft `1.27+`,
+Forge, Fabric, or Quilt targets.
 
 Open Parties and Claims publishes many loader and Minecraft-version builds, but
 this addon uses Minecraft, NeoForge, optional compat-mod, and mixin APIs that
-are not binary-stable across that whole matrix. One universal jar across every
-OPaC-supported version would require heavy reflection and version shims, and
-would risk breaking the full compat behavior that server owners expect.
+are not binary-stable across that whole matrix. Broad metadata is a convenience
+for nearby NeoForge probes, not a guarantee that Create, CBC, Aeronautics, or
+Xaero internals still match on every candidate.
 
 ## Compatibility Probe
 
-Nearby NeoForge versions can be tested manually with the same built jar, but a
-probe is not support until it passes boot and gameplay smoke tests.
-
-Use this workflow for a candidate adjacent version:
+Use this workflow for any candidate NeoForge `21.x` through `26.x` version:
 
 1. Build the normal release jar:
 
@@ -49,8 +56,8 @@ Use this workflow for a candidate adjacent version:
 3. Confirm the server boots without mixin, classloading, packet, or config
    errors.
 4. Run the smoke checks from `docs/development.md`.
-5. Only widen documented support or `minecraft_version_range` after those checks
-   pass.
+5. Document the candidate as verified only after those checks pass.
 
 If a candidate fails because of Minecraft, NeoForge, OPaC, or compat-mod API
-drift, leave it unsupported instead of adding broad reflection-only fixes.
+drift, document it as unsupported even though the broad experimental metadata
+allows the loader to try the jar.

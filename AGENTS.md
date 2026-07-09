@@ -5,14 +5,15 @@ For full context, read `docs/architecture.md` and `docs/development.md`.
 
 ## Project Snapshot
 
-- Gradle multi-module NeoForge project for Minecraft `1.21.1` and Java `21`.
+- Gradle multi-module NeoForge project with Minecraft `1.21.1` compile baseline and Java `21`.
 - Product name: **Open Parties and Claims: Warfare**.
 - OPaC is the authority for parties and claims; this repo adds wars,
   protection, and compat integrations.
 - Normal server artifact: `opac-warfare/build/libs/opac-warfare-*.jar`.
-- Compatibility anchor: one official jar for `Minecraft 1.21.1 + NeoForge
-  21.1.x`; do not promise older/newer Minecraft, `26.x`, Forge, Fabric, or
-  Quilt from this artifact.
+- Compatibility anchor: one official jar with baseline `Minecraft 1.21.1 +
+  NeoForge 21.1.232`; metadata allows experimental Minecraft
+  `[1.21.1,1.27)` and NeoForge `[21.1.232,27.0)` probes. Do not
+  promise failed candidates, Forge, Fabric, or Quilt from this artifact.
 
 ## Read First
 
@@ -48,7 +49,7 @@ must be checked against Java source.
 - `customclaims-core`: OPaC adapters, side identity, territory status,
   permissions, storage, logs, common messages, rollback interface.
 - `customclaims-war`: war lifecycle, contested ownership, capture, lives,
-  raid windows, HUD, notifications, `/war`, `/waradmin`.
+  daily start/accepted limits, raid windows, HUD, notifications, `/war`, `/waradmin`.
 - `customclaims-protection`: claim rules, explosion/storage/villager/Wither
   protection, foreign interaction limits, claim-rule GUI payloads,
   `/claimrules`.
@@ -71,9 +72,9 @@ must be checked against Java source.
   war target rules.
 - Optional Create, Aeronautics/Offroad, and CBC integrations must stay safe when
   target mods are not loaded.
-- Do not add multi-version Gradle targets, widen `minecraft_version_range`, or
-  claim adjacent-version support without the compatibility probe in
-  `docs/compatibility.md`.
+- Do not add multi-version Gradle targets, widen version ranges, or mark
+  experimental 21.x-26.x candidates as verified without the compatibility
+  probe in `docs/compatibility.md`.
 - Client-only code must stay behind client-side checks.
 - Runtime data stays under `world/customclaims/`.
 
@@ -91,7 +92,8 @@ must be checked against Java source.
 
 - Update `README.md` when the public entrypoint or install story changes.
 - Update `docs/server-admin.md` for operator-visible behavior changes.
-- Update `docs/configuration.md` for config key/default changes.
+- Update `docs/configuration.md` for config key/default changes. Keep the
+  defaults table exact; do not leave stale values after code changes.
 - Update `docs/architecture.md` for module, service, persistence, or compat
   boundary changes.
 - Update `docs/development.md` for build, CI, or workflow changes.

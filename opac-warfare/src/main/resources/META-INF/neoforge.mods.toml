@@ -96,7 +96,7 @@ Fair-play Xaero temporary waypoint sync for active Open Parties and Claims: Warf
 [[dependencies.customclaims_core]]
 modId="neoforge"
 type="required"
-versionRange="[${neo_version},)"
+versionRange="${neo_version_range}"
 ordering="NONE"
 side="BOTH"
 

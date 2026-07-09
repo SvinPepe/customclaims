@@ -34,6 +34,14 @@ public final class WarConfig {
             .comment("Maximum simultaneous active/preparing wars involving one side.")
             .defineInRange("max_active_wars_per_party", 1, 1, 128);
 
+    public static final ModConfigSpec.IntValue MAX_STARTED_CHUNKS_PER_ATTACKER_SIDE_PER_DAY = BUILDER
+            .comment("Maximum successful war target chunk starts per attacking side per configured day. Set to 0 to disable.")
+            .defineInRange("war.daily_start_limit.max_started_chunks_per_attacker_side", 5, 0, 1024);
+
+    public static final ModConfigSpec.IntValue MAX_ACCEPTED_CHUNKS_PER_DEFENDER_SIDE_PER_DAY = BUILDER
+            .comment("Maximum successful incoming war target chunk starts per defending side per configured day. Set to 0 to disable.")
+            .defineInRange("war.daily_start_limit.max_accepted_chunks_per_defender_side", 10, 0, 1024);
+
     public static final ModConfigSpec.BooleanValue ALLOW_DIAGONAL_BORDER_CHUNKS = BUILDER
             .comment("Whether diagonal adjacency counts when checking if a target chunk is a border chunk.")
             .define("allow_diagonal_border_chunks", false);

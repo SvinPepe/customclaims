@@ -38,6 +38,8 @@ permissions.default_player_permissions = [
 | `war.capture.attacker_presence_bonus_per_second` | `0.25` | Flat bonus per second when at least one non-AFK attacker is present. |
 | `war.capture.empty_chunk_decay_per_second` | `0.50` | Progress decay per second when no non-AFK attackers or defenders are present. |
 | `max_active_wars_per_party` | `1` | Maximum simultaneous active/preparing wars involving one side. |
+| `war.daily_start_limit.max_started_chunks_per_attacker_side` | `5` | Maximum successful target chunk starts per attacking side per configured day; `0` disables the daily limit. |
+| `war.daily_start_limit.max_accepted_chunks_per_defender_side` | `10` | Maximum successful incoming target chunk starts per defending side per configured day; `0` disables the daily incoming limit. |
 | `allow_diagonal_border_chunks` | `false` | Whether diagonal adjacency counts for border checks. |
 | `afk_seconds` | `300` | Players with no tracked interaction for this long are treated as AFK. |
 | `raid_window.enable_raid_window` | `true` | Blocks `/war start` inside configured raid windows. |
