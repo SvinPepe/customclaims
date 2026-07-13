@@ -3,6 +3,7 @@ package dev.customclaims.create.compat;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import dev.customclaims.protection.CustomClaimsProtectionMod;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntArrayTag;
@@ -10,7 +11,6 @@ import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import java.util.UUID;
 
 public final class CreateContraptionProtectionHooks {
     private static final String BREAKER_ID = "BreakerId";
@@ -39,13 +39,13 @@ public final class CreateContraptionProtectionHooks {
                 .canCreateAffect(serverLevel, pos, controllingPlayer(context));
     }
 
-    public static boolean shouldBlockMovement(Level level, BlockPos pos) {
+    public static boolean shouldBlockAssembly(Level level, Iterable<BlockPos> sourcePositions) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return false;
         }
         return !CustomClaimsProtectionMod.services()
                 .createMachinesProtectionService()
-                .canCreateAffect(serverLevel, pos);
+                .canCreateAssembly(serverLevel, sourcePositions);
     }
 
     public static void clearBreakerState(Level level, CompoundTag data) {

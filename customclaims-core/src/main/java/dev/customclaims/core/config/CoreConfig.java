@@ -23,7 +23,9 @@ public final class CoreConfig {
                             "customclaims.explosions.status",
                             "customclaims.explosions.toggle",
                             "customclaims.create.status",
-                            "customclaims.create.toggle"
+                            "customclaims.create.toggle",
+                            "customclaims.assembly.status",
+                            "customclaims.assembly.toggle"
                     ),
                     () -> "customclaims.war.start",
                     value -> value instanceof String);

@@ -15,7 +15,7 @@ rules, and optional compat behavior.
 | `customclaims-war` | `customclaims_war` | War lifecycle, raid windows, border checks, capture progress, war lives, HUD, notifications, and war commands. |
 | `customclaims-protection` | `customclaims_protection` | Claim rules, foreign interaction limits, explosions, storage, Wither rules, villager/trader protection, GUI payloads, and `/claimrules`. |
 | `customclaims-create` | `customclaims_create` | Optional Create contraption movement and block-breaking hooks. |
-| `customclaims-aeronautics` | `customclaims_aeronautics` | Optional Aeronautics/Offroad Borehead Bearing and Rock Cutting Wheel mining hooks. |
+| `customclaims-aeronautics` | `customclaims_aeronautics` | Optional Aeronautics/Offroad bore-mining and Sable assembly hooks. |
 | `customclaims-big-cannons` | `customclaims_big_cannons` | Optional Create Big Cannons launch and terrain-damage hooks. |
 | `customclaims-xaero` | `customclaims_xaero` | Fair-play server marker sync, optional client waypoints/overlay, and Xaero World Map war-start action. |
 | `opac-warfare` | multiple mod ids | Single-jar distribution that bundles the seven functional modules. |
@@ -61,7 +61,7 @@ The code uses small service containers created by module entrypoints:
   border checks, AFK tracking, capture progress, post-war protection,
   display/HUD, notifications, lives, scoreboard, and `WarManager`.
 - `ProtectionServices` builds foreign interaction limits, OPaC bypass service,
-  explosion protection, Create machine rules, claim-rule cooldowns,
+  explosion protection, Create mining/assembly rules, claim-rule cooldowns,
   `/claimrules` orchestration, storage protection, Wither rules, and
   villager/trader protection.
 
@@ -93,7 +93,7 @@ Protection:
 Compat:
 
 - `CustomClaimsCreateMod` activates Create hooks only when Create is loaded.
-- `CustomClaimsAeronauticsMod` activates Offroad bore-mining hooks only when Offroad is loaded.
+- `CustomClaimsAeronauticsMod` activates Offroad bore-mining hooks and optional Sable assembly checks only when their target mods are loaded.
 - `CustomClaimsBigCannonsMod` activates CBC hooks only when Create Big Cannons
   is loaded.
 - `CustomClaimsXaeroMod` registers marker payloads, the serverbound Xaero map
@@ -117,7 +117,8 @@ Current file names:
 - `logs/war.log`: war lifecycle/progress log.
 - `logs/actions.log`: general action log.
 - `protection/explosion-protection.txt`: side explosion rule state.
-- `protection/create-machines.txt`: side Create machine rule state.
+- `protection/create-machines.txt`: side Create/Offroad mining rule state.
+- `protection/create-assemblies.txt`: side Create/Sable assembly rule state.
 - `protection/claimrule-toggle-cooldowns.txt`: side toggle cooldown timestamps.
 
 Foreign interaction counters are runtime-only. War lives are serialized as part

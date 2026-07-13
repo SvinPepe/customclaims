@@ -8,10 +8,13 @@ public record ClaimRulesStateDto(
         String sideLabel,
         boolean explosionProtectionEnabled,
         boolean createMachinesEnabled,
+        boolean assemblyEnabled,
         long explosionCooldownSeconds,
         long createCooldownSeconds,
+        long assemblyCooldownSeconds,
         boolean canToggleExplosions,
-        boolean canToggleCreate
+        boolean canToggleCreate,
+        boolean canToggleAssembly
 ) {
     public static ClaimRulesStateDto from(ClaimRulesState state) {
         return new ClaimRulesStateDto(
@@ -19,10 +22,13 @@ public record ClaimRulesStateDto(
                 state.sideLabel(),
                 state.explosionProtectionEnabled(),
                 state.createMachinesEnabled(),
+                state.assemblyEnabled(),
                 state.explosionCooldownSeconds(),
                 state.createCooldownSeconds(),
+                state.assemblyCooldownSeconds(),
                 state.canToggleExplosions(),
-                state.canToggleCreate()
+                state.canToggleCreate(),
+                state.canToggleAssembly()
         );
     }
 
@@ -31,10 +37,13 @@ public record ClaimRulesStateDto(
         buffer.writeUtf(sideLabel);
         buffer.writeBoolean(explosionProtectionEnabled);
         buffer.writeBoolean(createMachinesEnabled);
+        buffer.writeBoolean(assemblyEnabled);
         buffer.writeVarLong(explosionCooldownSeconds);
         buffer.writeVarLong(createCooldownSeconds);
+        buffer.writeVarLong(assemblyCooldownSeconds);
         buffer.writeBoolean(canToggleExplosions);
         buffer.writeBoolean(canToggleCreate);
+        buffer.writeBoolean(canToggleAssembly);
     }
 
     public static ClaimRulesStateDto read(RegistryFriendlyByteBuf buffer) {
@@ -43,8 +52,11 @@ public record ClaimRulesStateDto(
                 buffer.readUtf(),
                 buffer.readBoolean(),
                 buffer.readBoolean(),
+                buffer.readBoolean(),
                 buffer.readVarLong(),
                 buffer.readVarLong(),
+                buffer.readVarLong(),
+                buffer.readBoolean(),
                 buffer.readBoolean(),
                 buffer.readBoolean()
         );

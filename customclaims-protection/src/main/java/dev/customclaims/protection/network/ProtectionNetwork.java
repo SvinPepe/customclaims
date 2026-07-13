@@ -8,7 +8,7 @@ public final class ProtectionNetwork {
     }
 
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1").optional();
+        PayloadRegistrar registrar = event.registrar("2").optional();
         registrar.playToClient(
                 ClientboundClaimRulesStatePayload.TYPE,
                 ClientboundClaimRulesStatePayload.STREAM_CODEC,

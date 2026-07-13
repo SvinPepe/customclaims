@@ -16,8 +16,8 @@ ${mod_description}
 
 When Create is loaded, this module:
 - blocks drills, saws, and other BlockBreakingMovementBehaviour machines in protected claims
-- blocks contraptions from assembling or moving protected claimed blocks
-- follows /claimrules create enable|disable
+- checks full contraption AABB corners before assembly in claimed territory
+- follows /claimrules assembly enable|disable for assembly and /claimrules create enable|disable for block breaking
 
 When Create is absent, this module starts without active integration.
 '''

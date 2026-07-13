@@ -68,6 +68,25 @@ public final class ClaimRulesCooldownService {
         save(server);
     }
 
+    public void copyRuleCooldowns(MinecraftServer server, String sourceRuleId, String targetRuleId) {
+        ensureLoaded(server);
+        boolean changed = false;
+        for (Map.Entry<String, Instant> entry : new ArrayList<>(lastToggles.entrySet())) {
+            int separator = entry.getKey().lastIndexOf('|');
+            if (separator < 1 || !entry.getKey().substring(separator + 1).equals(sourceRuleId)) {
+                continue;
+            }
+
+            String targetKey = entry.getKey().substring(0, separator + 1) + targetRuleId;
+            if (lastToggles.putIfAbsent(targetKey, entry.getValue()) == null) {
+                changed = true;
+            }
+        }
+        if (changed) {
+            save(server);
+        }
+    }
+
     private void ensureLoaded(MinecraftServer server) {
         if (loadedServer == server) {
             return;

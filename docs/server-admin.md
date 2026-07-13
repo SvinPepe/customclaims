@@ -11,7 +11,7 @@ Use the `opac-warfare` distribution jar for normal server installs:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that file is `opac-warfare-1.6.3.jar`.
+For this release, that file is `opac-warfare-1.6.4.jar`.
 
 Required server mods:
 
@@ -29,9 +29,11 @@ See [Compatibility](compatibility.md) before testing adjacent versions.
 
 Optional integrations:
 
-- Create enables Create contraption and block-breaking protection.
+- Create enables independent contraption-assembly and block-breaking protection.
 - Create Aeronautics/Offroad enables Borehead Bearing and Rock Cutting Wheel
-  protection through the same Create-machine claim rule.
+  protection through `/claimrules create`.
+- Sable `2.0.3` enables optional contraption assembly protection through
+  `/claimrules assembly`.
 - Create Big Cannons enables cannon launch and terrain-damage protection.
 - Xaero Minimap or Xaero World Map on clients enables temporary war waypoints
   when the client is compatible.
@@ -49,8 +51,8 @@ Aeronautics/Offroad compat, Big Cannons compat, and Xaero compat modules.
    [Configuration](configuration.md).
 5. Confirm `permissions.default_player_permissions` matches the command access
    you want for normal players.
-6. Test `/war status`, `/claimrules explosions status`, and
-   `/claimrules create status` with a non-operator player.
+6. Test `/war status`, `/claimrules explosions status`, `/claimrules create status`,
+   and `/claimrules assembly status` with a non-operator player.
 
 ## War Flow
 
@@ -187,6 +189,9 @@ Protection commands:
 /claimrules create status
 /claimrules create enable
 /claimrules create disable
+/claimrules assembly status
+/claimrules assembly enable
+/claimrules assembly disable
 /claimrules gui
 ```
 
@@ -195,14 +200,21 @@ current side. Players in a party manage nation rules; solo players manage
 personal-claim rules.
 
 `/claimrules create disable` blocks Create drills, saws, shared
-`BlockBreakingMovementBehaviour` machines, claimed-block movement, and
-Aeronautics/Offroad Borehead Bearing + Rock Cutting Wheel mining on the side's
-territory. Create machines are blocked by default until the side enables them.
+`BlockBreakingMovementBehaviour` machines, and Aeronautics/Offroad Borehead
+Bearing + Rock Cutting Wheel mining on the side's territory. Mining machines are
+blocked by default until the side enables them.
+
+`/claimrules assembly disable` independently blocks Create and Sable contraption
+assembly. A structure entirely outside claims remains allowed. Once it touches a
+claim, all eight corners of its source AABB must be peaceful claims of one side
+with assembly enabled; mixed, foreign, unclaimed, and post-war-protected corners
+are blocked. Active contested-war chunks retain their existing Create behaviour.
 
 `/claimrules gui` opens the optional client screen when the client also has the
 protection module and network channel. Commands remain the full fallback. Client
 installs also get an `Open Claim Rules` keybind in the `CustomClaims` controls
-category.
+category. It defaults to `K` and can be changed through Minecraft
+`Settings -> Controls -> CustomClaims`.
 
 Side-level toggles use `claimrules.toggle_cooldown_seconds`. Status commands
 and `/claimrules gui` do not spend cooldown. Console and `customclaims.admin`
@@ -228,11 +240,13 @@ customclaims.explosions.status
 customclaims.explosions.toggle
 customclaims.create.status
 customclaims.create.toggle
+customclaims.assembly.status
+customclaims.assembly.toggle
 ```
 
 Default player permissions are configured in
 `customclaims_core-common.toml`. By default, normal players can start and inspect
-wars and can inspect/toggle explosion and Create rules. Admin commands and
+wars and can inspect/toggle explosion, Create-mining, and assembly rules. Admin commands and
 limit-reset commands are not granted by default.
 
 ## Protection Behavior
@@ -289,7 +303,8 @@ Important files:
 - `logs/war.log`: war lifecycle and progress log.
 - `logs/actions.log`: general action log.
 - `protection/explosion-protection.txt`: side explosion protection toggles.
-- `protection/create-machines.txt`: side Create-machine allow/block toggles.
+- `protection/create-machines.txt`: side Create/Offroad mining allow/block toggles.
+- `protection/create-assemblies.txt`: side Create/Sable assembly allow/block toggles.
 - `protection/claimrule-toggle-cooldowns.txt`: last side toggle timestamps for
   cooldowns.
 

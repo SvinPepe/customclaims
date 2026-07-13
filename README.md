@@ -4,8 +4,8 @@
 [Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims).
 
 It adds chunk wars, contested claims, daily outgoing/incoming territory fight limits, configurable claim protection rules,
-Create machine controls, Aeronautics/Offroad bore protection, Create Big
-Cannons protection, and fair-play Xaero war markers. Open Parties and Claims
+Create mining and contraption-assembly controls, Aeronautics/Offroad bore protection,
+Sable assembly protection, Create Big Cannons protection, and fair-play Xaero war markers. Open Parties and Claims
 remains the source of party membership and claim ownership; this project builds
 warfare and protection mechanics on top of OPaC territories.
 
@@ -27,6 +27,7 @@ Optional integrations activate only when their target mods are installed:
 
 - Create `mc1.21.1-6.0.9` or newer
 - Create Aeronautics/Offroad `1.3.0` or newer for bore protection
+- Sable `2.0.3` for optional contraption assembly protection (with Sable's required Create version)
 - Create Big Cannons `5.11.7` or newer
 - Xaero Minimap or Xaero World Map on compatible clients; Xaero World Map
   also enables a right-click map war-start action
@@ -51,7 +52,7 @@ server artifact is:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that artifact is `opac-warfare-1.6.3.jar`.
+For this release, that artifact is `opac-warfare-1.6.4.jar`.
 
 ## Quick Start
 
@@ -115,6 +116,9 @@ Protection commands:
 /claimrules create status
 /claimrules create enable
 /claimrules create disable
+/claimrules assembly status
+/claimrules assembly enable
+/claimrules assembly disable
 /claimrules gui
 ```
 
@@ -139,7 +143,7 @@ Protection commands:
 - The Xaero module sends only fair-play war markers to eligible clients and
   validates map war-start requests server-side; it does not publish a global
   claim-owner map.
-- Create, Aeronautics/Offroad, and Create Big Cannons hooks are guarded by
+- Create, Aeronautics/Offroad, Sable, and Create Big Cannons hooks are guarded by
   mod-load checks and stay inactive when the target mods are absent.
 
 ## License

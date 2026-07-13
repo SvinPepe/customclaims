@@ -13,6 +13,8 @@ public final class CustomClaimsPermissions {
     public static final String EXPLOSIONS_TOGGLE = "customclaims.explosions.toggle";
     public static final String CREATE_STATUS = "customclaims.create.status";
     public static final String CREATE_TOGGLE = "customclaims.create.toggle";
+    public static final String ASSEMBLY_STATUS = "customclaims.assembly.status";
+    public static final String ASSEMBLY_TOGGLE = "customclaims.assembly.toggle";
 
     private CustomClaimsPermissions() {
     }

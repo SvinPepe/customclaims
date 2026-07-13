@@ -93,7 +93,9 @@ permissions.default_player_permissions = [
 | `villager_protection.allow_explosion_damage_to_villagers_in_war_chunks` | `true` | Allows explosion damage to villagers/traders in contested chunks. |
 | `villager_protection.clear_fire_on_blocked_damage` | `true` | Clears fire when protected damage is blocked. |
 
-The runtime `/claimrules create` side toggle is persisted in world data, not TOML. It controls Create contraption/block-breaking protection and Aeronautics/Offroad bore mining protection.
+The runtime `/claimrules create` side toggle is persisted in `protection/create-machines.txt`, not TOML. It controls Create drills, saws, other block-breaking movement machines, and Aeronautics/Offroad bore mining.
+
+The independent `/claimrules assembly` side toggle is persisted in `protection/create-assemblies.txt`. It controls Create and optional Sable contraption assembly. On the first upgrade that creates this file, existing `create` values and their cooldowns are copied to `assembly`.
 
 Default protected storage blocks:
 

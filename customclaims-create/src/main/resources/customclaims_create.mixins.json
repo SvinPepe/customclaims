@@ -4,7 +4,8 @@
   "package": "dev.customclaims.create.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "BlockBreakingMovementBehaviourMixin"
+    "BlockBreakingMovementBehaviourMixin",
+    "ContraptionAssemblyMixin"
   ],
   "injectors": {
     "defaultRequire": 1

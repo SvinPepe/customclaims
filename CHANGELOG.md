@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.6.4
+
+### Added
+
+* Added a separate `/claimrules assembly` rule for Create and optional Sable contraption assembly.
+* Added assembly status/toggle permissions and a dedicated Claim Rules GUI control.
+* Added optional Sable `2.0.3` assembly protection compatibility.
+
+### Changed
+
+* Updated the mod version to `1.6.4`.
+* Kept `/claimrules create` for Create and Offroad drills and saws only.
+* Create and Sable assembly now validates all eight source AABB corners when a structure reaches claims; all corners must be peaceful claims of one side with assembly enabled.
+* Fully unclaimed structures remain assemblable, while active contested-war chunks retain their previous behavior.
+* Existing `create` settings and cooldowns are copied to the new `assembly` rule on first upgrade.
+* Updated the optional claim-rules GUI protocol to version 2 and documented keybind reassignment through Minecraft controls.
+
 ## 1.6.3
 
 Balance and compatibility update focused on limiting territory fight spam and clarifying the supported runtime range.

@@ -27,6 +27,7 @@ Optional integrations are compiled against the `1.21.1` stack:
 
 - Create `mc1.21.1-6.0.9` or newer
 - Create Aeronautics/Offroad `1.3.0` or newer
+- Sable `2.0.3` for optional assembly protection; it must satisfy its own Create dependency
 - Create Big Cannons `5.11.7` or newer
 - Xaero Minimap or Xaero World Map on compatible clients
 
@@ -38,7 +39,7 @@ Forge, Fabric, or Quilt targets.
 Open Parties and Claims publishes many loader and Minecraft-version builds, but
 this addon uses Minecraft, NeoForge, optional compat-mod, and mixin APIs that
 are not binary-stable across that whole matrix. Broad metadata is a convenience
-for nearby NeoForge probes, not a guarantee that Create, CBC, Aeronautics, or
+for nearby NeoForge probes, not a guarantee that Create, CBC, Aeronautics, Sable, or
 Xaero internals still match on every candidate.
 
 ## Compatibility Probe

@@ -13,12 +13,18 @@ public final class CustomClaimsAeronauticsMod {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public CustomClaimsAeronauticsMod(IEventBus modEventBus, ModContainer modContainer) {
-        if (ModList.get().isLoaded("offroad")) {
+        boolean offroadLoaded = ModList.get().isLoaded("offroad");
+        boolean sableLoaded = ModList.get().isLoaded("sable");
+        if (offroadLoaded) {
             LOGGER.info("Custom Claims Aeronautics compat active for Offroad bore mining");
-        } else if (ModList.get().isLoaded("aeronautics")) {
-            LOGGER.info("Custom Claims Aeronautics compat initialized; Offroad bore mining integration inactive");
-        } else {
-            LOGGER.info("Custom Claims Aeronautics compat inactive because Aeronautics/Offroad is not loaded");
+        }
+        if (sableLoaded) {
+            LOGGER.info("Custom Claims Aeronautics compat active for Sable contraption assembly");
+        }
+        if (!offroadLoaded && !sableLoaded && ModList.get().isLoaded("aeronautics")) {
+            LOGGER.info("Custom Claims Aeronautics compat initialized; Offroad and Sable integrations inactive");
+        } else if (!offroadLoaded && !sableLoaded) {
+            LOGGER.info("Custom Claims Aeronautics compat inactive because Aeronautics/Offroad/Sable is not loaded");
         }
     }
 }

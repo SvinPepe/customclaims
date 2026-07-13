@@ -9,11 +9,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class ClaimRulesService {
     public static final String RULE_EXPLOSIONS = "explosions";
     public static final String RULE_CREATE = "create";
+    public static final String RULE_ASSEMBLY = "assembly";
 
     private final PartyService partyService;
     private final PermissionService permissionService;
@@ -36,8 +38,10 @@ public final class ClaimRulesService {
     }
 
     public ClaimRulesState stateFor(ServerPlayer player) {
+        ensureAssemblyMigration(player.server);
         boolean canToggleExplosions = permissionService.hasPermission(player, CustomClaimsPermissions.EXPLOSIONS_TOGGLE);
         boolean canToggleCreate = permissionService.hasPermission(player, CustomClaimsPermissions.CREATE_TOGGLE);
+        boolean canToggleAssembly = permissionService.hasPermission(player, CustomClaimsPermissions.ASSEMBLY_TOGGLE);
 
         Instant now = Instant.now();
         ClaimSideId sideId = partyService.getPlayerSide(player);
@@ -48,10 +52,13 @@ public final class ClaimRulesService {
                 sideLabel(player.createCommandSourceStack(), sideId),
                 explosionProtectionService.isExplosionProtectionEnabled(player.server, sideId),
                 createMachinesProtectionService.isCreateMachinesEnabled(player.server, sideId),
+                createMachinesProtectionService.isAssemblyEnabled(player.server, sideId),
                 bypassed ? 0L : cooldownService.remainingSeconds(player.server, sideId, RULE_EXPLOSIONS, now),
                 bypassed ? 0L : cooldownService.remainingSeconds(player.server, sideId, RULE_CREATE, now),
+                bypassed ? 0L : cooldownService.remainingSeconds(player.server, sideId, RULE_ASSEMBLY, now),
                 canToggleExplosions,
-                canToggleCreate
+                canToggleCreate,
+                canToggleAssembly
         );
     }
 
@@ -60,6 +67,7 @@ public final class ClaimRulesService {
         String permission = switch (normalizedRule) {
             case RULE_EXPLOSIONS -> CustomClaimsPermissions.EXPLOSIONS_TOGGLE;
             case RULE_CREATE -> CustomClaimsPermissions.CREATE_TOGGLE;
+            case RULE_ASSEMBLY -> CustomClaimsPermissions.ASSEMBLY_TOGGLE;
             default -> "";
         };
         if (permission.isEmpty()) {
@@ -76,6 +84,7 @@ public final class ClaimRulesService {
             return ClaimRuleUpdateResult.failure("Only players can manage claim rules.", currentState(source));
         }
 
+        ensureAssemblyMigration(source.getServer());
         ClaimSideId sideId = partyService.getPlayerSide(player);
         boolean current = currentValue(source, sideId, normalizedRule);
         Instant now = Instant.now();
@@ -95,6 +104,7 @@ public final class ClaimRulesService {
         boolean saved = switch (normalizedRule) {
             case RULE_EXPLOSIONS -> explosionProtectionService.setExplosionProtection(source.getServer(), sideId, enabled);
             case RULE_CREATE -> createMachinesProtectionService.setCreateMachinesEnabled(source.getServer(), sideId, enabled);
+            case RULE_ASSEMBLY -> createMachinesProtectionService.setAssemblyEnabled(source.getServer(), sideId, enabled);
             default -> false;
         };
         if (!saved) {
@@ -112,12 +122,15 @@ public final class ClaimRulesService {
         String normalizedRule = normalizeRule(ruleId);
         try {
             ServerPlayer player = source.getPlayerOrException();
+            ensureAssemblyMigration(source.getServer());
             ClaimSideId sideId = partyService.getPlayerSide(player);
             boolean enabled = currentValue(source, sideId, normalizedRule);
             return switch (normalizedRule) {
                 case RULE_EXPLOSIONS -> "Explosion protection for " + sideLabel(source, sideId) + ": "
                         + (enabled ? "enabled" : "disabled") + cooldownSuffix(source, sideId, normalizedRule);
-                case RULE_CREATE -> "Create machines for " + sideLabel(source, sideId) + ": "
+                case RULE_CREATE -> "Create and Offroad mining for " + sideLabel(source, sideId) + ": "
+                        + (enabled ? "allowed" : "blocked") + cooldownSuffix(source, sideId, normalizedRule);
+                case RULE_ASSEMBLY -> "Create and Sable assembly for " + sideLabel(source, sideId) + ": "
                         + (enabled ? "allowed" : "blocked") + cooldownSuffix(source, sideId, normalizedRule);
                 default -> "Unknown claim rule: " + ruleId;
             };
@@ -132,7 +145,8 @@ public final class ClaimRulesService {
         } catch (Exception exception) {
             return ClaimRulesState.noSide(
                     permissionService.hasPermission(source, CustomClaimsPermissions.EXPLOSIONS_TOGGLE),
-                    permissionService.hasPermission(source, CustomClaimsPermissions.CREATE_TOGGLE)
+                    permissionService.hasPermission(source, CustomClaimsPermissions.CREATE_TOGGLE),
+                    permissionService.hasPermission(source, CustomClaimsPermissions.ASSEMBLY_TOGGLE)
             );
         }
     }
@@ -161,8 +175,15 @@ public final class ClaimRulesService {
         return switch (ruleId) {
             case RULE_EXPLOSIONS -> explosionProtectionService.isExplosionProtectionEnabled(source.getServer(), sideId);
             case RULE_CREATE -> createMachinesProtectionService.isCreateMachinesEnabled(source.getServer(), sideId);
+            case RULE_ASSEMBLY -> createMachinesProtectionService.isAssemblyEnabled(source.getServer(), sideId);
             default -> false;
         };
+    }
+
+    private void ensureAssemblyMigration(MinecraftServer server) {
+        if (createMachinesProtectionService.consumeAssemblyCooldownMigration(server)) {
+            cooldownService.copyRuleCooldowns(server, RULE_CREATE, RULE_ASSEMBLY);
+        }
     }
 
     private String cooldownSuffix(CommandSourceStack source, ClaimSideId sideId, String ruleId) {
@@ -181,7 +202,9 @@ public final class ClaimRulesService {
         return switch (ruleId) {
             case RULE_EXPLOSIONS -> "Explosion protection for " + sideLabel(source, sideId) + " is already "
                     + (enabled ? "enabled" : "disabled") + ".";
-            case RULE_CREATE -> "Create machines for " + sideLabel(source, sideId) + " are already "
+            case RULE_CREATE -> "Create and Offroad mining for " + sideLabel(source, sideId) + " is already "
+                    + (enabled ? "allowed" : "blocked") + ".";
+            case RULE_ASSEMBLY -> "Create and Sable assembly for " + sideLabel(source, sideId) + " is already "
                     + (enabled ? "allowed" : "blocked") + ".";
             default -> "Claim rule is already set.";
         };
@@ -191,7 +214,9 @@ public final class ClaimRulesService {
         return switch (ruleId) {
             case RULE_EXPLOSIONS -> "Explosion protection for " + sideLabel(source, sideId) + " is now "
                     + (enabled ? "enabled" : "disabled") + ".";
-            case RULE_CREATE -> "Create machines for " + sideLabel(source, sideId) + " are now "
+            case RULE_CREATE -> "Create and Offroad mining for " + sideLabel(source, sideId) + " is now "
+                    + (enabled ? "allowed" : "blocked") + ".";
+            case RULE_ASSEMBLY -> "Create and Sable assembly for " + sideLabel(source, sideId) + " is now "
                     + (enabled ? "allowed" : "blocked") + ".";
             default -> "Claim rule updated.";
         };

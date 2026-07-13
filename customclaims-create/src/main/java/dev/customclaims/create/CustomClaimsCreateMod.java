@@ -1,10 +1,9 @@
 package dev.customclaims.create;
 
 import com.mojang.logging.LogUtils;
-import dev.customclaims.create.compat.CreateCompatRegistration;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 
@@ -15,7 +14,6 @@ public final class CustomClaimsCreateMod {
 
     public CustomClaimsCreateMod(IEventBus modEventBus, ModContainer modContainer) {
         if (ModList.get().isLoaded("create")) {
-            CreateCompatRegistration.register();
             LOGGER.info("Custom Claims Create compat active");
         } else {
             LOGGER.info("Custom Claims Create compat inactive because Create is not loaded");
