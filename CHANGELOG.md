@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.6.5
+
+### Added
+
+* Added persistent side-based attack and defense cooldown windows for war declarations.
+* Added configurable attack/defense cooldown durations and per-role target-chunk limits.
+* Added `war/side-cooldowns.dat` to persist cooldown windows and consumed slots across restarts.
+
+### Changed
+
+* Updated the mod version to `1.6.5`.
+* Disabled daily outgoing and incoming war limits by default while keeping them available as optional additional quotas.
+* Replaced chunk-level post-war protection with defender-side protection that applies to all claims owned by that side.
+* Replaced `max_active_wars_per_party` with role-specific cooldown chunk limits and prevented a side from attacking while defending or defending while attacking.
+
+### Notes
+
+* The first successful declaration starts fixed windows: `2` hours for the attacker and `1` hour for the defender by default.
+* Later successful starts consume slots without extending the window; a duration of `0` disables only the timed quota, not the concurrent-war chunk limit.
+
 ## 1.6.4
 
 ### Added

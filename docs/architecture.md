@@ -57,9 +57,9 @@ The code uses small service containers created by module entrypoints:
 
 - `CoreServices` creates OPaC adapters, party/claim/territory services,
   permission service, data storage, logs, message service, and rollback service.
-- `WarServices` builds war storage, daily outgoing/accepted start-limit storage, raid windows,
-  border checks, AFK tracking, capture progress, post-war protection,
-  display/HUD, notifications, lives, scoreboard, and `WarManager`.
+- `WarServices` builds war storage, side attack/defense cooldown storage, optional daily
+  outgoing/accepted start-limit storage, raid windows, border checks, AFK tracking,
+  capture progress, display/HUD, notifications, lives, scoreboard, and `WarManager`.
 - `ProtectionServices` builds foreign interaction limits, OPaC bypass service,
   explosion protection, Create mining/assembly rules, claim-rule cooldowns,
   `/claimrules` orchestration, storage protection, Wither rules, and
@@ -112,8 +112,10 @@ world/customclaims/
 Current file names:
 
 - `war/active-wars.dat`: non-terminal wars and original claim snapshots.
-- `war/daily-starts.dat`: successful current-day war starts per attacking side.
-- `war/daily-accepted-starts.dat`: successful current-day incoming war starts per defending side.
+- `war/side-cooldowns.dat`: fixed attack/defense window timestamps and consumed
+  target-chunk slots per side.
+- `war/daily-starts.dat`: optional successful current-day war starts per attacking side.
+- `war/daily-accepted-starts.dat`: optional successful current-day incoming war starts per defending side.
 - `logs/war.log`: war lifecycle/progress log.
 - `logs/actions.log`: general action log.
 - `protection/explosion-protection.txt`: side explosion rule state.

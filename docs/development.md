@@ -34,7 +34,7 @@ opc_version=neoforge-1.21.1-0.27.5
 create_version=mc1.21.1-6.0.9
 cbc_version=5.11.7
 rpl_version=2.1.2
-mod_version=1.6.4
+mod_version=1.6.5
 ```
 
 ## CI-Parity Build
@@ -69,9 +69,13 @@ Smoke-test the built jar on the baseline `Minecraft 1.21.1 + NeoForge 21.1.232` 
 
 - server boots without mixin, classloading, packet, or config errors;
 - `/war status`, `/war start`, and `/claimrules create status` work;
-- daily territory fight limits block the 6th successful outgoing start when the
-  attacker default is `5` and the 11th successful incoming start when the
-  defender default is `10`;
+- default side cooldowns block a second outgoing declaration for `2` hours and
+  a second incoming declaration against the defending side for `1` hour;
+- the first successful declaration starts both fixed windows without extending
+  them on later starts; a role limit of `3` allows exactly three parallel wars,
+  and a side cannot attack while defending or defend while attacking;
+- daily territory fight limits remain disabled at default `0`; when enabled,
+  they remain additional successful-start quotas;
 - protection blocks foreign peaceful interactions;
 - Create machine protection works when Create is installed;
 - Aeronautics/Offroad bore protection works when Aeronautics/Offroad is

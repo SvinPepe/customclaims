@@ -7,7 +7,7 @@ import dev.customclaims.war.service.BorderChunkService;
 import dev.customclaims.war.service.CaptureBoostItemService;
 import dev.customclaims.war.service.CaptureProgressService;
 import dev.customclaims.war.service.DailyWarStartLimitService;
-import dev.customclaims.war.service.PostWarProtectionService;
+import dev.customclaims.war.service.WarCooldownService;
 import dev.customclaims.war.service.RaidWindowService;
 import dev.customclaims.war.service.WarManager;
 import dev.customclaims.war.service.WarStorage;
@@ -21,12 +21,12 @@ public record WarServices(
         WarManager warManager,
         WarStorage warStorage,
         DailyWarStartLimitService dailyWarStartLimitService,
+        WarCooldownService warCooldownService,
         RaidWindowService raidWindowService,
         BorderChunkService borderChunkService,
         AfkTracker afkTracker,
         CaptureProgressService captureProgressService,
         CaptureBoostItemService captureBoostItemService,
-        PostWarProtectionService postWarProtectionService,
         WarDisplayService displayService,
         WarHudService hudService,
         WarNotificationService notificationService,
@@ -37,13 +37,13 @@ public record WarServices(
     static WarServices create(CoreServices coreServices) {
         WarStorage warStorage = new WarStorage(coreServices.dataStorageService());
         DailyWarStartLimitService dailyWarStartLimitService = new DailyWarStartLimitService(coreServices.dataStorageService());
+        WarCooldownService warCooldownService = new WarCooldownService(coreServices.dataStorageService());
         RaidWindowService raidWindowService = new RaidWindowService();
         BorderChunkService borderChunkService = new BorderChunkService(coreServices.territoryService());
         AfkTracker afkTracker = new AfkTracker();
         WarLivesService livesService = new WarLivesService(coreServices);
         CaptureProgressService captureProgressService = new CaptureProgressService(coreServices.partyService(), livesService);
         CaptureBoostItemService captureBoostItemService = new CaptureBoostItemService();
-        PostWarProtectionService postWarProtectionService = new PostWarProtectionService(coreServices.territoryStateService());
         WarDisplayService displayService = new WarDisplayService(coreServices);
         WarHudService hudService = new WarHudService(coreServices, displayService);
         WarNotificationService notificationService = new WarNotificationService(coreServices, displayService);
@@ -53,11 +53,11 @@ public record WarServices(
                 coreServices,
                 warStorage,
                 dailyWarStartLimitService,
+                warCooldownService,
                 raidWindowService,
                 borderChunkService,
                 afkTracker,
                 captureProgressService,
-                postWarProtectionService,
                 displayService,
                 hudService,
                 notificationService,
@@ -69,12 +69,12 @@ public record WarServices(
                 warManager,
                 warStorage,
                 dailyWarStartLimitService,
+                warCooldownService,
                 raidWindowService,
                 borderChunkService,
                 afkTracker,
                 captureProgressService,
                 captureBoostItemService,
-                postWarProtectionService,
                 displayService,
                 hudService,
                 notificationService,

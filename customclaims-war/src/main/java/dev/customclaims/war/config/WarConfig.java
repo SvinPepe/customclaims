@@ -30,17 +30,29 @@ public final class WarConfig {
             .comment("Progress decay per second when no non-AFK attackers or defenders are in the contested chunk.")
             .defineInRange("war.capture.empty_chunk_decay_per_second", 0.50D, 0.0D, 100.0D);
 
-    public static final ModConfigSpec.IntValue MAX_ACTIVE_WARS_PER_PARTY = BUILDER
-            .comment("Maximum simultaneous active/preparing wars involving one side.")
-            .defineInRange("max_active_wars_per_party", 1, 1, 128);
+    public static final ModConfigSpec.IntValue ATTACKER_COOLDOWN_SECONDS = BUILDER
+            .comment("Fixed cooldown window for war starts by one attacking side. Set to 0 to disable the time window.")
+            .defineInRange("war.cooldown.attacker_seconds", 7_200, 0, 604_800);
+
+    public static final ModConfigSpec.IntValue DEFENDER_COOLDOWN_SECONDS = BUILDER
+            .comment("Fixed protection cooldown window after a side accepts its first incoming war. Set to 0 to disable the time window.")
+            .defineInRange("war.cooldown.defender_seconds", 3_600, 0, 604_800);
+
+    public static final ModConfigSpec.IntValue MAX_STARTED_CHUNKS_PER_ATTACKER_SIDE_PER_COOLDOWN = BUILDER
+            .comment("Maximum concurrent and successful war target starts for one attacking side during its cooldown window.")
+            .defineInRange("war.cooldown.max_started_chunks_per_attacker_side", 1, 1, 1024);
+
+    public static final ModConfigSpec.IntValue MAX_ACCEPTED_CHUNKS_PER_DEFENDER_SIDE_PER_COOLDOWN = BUILDER
+            .comment("Maximum concurrent and successful incoming war target starts for one defending side during its protection cooldown window.")
+            .defineInRange("war.cooldown.max_accepted_chunks_per_defender_side", 1, 1, 1024);
 
     public static final ModConfigSpec.IntValue MAX_STARTED_CHUNKS_PER_ATTACKER_SIDE_PER_DAY = BUILDER
             .comment("Maximum successful war target chunk starts per attacking side per configured day. Set to 0 to disable.")
-            .defineInRange("war.daily_start_limit.max_started_chunks_per_attacker_side", 5, 0, 1024);
+            .defineInRange("war.daily_start_limit.max_started_chunks_per_attacker_side", 0, 0, 1024);
 
     public static final ModConfigSpec.IntValue MAX_ACCEPTED_CHUNKS_PER_DEFENDER_SIDE_PER_DAY = BUILDER
             .comment("Maximum successful incoming war target chunk starts per defending side per configured day. Set to 0 to disable.")
-            .defineInRange("war.daily_start_limit.max_accepted_chunks_per_defender_side", 10, 0, 1024);
+            .defineInRange("war.daily_start_limit.max_accepted_chunks_per_defender_side", 0, 0, 1024);
 
     public static final ModConfigSpec.BooleanValue ALLOW_DIAGONAL_BORDER_CHUNKS = BUILDER
             .comment("Whether diagonal adjacency counts when checking if a target chunk is a border chunk.")
@@ -65,10 +77,6 @@ public final class WarConfig {
     public static final ModConfigSpec.BooleanValue ALLOW_ONGOING_WARS_TO_CONTINUE_AFTER_WINDOW_START = BUILDER
             .comment("If false, active wars are failed when a blocked raid window starts.")
             .define("raid_window.allow_ongoing_wars_to_continue_after_window_start", true);
-
-    public static final ModConfigSpec.IntValue POST_WAR_PROTECTION_SECONDS = BUILDER
-            .comment("Seconds to mark a won/lost target chunk as post-war protected.")
-            .defineInRange("post_war_protection_seconds", 1800, 0, 604_800);
 
     public static final ModConfigSpec.IntValue WAR_UI_BOSSBAR_VISIBLE_RADIUS_CHUNKS = BUILDER
             .comment("Chunk radius around a war target where players see the war bossbar.")

@@ -37,7 +37,7 @@ public final class WarManager {
     private final BorderChunkService borderChunkService;
     private final AfkTracker afkTracker;
     private final CaptureProgressService captureProgressService;
-    private final PostWarProtectionService postWarProtectionService;
+    private final WarCooldownService warCooldownService;
     private final WarDisplayService displayService;
     private final WarHudService hudService;
     private final WarNotificationService notificationService;
@@ -51,11 +51,12 @@ public final class WarManager {
             CoreServices coreServices,
             WarStorage warStorage,
             DailyWarStartLimitService dailyWarStartLimitService,
+            WarCooldownService warCooldownService,
             RaidWindowService raidWindowService,
             BorderChunkService borderChunkService,
             AfkTracker afkTracker,
             CaptureProgressService captureProgressService,
-            PostWarProtectionService postWarProtectionService,
+
             WarDisplayService displayService,
             WarHudService hudService,
             WarNotificationService notificationService,
@@ -65,11 +66,12 @@ public final class WarManager {
         this.coreServices = coreServices;
         this.warStorage = warStorage;
         this.dailyWarStartLimitService = dailyWarStartLimitService;
+        this.warCooldownService = warCooldownService;
         this.raidWindowService = raidWindowService;
         this.borderChunkService = borderChunkService;
         this.afkTracker = afkTracker;
         this.captureProgressService = captureProgressService;
-        this.postWarProtectionService = postWarProtectionService;
+
         this.displayService = displayService;
         this.hudService = hudService;
         this.notificationService = notificationService;
@@ -118,14 +120,34 @@ public final class WarManager {
         if (findByChunk(key).isPresent()) {
             return WarOperationResult.fail("This chunk is already involved in a war.");
         }
-        if (activeWarsBySide(attackerSide) >= WarConfig.MAX_ACTIVE_WARS_PER_PARTY.get()) {
-            return WarOperationResult.fail("Your side is already involved in a war.");
+        if (activeWarsAsDefender(attackerSide) > 0) {
+            return WarOperationResult.fail("Your side cannot start a war while defending one.");
         }
-        if (activeWarsBySide(defenderSide.get()) >= WarConfig.MAX_ACTIVE_WARS_PER_PARTY.get()) {
-            return WarOperationResult.fail("The defending side is already involved in a war.");
+        if (activeWarsAsAttacker(attackerSide) >= WarConfig.MAX_STARTED_CHUNKS_PER_ATTACKER_SIDE_PER_COOLDOWN.get()) {
+            return WarOperationResult.fail("Your side has reached its maximum concurrent attacking war chunks.");
+        }
+        if (activeWarsAsAttacker(defenderSide.get()) > 0) {
+            return WarOperationResult.fail("The defending side is already attacking another side.");
+        }
+        if (activeWarsAsDefender(defenderSide.get()) >= WarConfig.MAX_ACCEPTED_CHUNKS_PER_DEFENDER_SIDE_PER_COOLDOWN.get()) {
+            return WarOperationResult.fail("The defending side has reached its maximum concurrent defending war chunks.");
         }
         if (!hasOnlineNonAfkDefender(server, defenderSide.get())) {
             return WarOperationResult.fail("The defending side has no online non-AFK members.");
+        }
+
+        WarCooldownService.CooldownResult attackerCooldown = warCooldownService.checkAttacker(server, attackerSide);
+        if (!attackerCooldown.allowed()) {
+            return WarOperationResult.fail("Your side has reached its war-start cooldown limit ("
+                    + attackerCooldown.used() + "/" + attackerCooldown.limit() + "). Try again in "
+                    + attackerCooldown.remainingSeconds() + " seconds.");
+        }
+
+        WarCooldownService.CooldownResult defenderCooldown = warCooldownService.checkDefender(server, defenderSide.get());
+        if (!defenderCooldown.allowed()) {
+            return WarOperationResult.fail("The defending side is protected by its war cooldown ("
+                    + defenderCooldown.used() + "/" + defenderCooldown.limit() + "). Try again in "
+                    + defenderCooldown.remainingSeconds() + " seconds.");
         }
 
         DailyWarStartLimitService.DailyStartLimitResult dailyLimit = dailyWarStartLimitService.checkAttacker(server, attackerSide);
@@ -140,9 +162,11 @@ public final class WarManager {
                     + acceptedDailyLimit.used() + "/" + acceptedDailyLimit.limit() + ") for " + acceptedDailyLimit.day() + ".");
         }
 
-        WarData war = new WarData(UUID.randomUUID(), attackerSide, defenderSide.get(), key, Instant.now());
+        Instant declaredAt = Instant.now();
+        WarData war = new WarData(UUID.randomUUID(), attackerSide, defenderSide.get(), key, declaredAt);
         wars.put(war.id(), war);
         save(server);
+        warCooldownService.recordStart(server, attackerSide, defenderSide.get(), declaredAt);
         dailyWarStartLimitService.recordStart(server, attackerSide, defenderSide.get());
         coreServices.warLogService().log(server, "START " + describe(war));
         notificationService.notifyDeclared(server, war);
@@ -411,7 +435,7 @@ public final class WarManager {
         war.setEndedAt(Instant.now());
         war.setEndReason(reason);
         coreServices.territoryStateService().clearStatus(war.targetChunk());
-        postWarProtectionService.protect(war.targetChunk());
+
         hudService.remove(server, war);
         scoreboardService.update(server, activeWars().toList());
         coreServices.warLogService().log(server, state.name() + " " + describe(war) + " reason=" + reason);
@@ -424,10 +448,17 @@ public final class WarManager {
                 .anyMatch(player -> !afkTracker.isAfk(player));
     }
 
-    private long activeWarsBySide(ClaimSideId side) {
+    private long activeWarsAsAttacker(ClaimSideId side) {
         return wars.values().stream()
                 .filter(war -> !war.isTerminal())
-                .filter(war -> war.attackerSide().equals(side) || war.defenderSide().equals(side))
+                .filter(war -> war.attackerSide().equals(side))
+                .count();
+    }
+
+    private long activeWarsAsDefender(ClaimSideId side) {
+        return wars.values().stream()
+                .filter(war -> !war.isTerminal())
+                .filter(war -> war.defenderSide().equals(side))
                 .count();
     }
 

@@ -11,7 +11,7 @@ Use the `opac-warfare` distribution jar for normal server installs:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that file is `opac-warfare-1.6.4.jar`.
+For this release, that file is `opac-warfare-1.6.5.jar`.
 
 Required server mods:
 
@@ -75,19 +75,27 @@ The target chunk must:
   `allow_diagonal_border_chunks = true`;
 - have at least one online non-AFK defender.
 
-By default, each side can be involved in only one non-terminal war at a time.
-`PREPARING` and `ACTIVE` both count; `FINISHED`, `FAILED`, and `CANCELLED` do
-not.
+Each side can be active in only one role at a time: a side defending any
+non-terminal war cannot start an attack, and a side attacking another side
+cannot accept an incoming war. `PREPARING` and `ACTIVE` both count.
 
-By default, each attacking side can also start up to `5` target chunks per
-configured day, and each defending side can receive up to `10` successful
-incoming target chunk starts per configured day. The daily window uses
-`raid_window.timezone`. Only successful starts consume quota; invalid attempts
-do not. Cancelling, failing, or finishing a war does not refund either daily
-count. Set `war.daily_start_limit.max_started_chunks_per_attacker_side = 0` to
-disable the outgoing quota, or
-`war.daily_start_limit.max_accepted_chunks_per_defender_side = 0` to disable the
-incoming accepted-war quota.
+At the first successful declaration, the attacking side opens a fixed `2` hour
+attack window and the defending side opens a fixed `1` hour protection window.
+By default each role has one target-chunk slot, so a second outgoing start or
+incoming declaration is blocked until its role window expires and its only concurrent-war slot is free. The defender
+window protects every claim owned by that side, not merely the originally
+targeted chunk.
+
+Each later successful declaration consumes another role slot but does not extend
+its window. Raising the corresponding configured cooldown chunk limit to `N`
+allows up to `N` parallel wars in that role. The next successful declaration
+after a window expires starts a new window even when earlier slots were unused.
+Set a cooldown duration to `0` to disable its timed quota; its concurrent-war
+chunk limit still applies.
+
+Daily start limits are disabled by default. If configured above `0`, they remain
+an additional per-day quota in `raid_window.timezone`; only successful starts
+consume it and ending a war does not refund it.
 
 Personal claims are resolved as follows:
 
@@ -110,8 +118,7 @@ attacker and defender sides. Outsiders do not receive the contested bypass.
 On war finish:
 
 - attacker capture at `100%` transfers the claim to the attacker through OPaC;
-- `CANCELLED` and `FAILED` endings restore the original claim owner snapshot;
-- post-war protection is applied for the configured duration.
+- `CANCELLED` and `FAILED` endings restore the original claim owner snapshot.
 
 Active wars are reloaded after server restart. The mod re-marks active chunks
 as contested and tries to reassert the fake contested owner if OPaC no longer
@@ -296,10 +303,12 @@ Important files:
 
 - `war/active-wars.dat`: persisted non-terminal war state, including original
   claim snapshots for contested chunks.
+- `war/side-cooldowns.dat`: first-declaration timestamps and consumed attack/
+  defense slots per side.
 - `war/daily-starts.dat`: current-day successful war starts per attacking side
-  for the daily outgoing territory fight limit.
+  for the optional daily outgoing territory fight limit.
 - `war/daily-accepted-starts.dat`: current-day successful incoming war starts
-  per defending side for the accepted-war limit.
+  per defending side for the optional daily accepted-war limit.
 - `logs/war.log`: war lifecycle and progress log.
 - `logs/actions.log`: general action log.
 - `protection/explosion-protection.txt`: side explosion protection toggles.
@@ -319,9 +328,9 @@ survive server restart.
   configs on production servers.
 - Keep Open Parties and Claims installed and healthy; this addon relies on OPaC
   as the authority for parties and claims.
-- If players report unexpected war starts, inspect raid-window config,
-  `max_active_wars_per_party`, daily start/accepted limits, AFK settings, and border
-  settings first.
+- If players report unexpected war starts, inspect raid-window config, role
+  cooldown durations and chunk limits, optional daily limits, AFK settings, and
+  border settings first.
 - If players report unexpected claim damage, inspect side `/claimrules`
   settings, protection config, and whether the chunk is currently contested.
 - Use `/waradmin list` before stopping or modifying a war manually.

@@ -3,7 +3,7 @@
 **Open Parties and Claims: Warfare** is an unofficial NeoForge addon for
 [Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims).
 
-It adds chunk wars, contested claims, daily outgoing/incoming territory fight limits, configurable claim protection rules,
+It adds chunk wars, contested claims, side-based attack and defense cooldowns with configurable target-chunk slots, configurable claim protection rules,
 Create mining and contraption-assembly controls, Aeronautics/Offroad bore protection,
 Sable assembly protection, Create Big Cannons protection, and fair-play Xaero war markers. Open Parties and Claims
 remains the source of party membership and claim ownership; this project builds
@@ -52,7 +52,7 @@ server artifact is:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that artifact is `opac-warfare-1.6.4.jar`.
+For this release, that artifact is `opac-warfare-1.6.5.jar`.
 
 ## Quick Start
 
@@ -90,7 +90,7 @@ Player war commands:
 
 Compatible Xaero World Map clients can also right-click the map and choose
 `Start war here`. The server still enforces war-start permission, same-dimension
-and distance limits, daily outgoing/accepted quotas, and all normal war target rules.
+and distance limits, side cooldowns, optional daily quotas, and all normal war target rules.
 
 Admin war commands:
 

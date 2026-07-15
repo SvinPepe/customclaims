@@ -37,22 +37,35 @@ permissions.default_player_permissions = [
 | `war.capture.player_weight_per_second` | `0.35` | Progress weight per non-AFK participant in the contested chunk each second. |
 | `war.capture.attacker_presence_bonus_per_second` | `0.25` | Flat bonus per second when at least one non-AFK attacker is present. |
 | `war.capture.empty_chunk_decay_per_second` | `0.50` | Progress decay per second when no non-AFK attackers or defenders are present. |
-| `max_active_wars_per_party` | `1` | Maximum simultaneous active/preparing wars involving one side. |
-| `war.daily_start_limit.max_started_chunks_per_attacker_side` | `5` | Maximum successful target chunk starts per attacking side per configured day; `0` disables the daily limit. |
-| `war.daily_start_limit.max_accepted_chunks_per_defender_side` | `10` | Maximum successful incoming target chunk starts per defending side per configured day; `0` disables the daily incoming limit. |
+| `war.cooldown.attacker_seconds` | `7200` | Fixed attack window opened by a side's first successful declaration; `0` disables the timed window. |
+| `war.cooldown.defender_seconds` | `3600` | Fixed defense/protection window opened by a side's first accepted incoming declaration; `0` disables the timed window. |
+| `war.cooldown.max_started_chunks_per_attacker_side` | `1` | Maximum successful starts in one attack window and maximum concurrent wars for an attacking side. |
+| `war.cooldown.max_accepted_chunks_per_defender_side` | `1` | Maximum accepted starts in one defense window and maximum concurrent wars for a defending side. |
+| `war.daily_start_limit.max_started_chunks_per_attacker_side` | `0` | Optional maximum successful target starts per attacking side per configured day; `0` disables the daily limit. |
+| `war.daily_start_limit.max_accepted_chunks_per_defender_side` | `0` | Optional maximum successful incoming target starts per defending side per configured day; `0` disables the daily incoming limit. |
 | `allow_diagonal_border_chunks` | `false` | Whether diagonal adjacency counts for border checks. |
 | `afk_seconds` | `300` | Players with no tracked interaction for this long are treated as AFK. |
 | `raid_window.enable_raid_window` | `true` | Blocks `/war start` inside configured raid windows. |
 | `raid_window.timezone` | `"Europe/Moscow"` | Timezone used to evaluate raid windows. |
 | `raid_window.blocked_windows` | `["04:00-08:00"]` | Blocked windows in `HH:mm-HH:mm` form. |
 | `raid_window.allow_ongoing_wars_to_continue_after_window_start` | `true` | If `false`, active wars fail when a blocked raid window starts. |
-| `post_war_protection_seconds` | `1800` | Seconds to mark a won/lost target chunk as post-war protected. |
+
 | `war_ui.bossbar_visible_radius_chunks` | `3` | Chunk radius around a war target where players see the war bossbar. |
 | `war.contested_owner_uuid` | `"00000000-0000-0000-0000-00000000cc01"` | Fake player UUID for temporary contested OPaC claim ownership. |
 | `war.contested_owner_name` | `"Contested War"` | Display name used for the fake contested owner. |
 | `war.lives.starting_lives` | `3` | Personal lives assigned to current participants when active phase starts. |
 | `war.lives.scoreboard_sidebar_enabled` | `true` | Shows active war lives in the vanilla sidebar scoreboard. |
 | `war.lives.scoreboard_objective` | `"cc_war_lives"` | Objective name for the war lives scoreboard. |
+
+### War cooldown windows
+
+Attack and defense windows are stored per `ClaimSideId` (an OPaC party or a solo player side). The first successful `PREPARING` declaration starts the attacker and defender windows at the same instant. Later successful declarations consume another slot without extending either window; when the configured duration expires, the next successful declaration opens a fresh window even if previous slots were unused.
+
+A side can run wars only in one role at a time: an active defense blocks new attacks and an active attack blocks incoming declarations. Raising either chunk limit to `N` allows up to `N` parallel wars in that role. A duration of `0` removes the timed quota, but the corresponding concurrent-war chunk limit remains active.
+
+Daily limits remain optional and are evaluated in addition to cooldowns when configured above `0`.
+
+> Migration: remove `max_active_wars_per_party` and `post_war_protection_seconds` from existing war config files. The former is replaced by the role-specific chunk limits; the latter is replaced by the defender cooldown for the entire side.
 
 ## `customclaims_protection-common.toml`
 
