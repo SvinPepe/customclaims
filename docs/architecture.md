@@ -17,7 +17,7 @@ rules, and optional compat behavior.
 | `customclaims-create` | `customclaims_create` | Optional Create contraption movement and block-breaking hooks. |
 | `customclaims-aeronautics` | `customclaims_aeronautics` | Optional Aeronautics/Offroad bore-mining and Sable assembly hooks. |
 | `customclaims-big-cannons` | `customclaims_big_cannons` | Optional Create Big Cannons launch and terrain-damage hooks. |
-| `customclaims-xaero` | `customclaims_xaero` | Fair-play server marker sync, optional client waypoints/overlay, and Xaero World Map war-start action. |
+| `customclaims-xaero` | `customclaims_xaero` | Configurable global/filtered war-marker sync, optional client waypoints/overlay, and Xaero World Map war-start action. |
 | `opac-warfare` | multiple mod ids | Single-jar distribution that bundles the seven functional modules. |
 
 ## Dependency Shape
@@ -48,8 +48,8 @@ External dependencies:
 - `customclaims-big-cannons` has optional Create Big Cannons integration guarded
   by `ModList.get().isLoaded("createbigcannons")`.
 - `customclaims-xaero` has optional client-side Xaero behavior, including a
-  Xaero World Map right-click war-start mixin, and still keeps server marker
-  visibility fair-play scoped.
+  Xaero World Map right-click war-start mixin, global active-war marker
+  visibility by default, and configurable side/admin/radius filtering.
 
 ## Service Records
 
@@ -137,8 +137,9 @@ of active war data.
   forceload data must still be preserved.
 - Contested bypass is limited to attacker and defender sides. Outsiders should
   not gain shared chunk access.
-- Xaero marker visibility must remain fair-play scoped. Do not add global claim
-  owner map sync.
+- Xaero marker sync may globally broadcast only active/preparing war metadata
+  when configured. It must never expose a global claim-owner map or weaken
+  server validation of map war-start requests.
 - Optional compat code must stay safe when the target mod is not installed, including Aeronautics/Offroad nested modules.
 - Client-only registrations must stay behind `FMLEnvironment.dist == Dist.CLIENT`
   checks.

@@ -142,9 +142,14 @@ Every second:
 - if no attacker and no defender is present, progress decays by
   `war.capture.empty_chunk_decay_per_second`.
 
-Bossbar and actionbar updates run once per second. Participants receive chat
-notifications for declarations, preparation warnings, active start, capture
-milestones, empty-chunk decay, life loss, admin skip, and war end.
+Bossbar and actionbar updates run once per second. By default, every online
+player sees every active/preparing war bossbar and receives every war lifecycle
+notification. Set `war.notifications.broadcast_to_all_players = false` to
+restrict chat notifications to the involved sides, and set
+`war_ui.bossbar_visible_to_all_players = false` to restrict bossbars to the
+involved sides and nearby same-dimension players within
+`war_ui.bossbar_visible_radius_chunks`. Actionbar messages stay limited to
+players standing in the contested chunk.
 
 ## War Lives
 
@@ -273,12 +278,14 @@ Wither and villager/trader protection are controlled by the protection config.
 Villager protection has separate contested-war-chunk options so peaceful and war
 behavior can differ.
 
-## Xaero Fair-Play Markers
+## Xaero War Markers
 
-The Xaero module sends active/preparing war markers only to clients allowed by
-fair-play visibility rules. It does not expose a global claim-owner map.
+By default, `xaero_overlay.visible_to_all_players = true` sends every
+active/preparing war marker to every compatible player. This shares only active
+war metadata and does not expose a global claim-owner map.
 
-A player receives a marker only when:
+Set the option to `false` to restore filtered visibility. A player then receives
+a marker only when:
 
 - their side attacks or defends that war;
 - they are near the war chunk within `xaero_overlay.visible_radius_chunks`;
@@ -286,7 +293,8 @@ A player receives a marker only when:
 
 Compatible clients use markers to create named temporary Xaero war waypoints.
 Attackers see attack-oriented names, defenders see defense-oriented names, and
-war waypoints are removed when the marker is no longer visible.
+global observers see neutral war names. Waypoints are removed when the war ends
+or the marker is no longer visible.
 
 Xaero World Map clients also get a `Start war here` entry in the map right-click
 menu. It does not expose claim-owner map data; it sends only the clicked

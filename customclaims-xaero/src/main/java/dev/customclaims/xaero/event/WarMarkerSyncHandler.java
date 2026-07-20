@@ -29,7 +29,11 @@ public final class WarMarkerSyncHandler {
             }
             List<WarMarkerDto> markers = CustomClaimsWarMod.services()
                     .warManager()
-                    .visibleMarkersFor(player, radius);
+                    .visibleMarkersFor(
+                            player,
+                            radius,
+                            XaeroCompatConfig.VISIBLE_TO_ALL_PLAYERS.get()
+                    );
             PacketDistributor.sendToPlayer(player, new ClientboundWarMarkersPayload(markers));
         }
     }

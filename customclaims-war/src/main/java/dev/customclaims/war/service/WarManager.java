@@ -284,11 +284,22 @@ public final class WarManager {
     }
 
     public List<WarMarkerDto> visibleMarkersFor(ServerPlayer player, int radiusChunks) {
+        return visibleMarkersFor(player, radiusChunks, false);
+    }
+
+    public List<WarMarkerDto> visibleMarkersFor(
+            ServerPlayer player,
+            int radiusChunks,
+            boolean visibleToAllPlayers
+    ) {
         ensureLoaded(player.server);
         int radius = Math.max(0, Math.min(MAX_NEAR_RADIUS_CHUNKS, radiusChunks));
-        return activeWars()
-                .filter(war -> isVisibleTo(player, war, radius))
-                .map(war -> markerFor(player, war, radius))
+        java.util.stream.Stream<WarData> markers = activeWars();
+        if (!visibleToAllPlayers) {
+            markers = markers.filter(war -> isVisibleTo(player, war, radius));
+        }
+        return markers
+                .map(war -> markerFor(player, war, radius, visibleToAllPlayers))
                 .toList();
     }
 
@@ -509,10 +520,16 @@ public final class WarManager {
         return distance <= radiusChunks;
     }
 
-    private WarMarkerDto markerFor(ServerPlayer player, WarData war, int radiusChunks) {
+    private WarMarkerDto markerFor(
+            ServerPlayer player,
+            WarData war,
+            int radiusChunks,
+            boolean visibleToAllPlayers
+    ) {
         String attackerName = displayService.sideName(player.server, war.attackerSide());
         String defenderName = displayService.sideName(player.server, war.defenderSide());
-        String relation = viewerRelation(player, war, radiusChunks).orElse("hidden");
+        String relation = viewerRelation(player, war, radiusChunks)
+                .orElse(visibleToAllPlayers ? "global" : "hidden");
         return new WarMarkerDto(
                 markerLabel(player.server, war, relation),
                 waypointName(player.server, war, relation),

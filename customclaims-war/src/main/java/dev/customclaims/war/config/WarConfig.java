@@ -82,6 +82,14 @@ public final class WarConfig {
             .comment("Chunk radius around a war target where players see the war bossbar.")
             .defineInRange("war_ui.bossbar_visible_radius_chunks", 3, 0, 64);
 
+    public static final ModConfigSpec.BooleanValue BROADCAST_NOTIFICATIONS_TO_ALL_PLAYERS = BUILDER
+            .comment("If true, war chat notifications are sent to every online player instead of only the involved sides.")
+            .define("war.notifications.broadcast_to_all_players", true);
+
+    public static final ModConfigSpec.BooleanValue BOSSBAR_VISIBLE_TO_ALL_PLAYERS = BUILDER
+            .comment("If true, every online player sees every active or preparing war bossbar regardless of distance or dimension.")
+            .define("war_ui.bossbar_visible_to_all_players", true);
+
     public static final ModConfigSpec.IntValue STARTING_LIVES = BUILDER
             .comment("Personal war lives assigned to each current attacker/defender side member when a war becomes active.")
             .defineInRange("war.lives.starting_lives", 3, 1, 100);

@@ -95,6 +95,10 @@ public final class WarHudService {
     }
 
     private boolean shouldSeeBossbar(ServerPlayer player, WarData war) {
+        if (WarConfig.BOSSBAR_VISIBLE_TO_ALL_PLAYERS.get()) {
+            return true;
+        }
+
         if (coreServices.partyService().isSameSide(player, war.attackerSide())
                 || coreServices.partyService().isSameSide(player, war.defenderSide())) {
             return true;

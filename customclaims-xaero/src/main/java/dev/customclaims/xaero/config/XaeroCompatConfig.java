@@ -4,6 +4,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class XaeroCompatConfig {
     public static final ModConfigSpec SPEC;
+    public static final ModConfigSpec.BooleanValue VISIBLE_TO_ALL_PLAYERS;
     public static final ModConfigSpec.IntValue VISIBLE_RADIUS_CHUNKS;
     public static final ModConfigSpec.BooleanValue CUSTOM_OVERLAY_ENABLED;
     public static final ModConfigSpec.BooleanValue XAERO_WAYPOINTS_ENABLED;
@@ -14,8 +15,12 @@ public final class XaeroCompatConfig {
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
+        VISIBLE_TO_ALL_PLAYERS = builder
+                .comment("If true, every compatible player receives every active or preparing war marker. Disable to restore side/admin/radius filtering.")
+                .define("xaero_overlay.visible_to_all_players", true);
+
         VISIBLE_RADIUS_CHUNKS = builder
-                .comment("War markers are sent only for wars visible to the player within this chunk radius.")
+                .comment("When global marker visibility is disabled, nearby players receive war markers within this chunk radius.")
                 .defineInRange("xaero_overlay.visible_radius_chunks", 8, 0, 32);
 
         CUSTOM_OVERLAY_ENABLED = builder

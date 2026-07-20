@@ -64,6 +64,11 @@ public final class WarNotificationService {
 
     private void send(MinecraftServer server, WarData war, String message) {
         Component component = Component.literal(message);
+        if (WarConfig.BROADCAST_NOTIFICATIONS_TO_ALL_PLAYERS.get()) {
+            server.getPlayerList().getPlayers().forEach(player -> player.sendSystemMessage(component));
+            return;
+        }
+
         Map<UUID, ServerPlayer> recipients = new LinkedHashMap<>();
         coreServices.partyService().onlineSideMembers(server, war.attackerSide())
                 .forEach(player -> recipients.put(player.getUUID(), player));

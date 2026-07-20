@@ -5,7 +5,7 @@
 
 It adds chunk wars, contested claims, side-based attack and defense cooldowns with configurable target-chunk slots, configurable claim protection rules,
 Create mining and contraption-assembly controls, Aeronautics/Offroad bore protection,
-Sable assembly protection, Create Big Cannons protection, and fair-play Xaero war markers. Open Parties and Claims
+Sable assembly protection, Create Big Cannons protection, and globally visible Xaero war markers with configurable filtering. Open Parties and Claims
 remains the source of party membership and claim ownership; this project builds
 warfare and protection mechanics on top of OPaC territories.
 
@@ -140,8 +140,9 @@ Protection commands:
 - Make world backups before first production use and before upgrades.
 - Active wars and claim-rule toggles are persisted under
   `world/customclaims/`.
-- The Xaero module sends only fair-play war markers to eligible clients and
-  validates map war-start requests server-side; it does not publish a global
+- The Xaero module broadcasts active/preparing war markers to all compatible
+  clients by default; config can restore side/admin/radius filtering. It still
+  validates map war-start requests server-side and never publishes a global
   claim-owner map.
 - Create, Aeronautics/Offroad, Sable, and Create Big Cannons hooks are guarded by
   mod-load checks and stay inactive when the target mods are absent.

@@ -49,8 +49,10 @@ permissions.default_player_permissions = [
 | `raid_window.timezone` | `"Europe/Moscow"` | Timezone used to evaluate raid windows. |
 | `raid_window.blocked_windows` | `["04:00-08:00"]` | Blocked windows in `HH:mm-HH:mm` form. |
 | `raid_window.allow_ongoing_wars_to_continue_after_window_start` | `true` | If `false`, active wars fail when a blocked raid window starts. |
+| `war.notifications.broadcast_to_all_players` | `true` | Sends every war lifecycle notification to every online player; `false` restricts them to the involved sides. |
 
-| `war_ui.bossbar_visible_radius_chunks` | `3` | Chunk radius around a war target where players see the war bossbar. |
+| `war_ui.bossbar_visible_to_all_players` | `true` | Shows every active/preparing war bossbar to every online player regardless of distance or dimension. |
+| `war_ui.bossbar_visible_radius_chunks` | `3` | When global bossbars are disabled, nearby same-dimension players see them within this radius; involved sides always see them. |
 | `war.lives.starting_lives` | `3` | Personal lives assigned to current participants when active phase starts. |
 | `war.lives.scoreboard_sidebar_enabled` | `true` | Shows active war lives in the vanilla sidebar scoreboard. |
 | `war.lives.scoreboard_objective` | `"cc_war_lives"` | Objective name for the war lives scoreboard. |
@@ -128,7 +130,8 @@ storage_rules.protected_storage_blocks = [
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `xaero_overlay.visible_radius_chunks` | `8` | War markers are sent only for visible wars within this chunk radius. |
+| `xaero_overlay.visible_to_all_players` | `true` | Sends every active/preparing war marker to every compatible player. Disable to restore side/admin/radius filtering. |
+| `xaero_overlay.visible_radius_chunks` | `8` | When global marker visibility is disabled, nearby players receive markers within this radius. |
 | `xaero_overlay.custom_overlay_enabled` | `false` | Renders the old CustomClaims client HUD overlay when enabled. |
 | `xaero_waypoints.enabled` | `true` | Creates Xaero temporary waypoints from visible war markers on compatible clients. |
 | `xaero_waypoints.refresh_interval_seconds` | `5` | Minimum seconds between refreshing the same temporary war waypoint. |
