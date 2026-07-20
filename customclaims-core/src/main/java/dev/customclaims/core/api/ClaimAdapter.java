@@ -11,6 +11,11 @@ import net.minecraft.world.level.ChunkPos;
 public interface ClaimAdapter {
     String name();
 
+    /**
+     * Returns the external claim system's canonical server-owned claim UUID.
+     */
+    UUID serverClaimOwnerId();
+
     Optional<PartyId> getClaimOwner(ServerLevel level, ChunkPos chunkPos);
 
     default Optional<ClaimSideId> getClaimSideOwner(ServerLevel level, ChunkPos chunkPos) {
@@ -27,7 +32,20 @@ public interface ClaimAdapter {
 
     Optional<ClaimSnapshot> getClaimSnapshot(ServerLevel level, ChunkPos chunkPos);
 
-    boolean claimForPlayer(ServerLevel level, ChunkPos chunkPos, UUID ownerId, int subConfigIndex, boolean forceload);
+    /**
+     * Administratively assigns a claim to {@code ownerId} from the server context.
+     *
+     * <p>This must bypass player claim requests, including player claim limits and
+     * economy hooks attached to the normal player claiming path. The owner UUID is
+     * still the resulting claim owner; it is not the actor performing the change.</p>
+     */
+    boolean claimFromServer(
+            ServerLevel level,
+            ChunkPos chunkPos,
+            UUID ownerId,
+            int subConfigIndex,
+            boolean forceload
+    );
 
     default boolean isClaimed(ServerLevel level, ChunkPos chunkPos) {
         return getClaimSideOwner(level, chunkPos).isPresent();

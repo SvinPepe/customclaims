@@ -106,22 +106,24 @@ Personal claims are resolved as follows:
 ## Contested Claims
 
 When a war becomes active, the target OPaC claim is temporarily assigned to a
-fake contested owner:
-
-- UUID: `00000000-0000-0000-0000-00000000cc01`
-- Name: `Contested War`
+built-in `Server` owner (`00000000-0000-0000-0000-000000000000`).
 
 The original claim owner, sub-config index, and forceload flag are saved in war
 data. While active, the contested chunk is treated as shared only for the
 attacker and defender sides. Outsiders do not receive the contested bypass.
 
+All claim ownership changes made by Warfare use OPaC's administrative `claim`
+operation, not the normal player `tryToClaim` request path. Player claim limits
+and paid-claim hooks on that request path therefore do not block or charge wars.
+
 On war finish:
 
-- attacker capture at `100%` transfers the claim to the attacker through OPaC;
+- attacker capture at `100%` transfers the claim to the attacker through OPaC's
+  administrative path;
 - `CANCELLED` and `FAILED` endings restore the original claim owner snapshot.
 
 Active wars are reloaded after server restart. The mod re-marks active chunks
-as contested and tries to reassert the fake contested owner if OPaC no longer
+as contested and tries to reassert the built-in `Server` owner if OPaC no longer
 has it.
 
 ## Capture Balance

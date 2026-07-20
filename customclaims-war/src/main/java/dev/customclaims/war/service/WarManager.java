@@ -600,7 +600,7 @@ public final class WarManager {
         }
         ClaimSnapshot original = war.originalClaimSnapshot().orElse(currentSnapshot.get());
         UUID contestedOwner = contestedOwnerUuid();
-        boolean claimed = coreServices.territoryService().claimForPlayer(
+        boolean claimed = coreServices.territoryService().claimFromServer(
                 level,
                 war.targetChunk().toChunkPos(),
                 contestedOwner,
@@ -614,7 +614,7 @@ public final class WarManager {
         if (isClaimOwnedBy(level, war, contestedOwnerUuid())) {
             return;
         }
-        war.originalClaimSnapshot().ifPresent(snapshot -> coreServices.territoryService().claimForPlayer(
+        war.originalClaimSnapshot().ifPresent(snapshot -> coreServices.territoryService().claimFromServer(
                 level,
                 war.targetChunk().toChunkPos(),
                 contestedOwnerUuid(),
@@ -624,7 +624,7 @@ public final class WarManager {
     }
 
     private void restoreOriginalClaim(ServerLevel level, WarData war) {
-        war.originalClaimSnapshot().ifPresent(snapshot -> coreServices.territoryService().claimForPlayer(
+        war.originalClaimSnapshot().ifPresent(snapshot -> coreServices.territoryService().claimFromServer(
                 level,
                 war.targetChunk().toChunkPos(),
                 snapshot.ownerId(),
@@ -640,11 +640,7 @@ public final class WarManager {
     }
 
     private UUID contestedOwnerUuid() {
-        try {
-            return UUID.fromString(WarConfig.CONTESTED_OWNER_UUID.get());
-        } catch (IllegalArgumentException exception) {
-            return UUID.fromString("00000000-0000-0000-0000-00000000cc01");
-        }
+        return coreServices.territoryService().serverClaimOwnerId();
     }
 
     private void maybeSendPreparationWarning(MinecraftServer server, WarData war, long remainingSeconds) {

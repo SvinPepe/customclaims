@@ -51,11 +51,12 @@ permissions.default_player_permissions = [
 | `raid_window.allow_ongoing_wars_to_continue_after_window_start` | `true` | If `false`, active wars fail when a blocked raid window starts. |
 
 | `war_ui.bossbar_visible_radius_chunks` | `3` | Chunk radius around a war target where players see the war bossbar. |
-| `war.contested_owner_uuid` | `"00000000-0000-0000-0000-00000000cc01"` | Fake player UUID for temporary contested OPaC claim ownership. |
-| `war.contested_owner_name` | `"Contested War"` | Display name used for the fake contested owner. |
 | `war.lives.starting_lives` | `3` | Personal lives assigned to current participants when active phase starts. |
 | `war.lives.scoreboard_sidebar_enabled` | `true` | Shows active war lives in the vanilla sidebar scoreboard. |
 | `war.lives.scoreboard_objective` | `"cc_war_lives"` | Objective name for the war lives scoreboard. |
+
+Contested chunks always use OPaC's built-in `Server` owner
+(`00000000-0000-0000-0000-000000000000`); this is intentionally not configurable.
 
 ### War cooldown windows
 
@@ -66,6 +67,8 @@ A side can run wars only in one role at a time: an active defense blocks new att
 Daily limits remain optional and are evaluated in addition to cooldowns when configured above `0`.
 
 > Migration: remove `max_active_wars_per_party` and `post_war_protection_seconds` from existing war config files. The former is replaced by the role-specific chunk limits; the latter is replaced by the defender cooldown for the entire side.
+
+> Migration: remove the obsolete `war.contested_owner_uuid` and `war.contested_owner_name` keys. Active wars are reassigned to OPaC's built-in `Server` owner when loaded.
 
 ## `customclaims_protection-common.toml`
 
@@ -134,8 +137,6 @@ storage_rules.protected_storage_blocks = [
 
 ## Operational Defaults To Review
 
-- Keep `war.contested_owner_uuid` stable unless you are intentionally migrating
-  contested claim ownership behavior.
 - Tighten `permissions.default_player_permissions` if normal players should not
   start wars or toggle side rules.
 - Review `raid_window.timezone` and `raid_window.blocked_windows` before public

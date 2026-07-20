@@ -21,9 +21,16 @@ import xaero.pac.common.server.claims.api.IServerClaimsManagerAPI;
 import xaero.pac.common.server.parties.party.api.IServerPartyAPI;
 
 public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter {
+    private static final UUID SERVER_CLAIM_OWNER_ID = new UUID(0L, 0L);
+
     @Override
     public String name() {
         return "open_parties_and_claims";
+    }
+
+    @Override
+    public UUID serverClaimOwnerId() {
+        return SERVER_CLAIM_OWNER_ID;
     }
 
     @Override
@@ -53,7 +60,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
                     .get(level.dimension().location(), chunkPos);
             int subConfigIndex = oldClaim == null ? 0 : oldClaim.getSubConfigIndex();
             boolean forceload = oldClaim != null && oldClaim.isForceloadable();
-            return claimForPlayer(level, chunkPos, ownerUuid, subConfigIndex, forceload)
+            return claimFromServer(level, chunkPos, ownerUuid, subConfigIndex, forceload)
                     && getClaimSnapshot(level, chunkPos)
                     .map(snapshot -> snapshot.ownerId().equals(ownerUuid))
                     .orElse(false);
@@ -76,8 +83,8 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
         IPlayerChunkClaimAPI oldClaim = claimsManager.get(level.dimension().location(), chunkPos);
         int subConfigIndex = oldClaim == null ? 0 : oldClaim.getSubConfigIndex();
         boolean forceload = oldClaim != null && oldClaim.isForceloadable();
-        claimsManager.claim(level.dimension().location(), ownerUuid, subConfigIndex, chunkPos.x, chunkPos.z, forceload);
-        return getClaimSideOwner(level, chunkPos).filter(newOwner::equals).isPresent();
+        return claimFromServer(level, chunkPos, ownerUuid, subConfigIndex, forceload)
+                && getClaimSideOwner(level, chunkPos).filter(newOwner::equals).isPresent();
     }
 
     @Override
@@ -97,8 +104,17 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
     }
 
     @Override
-    public boolean claimForPlayer(ServerLevel level, ChunkPos chunkPos, UUID ownerId, int subConfigIndex, boolean forceload) {
+    public boolean claimFromServer(
+            ServerLevel level,
+            ChunkPos chunkPos,
+            UUID ownerId,
+            int subConfigIndex,
+            boolean forceload
+    ) {
         OpenPACServerAPI api = api(level.getServer());
+        // claim(...) is OPaC's administrative mutation path. Do not replace this
+        // with tryToClaim(...): that is the player request path and applies player
+        // limits plus economy integrations intended for manually purchased claims.
         api.getServerClaimsManager().claim(
                 level.dimension().location(),
                 ownerId,

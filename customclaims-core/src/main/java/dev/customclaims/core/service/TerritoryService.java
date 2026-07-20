@@ -99,8 +99,18 @@ public final class TerritoryService {
         return claimAdapter.getClaimSnapshot(level, chunkPos);
     }
 
-    public boolean claimForPlayer(ServerLevel level, ChunkPos chunkPos, UUID ownerId, int subConfigIndex, boolean forceload) {
-        return claimAdapter.claimForPlayer(level, chunkPos, ownerId, subConfigIndex, forceload);
+    public UUID serverClaimOwnerId() {
+        return claimAdapter.serverClaimOwnerId();
+    }
+
+    public boolean claimFromServer(
+            ServerLevel level,
+            ChunkPos chunkPos,
+            UUID ownerId,
+            int subConfigIndex,
+            boolean forceload
+    ) {
+        return claimAdapter.claimFromServer(level, chunkPos, ownerId, subConfigIndex, forceload);
     }
 
     private boolean isPlayerInSide(ServerPlayer player, ClaimSideId sideId) {
