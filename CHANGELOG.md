@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.6.6
+
+### Added
+
+* Added configurable global war lifecycle notifications and bossbars.
+* Added configurable global Xaero war-marker visibility for compatible clients.
+
+### Changed
+
+* Updated the mod version to `1.6.6`.
+* War lifecycle notifications, active/preparing-war bossbars, and Xaero markers now broadcast to all eligible online players by default.
+* Server owners can disable the global defaults to restore side, administrator, and radius-based visibility filtering.
+
+### Notes
+
+* Global Xaero markers include active/preparing war metadata only; they do not expose a global claim-owner map.
+
 ## 1.6.5
 
 ### Added

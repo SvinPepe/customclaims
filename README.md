@@ -52,7 +52,7 @@ server artifact is:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that artifact is `opac-warfare-1.6.5.jar`.
+For this release, that artifact is `opac-warfare-1.6.6.jar`.
 
 ## Quick Start
 

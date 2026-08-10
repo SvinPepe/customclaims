@@ -11,7 +11,7 @@ Use the `opac-warfare` distribution jar for normal server installs:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that file is `opac-warfare-1.6.5.jar`.
+For this release, that file is `opac-warfare-1.6.6.jar`.
 
 Required server mods:
 
