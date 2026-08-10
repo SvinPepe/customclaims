@@ -15,6 +15,11 @@
 * Replaced chunk-level post-war protection with defender-side protection that applies to all claims owned by that side.
 * Replaced `max_active_wars_per_party` with role-specific cooldown chunk limits and prevented a side from attacking while defending or defending while attacking.
 
+### Fixed
+
+* Fixed denied Sable assemblies creating an orphan sub-level and throwing a fatal server-task exception.
+* Fixed Sable assembly bounds being mistaken for the assembled block collection, which caused a misleading reflection warning and forced fallback bounds calculation.
+
 ### Notes
 
 * The first successful declaration starts fixed windows: `2` hours for the attacker and `1` hour for the defender by default.
