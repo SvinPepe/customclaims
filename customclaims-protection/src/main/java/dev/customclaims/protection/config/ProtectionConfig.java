@@ -1,6 +1,5 @@
 package dev.customclaims.protection.config;
 
-import java.util.List;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ProtectionConfig {
@@ -38,39 +37,24 @@ public final class ProtectionConfig {
             .comment("If true, log Create Big Cannons projectiles blocked by CustomClaims explosion protection.")
             .define("big_cannons.log_blocked_projectiles", true);
 
-    public static final ModConfigSpec.BooleanValue ALLOW_OPEN_STORAGE_ON_FOREIGN_CLAIMS = BUILDER
-            .comment("If true, players can open storage on foreign peaceful claims.")
-            .define("storage_rules.allow_open_storage_on_foreign_claims", true);
-
-    public static final ModConfigSpec.BooleanValue PROTECT_STORAGE_FROM_BREAKING_ON_PEACEFUL_CLAIMS = BUILDER
-            .comment("If true, protected storage blocks cannot be broken on foreign peaceful claims.")
-            .define("storage_rules.protect_storage_from_breaking_on_peaceful_claims", true);
-
-    public static final ModConfigSpec.BooleanValue ALLOW_STORAGE_BREAKING_IN_WAR_CHUNKS = BUILDER
-            .comment("If true, protected storage blocks can be broken in contested chunks.")
-            .define("storage_rules.allow_storage_breaking_in_war_chunks", true);
-
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> PROTECTED_STORAGE_BLOCKS = BUILDER
-            .comment("Storage block ids protected from breaking in peaceful foreign claims.")
-            .defineListAllowEmpty("storage_rules.protected_storage_blocks",
-                    List.of("minecraft:chest", "minecraft:trapped_chest", "minecraft:barrel", "minecraft:shulker_box"),
-                    () -> "minecraft:chest",
-                    value -> value instanceof String);
-
     public static final ModConfigSpec.BooleanValue DISABLE_WITHER_SUMMON_IN_OVERWORLD = BUILDER
-            .define("wither_rules.disable_wither_summon_in_overworld", true);
+            .comment("If true, CustomClaims blocks Wither spawns in the Overworld. Disabled by default.")
+            .define("wither_rules.disable_wither_summon_in_overworld", false);
 
     public static final ModConfigSpec.BooleanValue DISABLE_WITHER_SUMMON_IN_END = BUILDER
-            .define("wither_rules.disable_wither_summon_in_end", true);
+            .comment("If true, CustomClaims blocks Wither spawns in the End. Disabled by default.")
+            .define("wither_rules.disable_wither_summon_in_end", false);
 
     public static final ModConfigSpec.BooleanValue DISABLE_WITHER_SUMMON_IN_NETHER = BUILDER
+            .comment("If true, CustomClaims blocks Wither spawns in the Nether. Disabled by default.")
             .define("wither_rules.disable_wither_summon_in_nether", false);
 
     public static final ModConfigSpec.BooleanValue LOG_BLOCKED_WITHER_SUMMONS = BUILDER
             .define("wither_rules.log_blocked_wither_summons", true);
 
     public static final ModConfigSpec.BooleanValue ENABLE_VILLAGER_PROTECTION = BUILDER
-            .define("villager_protection.enable_villager_protection", true);
+            .comment("Opt-in villager/trader damage protection. Disabled by default so vanilla and OPaC behavior remains authoritative.")
+            .define("villager_protection.enable_villager_protection", false);
 
     public static final ModConfigSpec.BooleanValue PROTECT_VILLAGERS_EVERYWHERE = BUILDER
             .define("villager_protection.protect_villagers_everywhere", true);

@@ -84,15 +84,11 @@ Daily limits remain optional and are evaluated in addition to cooldowns when con
 | `explosions.allow_in_war_chunks` | `true` | Does not filter explosion block damage in contested war chunks. |
 | `big_cannons.block_projectile_launch_from_protected_claims` | `true` | Cancels Create Big Cannons projectiles spawned from protected claimed chunks. |
 | `big_cannons.log_blocked_projectiles` | `true` | Logs Create Big Cannons projectiles blocked by explosion protection. |
-| `storage_rules.allow_open_storage_on_foreign_claims` | `true` | Allows opening storage on foreign peaceful claims. |
-| `storage_rules.protect_storage_from_breaking_on_peaceful_claims` | `true` | Protects configured storage blocks from breaking on foreign peaceful claims. |
-| `storage_rules.allow_storage_breaking_in_war_chunks` | `true` | Allows protected storage blocks to be broken in contested chunks. |
-| `storage_rules.protected_storage_blocks` | see below | Storage block ids protected on peaceful foreign claims. |
-| `wither_rules.disable_wither_summon_in_overworld` | `true` | Blocks Wither summoning in the Overworld. |
-| `wither_rules.disable_wither_summon_in_end` | `true` | Blocks Wither summoning in the End. |
+| `wither_rules.disable_wither_summon_in_overworld` | `false` | Blocks Wither summoning in the Overworld when explicitly enabled. |
+| `wither_rules.disable_wither_summon_in_end` | `false` | Blocks Wither summoning in the End when explicitly enabled. |
 | `wither_rules.disable_wither_summon_in_nether` | `false` | Blocks Wither summoning in the Nether. |
 | `wither_rules.log_blocked_wither_summons` | `true` | Logs blocked Wither summons. |
-| `villager_protection.enable_villager_protection` | `true` | Enables villager/trader damage protection. |
+| `villager_protection.enable_villager_protection` | `false` | Opts into CustomClaims villager/trader damage protection. |
 | `villager_protection.protect_villagers_everywhere` | `true` | Protects villagers/traders outside claims too. |
 | `villager_protection.protect_villagers_only_on_claims` | `false` | Restricts villager/trader protection to claims. |
 | `villager_protection.protect_wandering_traders` | `true` | Includes wandering traders in protection rules. |
@@ -115,16 +111,11 @@ The runtime `/claimrules create` side toggle is persisted in `protection/create-
 
 The independent `/claimrules assembly` side toggle is persisted in `protection/create-assemblies.txt`. It controls Create and optional Sable contraption assembly. On the first upgrade that creates this file, existing `create` values and their cooldowns are copied to `assembly`.
 
-Default protected storage blocks:
+Wither blocking and villager/trader damage protection are opt-in. With the defaults above, CustomClaims neither cancels Wither spawns nor villager/trader damage, leaving vanilla and OPaC mechanics unchanged.
 
-```toml
-storage_rules.protected_storage_blocks = [
-  "minecraft:chest",
-  "minecraft:trapped_chest",
-  "minecraft:barrel",
-  "minecraft:shulker_box"
-]
-```
+NeoForge preserves values already present in server config files. Existing servers that want the new passive behavior must set all three `wither_rules.disable_wither_summon_in_*` values and `villager_protection.enable_villager_protection` to `false`, or regenerate the protection config.
+
+The removed `storage_rules.*` keys are obsolete and can be deleted from existing config files. Storage access and breaking are now governed by vanilla and OPaC only.
 
 ## `customclaims_xaero-common.toml`
 

@@ -18,11 +18,8 @@ public final class BlockInteractionHandler {
         boolean allowedByLimits = CustomClaimsProtectionMod.services()
                 .foreignInteractionLimitService()
                 .wouldAllowBreak(player, level, event.getPos());
-        boolean allowedByStorage = CustomClaimsProtectionMod.services()
-                .storageProtectionService()
-                .canBreak(player, level, event.getPos(), level.getBlockState(event.getPos()));
 
-        if (!allowedByLimits || !allowedByStorage) {
+        if (!allowedByLimits) {
             event.setCanceled(true);
             return;
         }
@@ -50,11 +47,8 @@ public final class BlockInteractionHandler {
         boolean allowedByLimits = CustomClaimsProtectionMod.services()
                 .foreignInteractionLimitService()
                 .canBreak(player, level, event.getPos());
-        boolean allowedByStorage = CustomClaimsProtectionMod.services()
-                .storageProtectionService()
-                .canBreak(player, level, event.getPos(), event.getState());
 
-        if (!allowedByLimits || !allowedByStorage) {
+        if (!allowedByLimits) {
             event.setCanceled(true);
             return;
         }

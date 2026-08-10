@@ -20,10 +20,9 @@ First-pass MVP features:
 - CustomClaims explosion block filtering with party status/toggle commands and best-effort OPC sync
 - side Create-machine rules shared by commands, GUI, and the open-GUI keybind
 - claimrules toggle cooldown for explosion and Create side settings
-- storage opening/breaking rules
-- Wither blocking in configured dimensions
-- basic villager and wandering trader damage protection
-- /claimrules limits, reset, resetall, explosions, create, and gui commands
+- opt-in Wither blocking in configured dimensions
+- opt-in villager and wandering trader damage protection
+- /claimrules limits, reset, resetall, explosions, create, assembly, and gui commands
 '''
 
 [[dependencies.${mod_id}]]
