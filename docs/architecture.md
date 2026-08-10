@@ -13,7 +13,7 @@ rules, and optional compat behavior.
 | --- | --- | --- |
 | `customclaims-core` | `customclaims_core` | Shared OPaC adapters, territory services, permissions, storage, messages, logs, and rollback interface. |
 | `customclaims-war` | `customclaims_war` | War lifecycle, raid windows, border checks, capture progress, war lives, HUD, notifications, and war commands. |
-| `customclaims-protection` | `customclaims_protection` | Claim rules, foreign interaction limits, explosions, storage, Wither rules, villager/trader protection, GUI payloads, and `/claimrules`. |
+| `customclaims-protection` | `customclaims_protection` | Claim rules, foreign interaction limits, explosions, opt-in Wither and villager/trader protection, GUI payloads, and `/claimrules`. |
 | `customclaims-create` | `customclaims_create` | Optional Create contraption movement and block-breaking hooks. |
 | `customclaims-aeronautics` | `customclaims_aeronautics` | Optional Aeronautics/Offroad bore-mining and Sable assembly hooks. |
 | `customclaims-big-cannons` | `customclaims_big_cannons` | Optional Create Big Cannons launch and terrain-damage hooks. |
@@ -62,8 +62,8 @@ The code uses small service containers created by module entrypoints:
   capture progress, display/HUD, notifications, lives, scoreboard, and `WarManager`.
 - `ProtectionServices` builds foreign interaction limits, OPaC bypass service,
   explosion protection, Create mining/assembly rules, claim-rule cooldowns,
-  `/claimrules` orchestration, storage protection, Wither rules, and
-  villager/trader protection.
+  `/claimrules` orchestration, opt-in Wither rules, and opt-in villager/trader
+  protection.
 
 When adding behavior, prefer placing domain logic in a service and keeping event
 handlers and command classes thin.
@@ -87,8 +87,9 @@ Protection:
 - `CustomClaimsProtectionMod` registers `ProtectionConfig`, claim-rule payloads,
   and client-only GUI/keybind registration when running on the client.
 - Registers `/claimrules`.
-- Handles block interaction, break/place, explosions, storage interactions,
-  Wither spawn, villager/trader damage, and foreign interaction reset ticks.
+- Handles block interaction, break/place, explosions, opt-in Wither spawn
+  blocking, opt-in villager/trader damage protection, and foreign interaction
+  reset ticks.
 
 Compat:
 

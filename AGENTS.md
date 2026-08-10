@@ -50,9 +50,9 @@ must be checked against Java source.
   permissions, storage, logs, common messages, rollback interface.
 - `customclaims-war`: war lifecycle, contested ownership, capture, lives,
   daily start/accepted limits, raid windows, HUD, notifications, `/war`, `/waradmin`.
-- `customclaims-protection`: claim rules, explosion/storage/villager/Wither
-  protection, foreign interaction limits, claim-rule GUI payloads,
-  `/claimrules`.
+- `customclaims-protection`: claim rules, explosion protection, opt-in
+  villager/Wither protection, foreign interaction limits, claim-rule GUI
+  payloads, `/claimrules`.
 - `customclaims-create`: optional Create hooks.
 - `customclaims-aeronautics`: optional Aeronautics/Offroad bore mining hooks.
 - `customclaims-big-cannons`: optional Create Big Cannons hooks.

@@ -14,6 +14,13 @@
 * Disabled daily outgoing and incoming war limits by default while keeping them available as optional additional quotas.
 * Replaced chunk-level post-war protection with defender-side protection that applies to all claims owned by that side.
 * Replaced `max_active_wars_per_party` with role-specific cooldown chunk limits and prevented a side from attacking while defending or defending while attacking.
+* Disabled Wither summon blocking in every vanilla dimension by default.
+* Disabled CustomClaims villager and wandering trader damage protection by default so vanilla and OPaC behavior remains authoritative.
+
+### Removed
+
+* Removed the `storage_rules` config group and CustomClaims storage-specific opening/breaking protection.
+* Delegated storage access and breaking behavior exclusively to vanilla and OPaC.
 
 ### Fixed
 

@@ -270,13 +270,13 @@ damage when a side has explosion protection enabled. If
 `explosions.allow_in_war_chunks = true`, explosion block damage is not filtered
 inside contested war chunks.
 
-Storage protection can allow or block opening and breaking protected storage
-blocks on foreign peaceful claims. Contested war chunks can allow storage
-breaking separately.
+CustomClaims no longer implements storage-specific opening or breaking rules.
+Vanilla and OPaC are the sole authorities for storage access and protection.
 
-Wither and villager/trader protection are controlled by the protection config.
-Villager protection has separate contested-war-chunk options so peaceful and war
-behavior can differ.
+Wither blocking and villager/trader damage protection are disabled by default.
+At those defaults the handlers do not cancel spawns or damage, so vanilla and
+OPaC mechanics remain unchanged. Both features remain available as explicit
+server-config opt-ins.
 
 ## Xaero War Markers
 

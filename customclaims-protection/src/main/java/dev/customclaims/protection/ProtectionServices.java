@@ -7,7 +7,6 @@ import dev.customclaims.protection.service.CreateMachinesProtectionService;
 import dev.customclaims.protection.service.ExplosionProtectionService;
 import dev.customclaims.protection.service.ForeignInteractionLimitService;
 import dev.customclaims.protection.service.OpenPartiesProtectionBypassService;
-import dev.customclaims.protection.service.StorageProtectionService;
 import dev.customclaims.protection.service.VillagerProtectionService;
 import dev.customclaims.protection.service.WitherRulesService;
 
@@ -18,7 +17,6 @@ public record ProtectionServices(
         ClaimRulesService claimRulesService,
         ForeignInteractionLimitService foreignInteractionLimitService,
         OpenPartiesProtectionBypassService openPartiesProtectionBypassService,
-        StorageProtectionService storageProtectionService,
         WitherRulesService witherRulesService,
         VillagerProtectionService villagerProtectionService
 ) {
@@ -50,10 +48,6 @@ public record ProtectionServices(
                 createMachinesProtectionService,
                 claimRulesCooldownService
         );
-        StorageProtectionService storageProtectionService = new StorageProtectionService(
-                coreServices.territoryService(),
-                coreServices.permissionService()
-        );
         WitherRulesService witherRulesService = new WitherRulesService();
         VillagerProtectionService villagerProtectionService = new VillagerProtectionService(coreServices.territoryService());
 
@@ -64,7 +58,6 @@ public record ProtectionServices(
                 claimRulesService,
                 foreignInteractionLimitService,
                 openPartiesProtectionBypassService,
-                storageProtectionService,
                 witherRulesService,
                 villagerProtectionService
         );

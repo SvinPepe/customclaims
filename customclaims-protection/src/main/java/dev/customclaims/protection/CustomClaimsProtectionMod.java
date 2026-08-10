@@ -8,7 +8,6 @@ import dev.customclaims.protection.config.ProtectionConfig;
 import dev.customclaims.protection.event.BlockInteractionHandler;
 import dev.customclaims.protection.event.ExplosionEventHandler;
 import dev.customclaims.protection.event.ForeignInteractionLimitTickHandler;
-import dev.customclaims.protection.event.StorageProtectionHandler;
 import dev.customclaims.protection.event.VillagerDamageHandler;
 import dev.customclaims.protection.event.WitherEventHandler;
 import dev.customclaims.protection.network.ProtectionNetwork;
@@ -47,7 +46,6 @@ public final class CustomClaimsProtectionMod {
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, BlockInteractionHandler::onBreakBlock);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, BlockInteractionHandler::onPlaceBlock);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, ExplosionEventHandler::onExplosionDetonate);
-        NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, StorageProtectionHandler::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(WitherEventHandler::onEntityJoinLevel);
         NeoForge.EVENT_BUS.addListener(VillagerDamageHandler::onLivingDamage);
         NeoForge.EVENT_BUS.addListener(ForeignInteractionLimitTickHandler::onServerTick);

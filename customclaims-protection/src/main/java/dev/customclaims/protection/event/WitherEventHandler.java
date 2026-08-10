@@ -1,6 +1,7 @@
 package dev.customclaims.protection.event;
 
 import dev.customclaims.protection.CustomClaimsProtectionMod;
+import dev.customclaims.protection.config.ProtectionConfig;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
@@ -16,7 +17,9 @@ public final class WitherEventHandler {
         if (CustomClaimsProtectionMod.services().witherRulesService().isWitherBlocked(event.getLevel())) {
             event.setCanceled(true);
             wither.discard();
-            CustomClaimsProtectionMod.LOGGER.info("Blocked illegal Wither spawn in {}", event.getLevel().dimension().location());
+            if (ProtectionConfig.LOG_BLOCKED_WITHER_SUMMONS.get()) {
+                CustomClaimsProtectionMod.LOGGER.info("Blocked illegal Wither spawn in {}", event.getLevel().dimension().location());
+            }
         }
     }
 }
