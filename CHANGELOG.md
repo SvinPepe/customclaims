@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.6.7
+
+### Added
+
+* Added configurable contested-war entity interaction exceptions through `entity_interaction.contested_exceptions`.
+* Added `corpse:corpse` as the default exception, allowing attacking and defending war participants to right-click Corpse entities in the target entity's contested chunk without OPaC blocking the interaction.
+* Added support for additional exact `namespace:path` entity IDs; setting the list to `[]` disables the feature.
+
+### Changed
+
+* Updated the mod version to `1.6.7`.
+* Entity interaction exception checks now use the target entity's chunk and the current config value, so config reloads take effect immediately.
+* Eligible interactions reuse the existing temporary OPaC full-pass mechanism and clear it on the next server tick.
+
+### Notes
+
+* Corpse remains an optional dependency; the default `corpse:corpse` entry is harmless when Corpse is not installed.
+* The exception applies only to attacking and defending participants in an active contested chunk. Outsiders, peaceful claims, unclaimed chunks, and finished wars keep normal OPaC behavior.
+* Corpse ownership and access restrictions are still respected.
+* Other mods' canceled interaction events are not uncanceled.
+* Attacking an entity does not grant the bypass.
+
 ## 1.6.6
 
 ### Added
