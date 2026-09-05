@@ -76,6 +76,27 @@ After first server start, NeoForge writes common config files under `config/`.
 See [Configuration](docs/configuration.md) before using the mod on a production
 world.
 
+## Anonymous Metrics
+
+On dedicated servers, CustomClaims can send an anonymous heartbeat every 30
+minutes to the HTTP(S) endpoint configured as `metrics.endpoint` in
+`config/customclaims_core-common.toml`. The endpoint is empty by default and no
+request is made until one is configured.
+
+Each heartbeat contains only:
+
+- a randomly generated `server_id`, stored locally in
+  `world/customclaims/metrics/server-id.txt`;
+- the CustomClaims, Minecraft, and NeoForge versions;
+- the current number of online players;
+- boolean presence flags for OPaC, Create, Create Big Cannons (CBC),
+  Aeronautics/Offroad, Xaero, and Corpse.
+
+It does not include the server IP or hostname, player names, the world seed, or
+other identifying data. Metrics never run in an integrated/client server. To
+disable them, set `metrics.enabled = false` in
+`config/customclaims_core-common.toml` and restart the server.
+
 ## Main Commands
 
 Player war commands:

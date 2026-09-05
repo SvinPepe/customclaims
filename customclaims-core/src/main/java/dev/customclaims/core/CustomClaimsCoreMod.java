@@ -6,6 +6,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
 @Mod(CustomClaimsCoreMod.MOD_ID)
@@ -18,6 +19,9 @@ public final class CustomClaimsCoreMod {
     public CustomClaimsCoreMod(IEventBus modEventBus, ModContainer modContainer) {
         modContainer.registerConfig(ModConfig.Type.COMMON, CoreConfig.SPEC);
         services = CoreServices.create();
+        NeoForge.EVENT_BUS.addListener(services.metricsService()::onServerStarted);
+        NeoForge.EVENT_BUS.addListener(services.metricsService()::onServerTick);
+        NeoForge.EVENT_BUS.addListener(services.metricsService()::onServerStopping);
         LOGGER.info("Custom Claims Core initialized with {} adapter", services.claimAdapter().name());
     }
 

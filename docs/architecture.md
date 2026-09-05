@@ -56,7 +56,8 @@ External dependencies:
 The code uses small service containers created by module entrypoints:
 
 - `CoreServices` creates OPaC adapters, party/claim/territory services,
-  permission service, data storage, logs, message service, and rollback service.
+  permission service, data storage, logs, message service, anonymous dedicated-server
+  metrics, and rollback service.
 - `WarServices` builds war storage, side attack/defense cooldown storage, optional daily
   outgoing/accepted start-limit storage, raid windows, border checks, AFK tracking,
   capture progress, display/HUD, notifications, lives, scoreboard, and `WarManager`.
@@ -73,7 +74,8 @@ handlers and command classes thin.
 Core:
 
 - `CustomClaimsCoreMod` registers `CoreConfig` and initializes
-  `CoreServices`.
+  `CoreServices`. Its metrics service listens for server start, tick, and stop
+  events; HTTP delivery runs asynchronously off the server thread.
 
 War:
 
@@ -130,6 +132,7 @@ Current file names:
 - `protection/create-machines.txt`: side Create/Offroad mining rule state.
 - `protection/create-assemblies.txt`: side Create/Sable assembly rule state.
 - `protection/claimrule-toggle-cooldowns.txt`: side toggle cooldown timestamps.
+- `metrics/server-id.txt`: randomly generated anonymous dedicated-server id.
 
 Foreign interaction counters are runtime-only. War lives are serialized as part
 of active war data.

@@ -11,6 +11,7 @@ import dev.customclaims.core.service.ClaimService;
 import dev.customclaims.core.service.ConfigManager;
 import dev.customclaims.core.service.DataStorageService;
 import dev.customclaims.core.service.MessageService;
+import dev.customclaims.core.service.MetricsService;
 import dev.customclaims.core.service.PartyService;
 import dev.customclaims.core.service.PermissionService;
 import dev.customclaims.core.service.TerritoryService;
@@ -27,6 +28,7 @@ public record CoreServices(
         ConfigManager configManager,
         DataStorageService dataStorageService,
         MessageService messageService,
+        MetricsService metricsService,
         WarLogService warLogService,
         ActionLogService actionLogService,
         RollbackService rollbackService
@@ -39,6 +41,7 @@ public record CoreServices(
         ConfigManager configManager = new ConfigManager();
         DataStorageService dataStorageService = new DataStorageService();
         MessageService messageService = new MessageService();
+        MetricsService metricsService = new MetricsService(configManager, dataStorageService);
         PermissionService permissionService = new PermissionService();
         PartyService partyService = new PartyService(partyAdapter);
         ClaimService claimService = new ClaimService(claimAdapter);
@@ -59,6 +62,7 @@ public record CoreServices(
                 configManager,
                 dataStorageService,
                 messageService,
+                metricsService,
                 warLogService,
                 actionLogService,
                 rollbackService

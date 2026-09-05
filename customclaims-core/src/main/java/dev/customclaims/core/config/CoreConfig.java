@@ -14,6 +14,14 @@ public final class CoreConfig {
             .comment("Operator level accepted by the permission service.")
             .defineInRange("op_permission_level", 2, 0, 4);
 
+    public static final ModConfigSpec.BooleanValue METRICS_ENABLED = BUILDER
+            .comment("Enables anonymous dedicated-server heartbeat metrics.")
+            .define("metrics.enabled", true);
+
+    public static final ModConfigSpec.ConfigValue<String> METRICS_ENDPOINT = BUILDER
+            .comment("HTTP(S) endpoint that receives anonymous metrics heartbeats. Empty means no heartbeat is sent.")
+            .define("metrics.endpoint", "");
+
     public static final ModConfigSpec.ConfigValue<List<? extends String>> DEFAULT_PLAYER_PERMISSIONS = BUILDER
             .comment("Permission nodes granted to every player without requiring OP or tags.")
             .defineListAllowEmpty("permissions.default_player_permissions",

@@ -349,6 +349,7 @@ Important files:
 - `protection/create-assemblies.txt`: side Create/Sable assembly allow/block toggles.
 - `protection/claimrule-toggle-cooldowns.txt`: last side toggle timestamps for
   cooldowns.
+- `metrics/server-id.txt`: random anonymous id used by dedicated-server metrics.
 
 Foreign interaction counters are runtime-only and are not persisted. They reset
 globally on `foreign_interaction.limit_reset_interval_seconds` or through
@@ -367,3 +368,6 @@ survive server restart.
 - If players report unexpected claim damage, inspect side `/claimrules`
   settings, protection config, and whether the chunk is currently contested.
 - Use `/waradmin list` before stopping or modifying a war manually.
+- Set `metrics.enabled = false` in `customclaims_core-common.toml` and restart
+  to disable anonymous metrics. An empty `metrics.endpoint` also prevents
+  requests.

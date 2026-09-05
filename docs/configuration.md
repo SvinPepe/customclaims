@@ -12,6 +12,8 @@ Values below are the defaults from the current Java config classes.
 | --- | --- | --- |
 | `debug_logging` | `false` | Enables additional server-side Custom Claims debug logging. |
 | `op_permission_level` | `2` | Operator level accepted by the permission service. |
+| `metrics.enabled` | `true` | Enables anonymous heartbeat metrics on dedicated servers. |
+| `metrics.endpoint` | `""` | HTTP(S) heartbeat endpoint; empty means no request is sent. |
 | `permissions.default_player_permissions` | see below | Permission nodes granted to every player without requiring OP or tags. |
 
 Default player permissions:
