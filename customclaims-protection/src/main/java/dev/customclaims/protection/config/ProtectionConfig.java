@@ -1,9 +1,25 @@
 package dev.customclaims.protection.config;
 
+import java.util.List;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ProtectionConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> CONTESTED_ENTITY_INTERACTION_EXCEPTIONS = BUILDER
+            .comment("Entity types whose right-click interactions bypass OPaC for attacking/defending sides in the target's contested chunk.",
+                    "Exact namespace:path IDs only; no wildcards. Empty disables exceptions. Mods need not be installed.",
+                    "Uses a full OPaC pass until the next server tick; does not override the entity mod's own access rules.")
+            .defineListAllowEmpty("entity_interaction.contested_exceptions", List.of("corpse:corpse"),
+                    () -> "corpse:corpse",
+                    value -> {
+                        if (!(value instanceof String id) || !id.contains(":")) {
+                            return false;
+                        }
+                        ResourceLocation parsed = ResourceLocation.tryParse(id);
+                        return parsed != null && parsed.toString().equals(id);
+                    });
 
     public static final ModConfigSpec.IntValue FOREIGN_BLOCK_BREAK_LIMIT = BUILDER
             .comment("Temporary MVP limit for foreign peaceful claim block breaks per player runtime session.")

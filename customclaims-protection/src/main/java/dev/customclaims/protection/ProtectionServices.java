@@ -4,6 +4,7 @@ import dev.customclaims.core.CoreServices;
 import dev.customclaims.protection.service.ClaimRulesCooldownService;
 import dev.customclaims.protection.service.ClaimRulesService;
 import dev.customclaims.protection.service.CreateMachinesProtectionService;
+import dev.customclaims.protection.service.EntityInteractionProtectionService;
 import dev.customclaims.protection.service.ExplosionProtectionService;
 import dev.customclaims.protection.service.ForeignInteractionLimitService;
 import dev.customclaims.protection.service.OpenPartiesProtectionBypassService;
@@ -17,6 +18,7 @@ public record ProtectionServices(
         ClaimRulesService claimRulesService,
         ForeignInteractionLimitService foreignInteractionLimitService,
         OpenPartiesProtectionBypassService openPartiesProtectionBypassService,
+        EntityInteractionProtectionService entityInteractionProtectionService,
         WitherRulesService witherRulesService,
         VillagerProtectionService villagerProtectionService
 ) {
@@ -58,6 +60,7 @@ public record ProtectionServices(
                 claimRulesService,
                 foreignInteractionLimitService,
                 openPartiesProtectionBypassService,
+                new EntityInteractionProtectionService(coreServices.territoryService()),
                 witherRulesService,
                 villagerProtectionService
         );

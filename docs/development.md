@@ -34,7 +34,7 @@ opc_version=neoforge-1.21.1-0.27.5
 create_version=mc1.21.1-6.0.9
 cbc_version=5.11.7
 rpl_version=2.1.2
-mod_version=1.6.6
+mod_version=1.6.7
 ```
 
 ## CI-Parity Build
@@ -77,6 +77,8 @@ Smoke-test the built jar on the baseline `Minecraft 1.21.1 + NeoForge 21.1.232` 
 - daily territory fight limits remain disabled at default `0`; when enabled,
   they remain additional successful-start quotas;
 - protection blocks foreign peaceful interactions;
+- with Corpse installed, both war sides can open and retrieve permitted corpse
+  contents in a contested chunk; Corpse ownership restrictions still apply;
 - Create machine protection works when Create is installed;
 - Aeronautics/Offroad bore protection works when Aeronautics/Offroad is
   installed;
@@ -163,3 +165,13 @@ For gameplay changes, test in a NeoForge server run with OPaC installed and
 exercise the affected commands or event paths in-game. For Aeronautics/Offroad,
 test Borehead Bearing + Rock Cutting Wheel mining against protected and allowed
 claims.
+
+For contested entity interaction exceptions, test both entity interaction event
+paths, both war sides, an outsider, peaceful and unclaimed chunks, and a finished
+war. Test across a chunk boundary in both directions to confirm that the target
+entity's chunk controls eligibility. Verify an empty list, another configured
+entity type, a non-listed type, config reload, and startup without Corpse. Confirm
+that other mods' cancellations and Corpse access restrictions remain effective,
+attacks do not grant a pass, and granted OPaC passes are removed at the next server
+post-tick. When checking denied scenarios, start after that cleanup tick because
+the existing full-pass mechanism temporarily bypasses more than one interaction.

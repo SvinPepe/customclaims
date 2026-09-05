@@ -11,7 +11,7 @@ Use the `opac-warfare` distribution jar for normal server installs:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that file is `opac-warfare-1.6.6.jar`.
+For this release, that file is `opac-warfare-1.6.7.jar`.
 
 Required server mods:
 
@@ -271,7 +271,30 @@ damage when a side has explosion protection enabled. If
 inside contested war chunks.
 
 CustomClaims no longer implements storage-specific opening or breaking rules.
-Vanilla and OPaC are the sole authorities for storage access and protection.
+Normal storage access follows vanilla and OPaC rules, with the contested entity
+interaction exception described below.
+
+### Corpse And Contested Entity Interactions
+
+In `config/customclaims_protection-common.toml`,
+`entity_interaction.contested_exceptions` defaults to `["corpse:corpse"]`. This
+allows attacking and defending players to right-click a Corpse entity in their
+war's contested chunk without OPaC blocking the interaction. Corpse still decides
+who can retrieve its contents; this setting does not override its ownership rules.
+
+Add exact entity type IDs (`namespace:path`) to support other mods, or use `[]`
+to disable the feature. Wildcards and tags are not supported. Corpse need not be
+installed. Changes take effect when NeoForge reloads the config or the server
+restarts.
+
+The check uses the entity's chunk, including when the player stands across a
+chunk boundary. Outsiders receive no pass, and peaceful or no-longer-contested
+chunks follow normal OPaC rules. Attacks do not grant this exception. The existing
+OPaC bypass mechanism grants a full pass until the next server tick; other OPaC
+checks during that short interval can also be bypassed. Other mods' canceled
+events are never uncanceled.
+
+### Optional Mob Protection
 
 Wither blocking and villager/trader damage protection are disabled by default.
 At those defaults the handlers do not cancel spawns or damage, so vanilla and

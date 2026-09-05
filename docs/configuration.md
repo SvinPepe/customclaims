@@ -79,6 +79,7 @@ Daily limits remain optional and are evaluated in addition to cooldowns when con
 | `foreign_interaction.block_break_limit` | `0` | Runtime-session block break limit for foreign peaceful claims. |
 | `foreign_interaction.block_place_limit` | `0` | Runtime-session block place limit for foreign peaceful claims. |
 | `foreign_interaction.limit_reset_interval_seconds` | `3600` | Global runtime reset interval for foreign claim counters. |
+| `entity_interaction.contested_exceptions` | `["corpse:corpse"]` | Exact entity type IDs whose right-click interactions grant an OPaC bypass to attacking/defending sides in the target entity's contested chunk. |
 | `claimrules.toggle_cooldown_seconds` | `600` | Cooldown for side-level `/claimrules` toggles. |
 | `explosions.custom_filter_enabled` | `true` | Filters block damage from explosions in protected claimed chunks. |
 | `explosions.allow_in_war_chunks` | `true` | Does not filter explosion block damage in contested war chunks. |
@@ -108,6 +109,25 @@ Daily limits remain optional and are evaluated in addition to cooldowns when con
 | `villager_protection.clear_fire_on_blocked_damage` | `true` | Clears fire when protected damage is blocked. |
 
 The runtime `/claimrules create` side toggle is persisted in `protection/create-machines.txt`, not TOML. It controls Create drills, saws, other block-breaking movement machines, and Aeronautics/Offroad bore mining.
+
+`entity_interaction.contested_exceptions` accepts exact `namespace:path` IDs, not
+wildcards or tags. An empty list (`[]`) disables these exceptions. IDs for mods
+that are not installed are harmless; Corpse is not a required dependency. The
+server reads the current list on each interaction, including after a config reload.
+For example:
+
+```toml
+[entity_interaction]
+contested_exceptions = ["corpse:corpse", "minecraft:chest_minecart"]
+```
+
+Only participants of the war at the target entity's chunk receive this bypass.
+Outsiders, peaceful claims, and unclaimed chunks receive no new pass. This handles
+right-click interactions only and preserves the entity mod's own ownership/access
+rules and event cancellations. Like the existing block bypass, it grants a full
+OPaC pass until the next server tick, so the pass is broader than one interaction
+while active. Clearing the list prevents new grants; an existing pass expires on
+the next tick.
 
 The independent `/claimrules assembly` side toggle is persisted in `protection/create-assemblies.txt`. It controls Create and optional Sable contraption assembly. On the first upgrade that creates this file, existing `create` values and their cooldowns are copied to `assembly`.
 

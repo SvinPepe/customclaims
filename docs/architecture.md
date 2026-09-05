@@ -61,7 +61,7 @@ The code uses small service containers created by module entrypoints:
   outgoing/accepted start-limit storage, raid windows, border checks, AFK tracking,
   capture progress, display/HUD, notifications, lives, scoreboard, and `WarManager`.
 - `ProtectionServices` builds foreign interaction limits, OPaC bypass service,
-  explosion protection, Create mining/assembly rules, claim-rule cooldowns,
+  contested entity interaction exceptions, explosion protection, Create mining/assembly rules, claim-rule cooldowns,
   `/claimrules` orchestration, opt-in Wither rules, and opt-in villager/trader
   protection.
 
@@ -90,6 +90,13 @@ Protection:
 - Handles block interaction, break/place, explosions, opt-in Wither spawn
   blocking, opt-in villager/trader damage protection, and foreign interaction
   reset ticks.
+- Handles server-side `EntityInteract` and `EntityInteractSpecific` at highest
+  priority. `EntityInteractionProtectionService` checks the current configured
+  entity type list and the player's interaction status at the target's chunk.
+  Only `WAR_CONTESTED` participants get the existing OPaC full pass, cleared by
+  the server post-tick handler. This pass is broader than a single interaction
+  until cleared. No Corpse classes, inventory access, or event uncancellation
+  are involved.
 
 Compat:
 
