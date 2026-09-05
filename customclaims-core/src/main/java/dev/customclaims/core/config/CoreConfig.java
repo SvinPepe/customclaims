@@ -20,7 +20,8 @@ public final class CoreConfig {
 
     public static final ModConfigSpec.ConfigValue<String> METRICS_ENDPOINT = BUILDER
             .comment("HTTP(S) endpoint that receives anonymous metrics heartbeats. Empty means no heartbeat is sent.")
-            .define("metrics.endpoint", "");
+            .define("metrics.endpoint", "metrics.endpoint",
+        "https://customclaims-metrics.svinpepe.workers.dev/heartbeat");
 
     public static final ModConfigSpec.ConfigValue<List<? extends String>> DEFAULT_PLAYER_PERMISSIONS = BUILDER
             .comment("Permission nodes granted to every player without requiring OP or tags.")
