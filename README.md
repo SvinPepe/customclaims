@@ -3,6 +3,9 @@
 **Open Parties and Claims: Warfare** is an unofficial NeoForge addon for
 [Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims).
 
+[Anonymous metrics](https://customclaims-metrics.svinpepe.workers.dev/) 
+[Modrinth](https://modrinth.com/mod/open-parties-and-claims-warfare)
+
 It adds chunk wars, contested claims, side-based attack and defense cooldowns with configurable target-chunk slots, configurable claim protection rules,
 Create mining and contraption-assembly controls, Aeronautics/Offroad bore protection,
 Sable assembly protection, Create Big Cannons protection, and globally visible Xaero war markers with configurable filtering. Open Parties and Claims
