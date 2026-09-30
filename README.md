@@ -14,17 +14,17 @@ warfare and protection mechanics on top of OPaC territories.
 
 ## Requirements
 
-- Minecraft `1.21.1` baseline; metadata allows experimental `[1.21.1,1.27)` probes
-- NeoForge `21.1.232` baseline; metadata allows experimental `[21.1.232,27.0)` probes
+- Minecraft `1.21.1` baseline; metadata allows experimental `[1.21.1,)` probes (supports `1.21.11+`)
+- NeoForge `21.1.232` baseline; metadata allows experimental `[21.1.232,)` probes
 - Java `21`
 - Open Parties and Claims `neoforge-1.21.1-0.27.5` or newer on the baseline stack
 
 The official jar is one modern artifact. `Minecraft 1.21.1 + NeoForge 21.1.232`
-is the fully tested baseline; NeoForge `21.x` through `26.x` is experimental
-same-jar support that must pass boot and gameplay smoke tests before being
-called verified. Forge, Fabric, Quilt, older `1.20.x`, and Minecraft `1.27+`
-are not promised. See [Compatibility](docs/compatibility.md) for the support
-policy and probe workflow.
+is the fully tested baseline; newer NeoForge and Minecraft releases (including
+`1.21.11+` and subsequent versions) are experimental same-jar support that must
+pass boot and gameplay smoke tests before being called verified. Forge, Fabric,
+Quilt, and older `1.20.x` are not promised. See [Compatibility](docs/compatibility.md)
+for the support policy and probe workflow.
 
 Optional integrations activate only when their target mods are installed:
 
@@ -55,7 +55,7 @@ server artifact is:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that artifact is `opac-warfare-1.6.7.jar`.
+For this release, that artifact is `opac-warfare-1.6.7.1.jar`.
 
 ## Quick Start
 

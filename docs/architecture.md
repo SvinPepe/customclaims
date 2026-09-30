@@ -2,7 +2,7 @@
 
 This repository is a Gradle multi-module NeoForge project with a Minecraft
 `1.21.1` compile baseline and experimental metadata for Minecraft
-`[1.21.1,1.27)` on NeoForge `[21.1.232,27.0)`. Open Parties and
+`[1.21.1,)` on NeoForge `[21.1.232,)`. Open Parties and
 Claims is the source of party membership and claim
 ownership. This project adds territory-aware services, war state, protection
 rules, and optional compat behavior.

@@ -19,7 +19,7 @@ development runtime coverage.
 
 This repository intentionally keeps one official jar. It compiles against
 `Minecraft 1.21.1 + NeoForge 21.1.232`, while metadata allows experimental
-same-jar probes on Minecraft `[1.21.1,1.27)` and NeoForge `[21.1.232,27.0)`.
+same-jar probes on Minecraft `[1.21.1,)` and NeoForge `[21.1.232,)`.
 Do not add multi-version Gradle targets or widen those ranges without updating
 [Compatibility](compatibility.md) and smoke-test expectations.
 
@@ -27,14 +27,14 @@ Important version properties live in `gradle.properties`:
 
 ```properties
 minecraft_version=1.21.1
-minecraft_version_range=[1.21.1,1.27)
+minecraft_version_range=[1.21.1,)
 neo_version=21.1.232
-neo_version_range=[21.1.232,27.0)
+neo_version_range=[21.1.232,)
 opc_version=neoforge-1.21.1-0.27.5
 create_version=mc1.21.1-6.0.9
 cbc_version=5.11.7
 rpl_version=2.1.2
-mod_version=1.6.7
+mod_version=1.6.7.1
 ```
 
 ## CI-Parity Build
@@ -84,7 +84,7 @@ Smoke-test the built jar on the baseline `Minecraft 1.21.1 + NeoForge 21.1.232` 
   installed;
 - Xaero war waypoint names and cleanup work on a compatible client.
 
-NeoForge `21.x` through `26.x` candidates are probes only. Install the same jar
+Newer NeoForge candidates are probes only. Install the same jar
 there, run the same smoke checks, and document the target as unsupported if boot
 or gameplay checks fail.
 
