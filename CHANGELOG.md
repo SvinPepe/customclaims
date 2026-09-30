@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.7.1
+
+### Changed
+
+* Updated the mod version to `1.6.7.1`.
+* Updated Minecraft version metadata to `[1.21.1,)` to add support for Minecraft `1.21.11+` and subsequent releases under the new versioning system.
+* Updated NeoForge version metadata to `[21.1.232,)` to remove obsolete assumptions about hypothetical `1.22`/`1.23` release numbering and the outdated `27.0` ceiling.
+* Updated compatibility, development, and administration documentation to align with current versioning.
+
 ## 1.6.7
 
 ### Added
