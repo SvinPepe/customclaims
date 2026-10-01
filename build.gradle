@@ -115,16 +115,7 @@ subprojects {
             argument '--nogui'
         }
 
-        gameTestServer {
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.ext.mod_id
-        }
 
-        data {
-            arguments.addAll '--mod', project.ext.mod_id,
-                    '--all',
-                    '--output', file('src/generated/resources/').getAbsolutePath(),
-                    '--existing', file('src/main/resources/').getAbsolutePath()
-        }
     }
 
     tasks.withType(ProcessResources).configureEach {
