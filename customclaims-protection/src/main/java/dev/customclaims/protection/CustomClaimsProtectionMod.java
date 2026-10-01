@@ -44,7 +44,6 @@ public final class CustomClaimsProtectionMod {
         NeoForge.EVENT_BUS.addListener(ClaimRulesCommand::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, BlockInteractionHandler::onLeftClickBlock);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, BlockInteractionHandler::onRightClickBlock);
-        NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, BlockInteractionHandler::onBreakBlock);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, BlockInteractionHandler::onPlaceBlock);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, EntityInteractionHandler::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, EntityInteractionHandler::onEntityInteractSpecific);

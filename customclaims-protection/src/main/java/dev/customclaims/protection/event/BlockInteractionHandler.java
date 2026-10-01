@@ -4,7 +4,6 @@ import dev.customclaims.protection.CustomClaimsProtectionMod;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.level.BlockEvent;
-import net.neoforged.neoforge.event.level.BreakBlockEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 public final class BlockInteractionHandler {
@@ -38,23 +37,6 @@ public final class BlockInteractionHandler {
                 .wouldAllowPlace(player, level, event.getPos())) {
             grantOpenPartiesBypassIfNeeded(player, level, event.getPos());
         }
-    }
-
-    public static void onBreakBlock(BreakBlockEvent event) {
-        if (!(event.getLevel() instanceof ServerLevel level) || !(event.getPlayer() instanceof ServerPlayer player)) {
-            return;
-        }
-
-        boolean allowedByLimits = CustomClaimsProtectionMod.services()
-                .foreignInteractionLimitService()
-                .canBreak(player, level, event.getPos());
-
-        if (!allowedByLimits) {
-            event.setCanceled(true);
-            return;
-        }
-
-        grantOpenPartiesBypassIfNeeded(player, level, event.getPos());
     }
 
     public static void onPlaceBlock(BlockEvent.EntityPlaceEvent event) {
