@@ -8,7 +8,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.ClientPacketDistributor;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 
 public final class ClaimRulesScreen extends Screen {
     private ClaimRulesStateDto state;
@@ -51,30 +51,21 @@ public final class ClaimRulesScreen extends Screen {
         int y = Math.max(84, height / 2 - 48);
 
         addRenderableWidget(Button.builder(explosionButtonLabel(), button ->
-                        ClientPacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
-                                ClaimRulesService.RULE_EXPLOSIONS,
-                                !state.explosionProtectionEnabled()
-                        )))
+                        sendSetRule(ClaimRulesService.RULE_EXPLOSIONS, !state.explosionProtectionEnabled()))
                 .bounds(center - 105, y, 210, 20)
                 .build()).active = state.hasSide()
                 && state.canToggleExplosions()
                 && explosionCooldownSeconds <= 0L;
 
         addRenderableWidget(Button.builder(createButtonLabel(), button ->
-                        ClientPacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
-                                ClaimRulesService.RULE_CREATE,
-                                !state.createMachinesEnabled()
-                        )))
+                        sendSetRule(ClaimRulesService.RULE_CREATE, !state.createMachinesEnabled()))
                 .bounds(center - 105, y + 24, 210, 20)
                 .build()).active = state.hasSide()
                 && state.canToggleCreate()
                 && createCooldownSeconds <= 0L;
 
         addRenderableWidget(Button.builder(assemblyButtonLabel(), button ->
-                        ClientPacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
-                                ClaimRulesService.RULE_ASSEMBLY,
-                                !state.assemblyEnabled()
-                        )))
+                        sendSetRule(ClaimRulesService.RULE_ASSEMBLY, !state.assemblyEnabled()))
                 .bounds(center - 105, y + 48, 210, 20)
                 .build()).active = state.hasSide()
                 && state.canToggleAssembly()
@@ -83,6 +74,15 @@ public final class ClaimRulesScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
                 .bounds(center - 50, y + 86, 100, 20)
                 .build());
+    }
+
+    private void sendSetRule(String ruleId, boolean enabled) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.getConnection() != null) {
+            minecraft.getConnection().send(new ServerboundCustomPayloadPacket(
+                    new ServerboundSetClaimRulePayload(ruleId, enabled)
+            ));
+        }
     }
 
     @Override
