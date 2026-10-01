@@ -12,8 +12,9 @@ For full context, read `docs/architecture.md` and `docs/development.md`.
 - Normal server artifact: `opac-warfare/build/libs/opac-warfare-*.jar`.
 - Compatibility anchor: one official jar with baseline `Minecraft 1.21.1 +
   NeoForge 21.1.232`; metadata allows experimental Minecraft
-  `[1.21.1,)` and NeoForge `[21.1.232,)` probes. Do not
+  `[1.21.1,26.0)` and NeoForge `[21.1.232,26.0)` probes. Do not
   promise failed candidates, Forge, Fabric, or Quilt from this artifact.
+  Minecraft 26.x is incompatible and requires a separate port.
 
 ## Read First
 

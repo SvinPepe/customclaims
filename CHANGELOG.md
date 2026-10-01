@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.7.2
+
+### Fixed
+
+* Narrowed `minecraft_version_range` to `[1.21.1,26.0)` and `neo_version_range` to `[21.1.232,26.0)` to prevent a startup crash on Minecraft 26.1 (`NoClassDefFoundError: net/minecraft/resources/ResourceLocation`, `NoSuchFieldError: FMLEnvironment.dist`). Minecraft 26.1 renamed `ResourceLocation` to `Identifier` and removed `FMLEnvironment.dist`, making the 1.21.x jar binary-incompatible. NeoForge will now correctly refuse to load the 1.21.x jar on 26.x rather than crashing.
+
 ## 1.6.7.1
 
 ### Changed
