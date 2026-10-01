@@ -54,7 +54,7 @@ public final class BigCannonEventHandler {
             CustomClaimsBigCannonsMod.LOGGER.info(
                     "Blocked Create Big Cannons projectile {} from protected claim at {} {}",
                     BuiltInRegistries.ENTITY_TYPE.getKey(projectile.getType()),
-                    level.dimension().location(),
+                    level.dimension().identifier(),
                     pos.toShortString()
             );
         }

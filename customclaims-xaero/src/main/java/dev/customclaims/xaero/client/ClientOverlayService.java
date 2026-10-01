@@ -119,11 +119,11 @@ public final class ClientOverlayService {
     }
 
     private static int distanceChunks(LocalPlayer player, WarMarkerDto marker) {
-        if (!player.level().dimension().location().toString().equals(marker.dimension())) {
+        if (!player.level().dimension().identifier().toString().equals(marker.dimension())) {
             return Integer.MAX_VALUE;
         }
         ChunkPos playerChunk = player.chunkPosition();
-        return Math.max(Math.abs(playerChunk.x - marker.chunkX()), Math.abs(playerChunk.z - marker.chunkZ()));
+        return Math.max(Math.abs(playerChunk.x() - marker.chunkX()), Math.abs(playerChunk.z() - marker.chunkZ()));
     }
 
     private static int stateColor(WarMarkerDto marker) {

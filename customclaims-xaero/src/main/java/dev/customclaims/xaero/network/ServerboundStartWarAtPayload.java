@@ -69,7 +69,7 @@ public record ServerboundStartWarAtPayload(String dimension, int chunkX, int chu
             return WarOperationResult.fail("Invalid target dimension.");
         }
 
-        String playerDimension = player.level().dimension().location().toString();
+        String playerDimension = player.level().dimension().identifier().toString();
         if (!playerDimension.equals(payload.dimension())) {
             return WarOperationResult.fail("You can only start wars from the Xaero map in your current dimension.");
         }
@@ -95,8 +95,8 @@ public record ServerboundStartWarAtPayload(String dimension, int chunkX, int chu
     private static boolean isWithinMapStartDistance(ServerPlayer player, int targetChunkX, int targetChunkZ) {
         int maxDistance = Math.max(0, Math.min(32, XaeroCompatConfig.MAP_WAR_START_MAX_DISTANCE_CHUNKS.get()));
         ChunkPos playerChunk = player.chunkPosition();
-        long dx = Math.abs((long) playerChunk.x - targetChunkX);
-        long dz = Math.abs((long) playerChunk.z - targetChunkZ);
+        long dx = Math.abs((long) playerChunk.x() - targetChunkX);
+        long dz = Math.abs((long) playerChunk.z() - targetChunkZ);
         return Math.max(dx, dz) <= maxDistance;
     }
 }

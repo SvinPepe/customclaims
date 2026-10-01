@@ -33,7 +33,7 @@ public final class ForeignInteractionLimitService {
             return true;
         }
 
-        TerritoryStatus status = territoryService.getInteractionStatus(player, level, new ChunkPos(pos));
+        TerritoryStatus status = territoryService.getInteractionStatus(player, level, ChunkPos.containing(pos));
         if (status == TerritoryStatus.WAR_CONTESTED || status == TerritoryStatus.UNCLAIMED) {
             return true;
         }
@@ -50,7 +50,7 @@ public final class ForeignInteractionLimitService {
             return true;
         }
 
-        TerritoryStatus status = territoryService.getInteractionStatus(player, level, new ChunkPos(pos));
+        TerritoryStatus status = territoryService.getInteractionStatus(player, level, ChunkPos.containing(pos));
         if (status == TerritoryStatus.WAR_CONTESTED || status == TerritoryStatus.UNCLAIMED) {
             return true;
         }
@@ -67,7 +67,7 @@ public final class ForeignInteractionLimitService {
             return true;
         }
 
-        TerritoryStatus status = territoryService.getInteractionStatus(player, level, new ChunkPos(pos));
+        TerritoryStatus status = territoryService.getInteractionStatus(player, level, ChunkPos.containing(pos));
         if (status == TerritoryStatus.WAR_CONTESTED || status == TerritoryStatus.UNCLAIMED) {
             return true;
         }
@@ -84,7 +84,7 @@ public final class ForeignInteractionLimitService {
             return true;
         }
 
-        TerritoryStatus status = territoryService.getInteractionStatus(player, level, new ChunkPos(pos));
+        TerritoryStatus status = territoryService.getInteractionStatus(player, level, ChunkPos.containing(pos));
         if (status == TerritoryStatus.WAR_CONTESTED || status == TerritoryStatus.UNCLAIMED) {
             return true;
         }
@@ -113,7 +113,7 @@ public final class ForeignInteractionLimitService {
             return true;
         }
 
-        ChunkPos chunkPos = new ChunkPos(pos);
+        ChunkPos chunkPos = ChunkPos.containing(pos);
         TerritoryStatus status = territoryService.getInteractionStatus(player, level, chunkPos);
         if (status == TerritoryStatus.WAR_CONTESTED) {
             return true;

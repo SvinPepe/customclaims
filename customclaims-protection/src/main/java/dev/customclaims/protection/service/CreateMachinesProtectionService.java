@@ -103,7 +103,7 @@ public final class CreateMachinesProtectionService {
     }
 
     public boolean canCreateAffect(ServerLevel level, BlockPos pos, UUID actorId) {
-        ChunkPos chunkPos = new ChunkPos(pos);
+        ChunkPos chunkPos = ChunkPos.containing(pos);
         TerritoryStatus status = territoryService.getStatus(level, chunkPos);
         if (status == TerritoryStatus.UNCLAIMED) {
             return true;
@@ -141,7 +141,7 @@ public final class CreateMachinesProtectionService {
         boolean touchesClaim = false;
         boolean touchesContestedWar = false;
         for (BlockPos pos : positions) {
-            TerritoryStatus status = territoryService.getStatus(level, new ChunkPos(pos));
+            TerritoryStatus status = territoryService.getStatus(level, ChunkPos.containing(pos));
             if (status != TerritoryStatus.UNCLAIMED) {
                 touchesClaim = true;
             }
@@ -161,7 +161,7 @@ public final class CreateMachinesProtectionService {
 
         ClaimSideId assemblySide = null;
         for (BlockPos corner : corners) {
-            ChunkPos chunkPos = new ChunkPos(corner);
+            ChunkPos chunkPos = ChunkPos.containing(corner);
             if (territoryService.getStatus(level, chunkPos) != TerritoryStatus.PEACEFUL_CLAIMED) {
                 return false;
             }

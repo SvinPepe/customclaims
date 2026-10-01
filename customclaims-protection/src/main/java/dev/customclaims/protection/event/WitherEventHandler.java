@@ -18,7 +18,7 @@ public final class WitherEventHandler {
             event.setCanceled(true);
             wither.discard();
             if (ProtectionConfig.LOG_BLOCKED_WITHER_SUMMONS.get()) {
-                CustomClaimsProtectionMod.LOGGER.info("Blocked illegal Wither spawn in {}", event.getLevel().dimension().location());
+                CustomClaimsProtectionMod.LOGGER.info("Blocked illegal Wither spawn in {}", event.getLevel().dimension().identifier());
             }
         }
     }

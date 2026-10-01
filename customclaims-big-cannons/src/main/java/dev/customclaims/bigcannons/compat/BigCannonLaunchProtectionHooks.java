@@ -36,7 +36,7 @@ public final class BigCannonLaunchProtectionHooks {
         if (ProtectionConfig.LOG_BLOCKED_BIG_CANNON_PROJECTILES.get()) {
             CustomClaimsBigCannonsMod.LOGGER.info(
                     "Blocked Create Big Cannons launch before consuming munition at {} {}",
-                    level.dimension().location(),
+                    level.dimension().identifier(),
                     launchPos.toShortString()
             );
         }

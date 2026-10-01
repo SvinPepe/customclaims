@@ -8,10 +8,10 @@ import net.minecraft.world.entity.Entity;
 
 public final class PermissionService {
     public boolean hasPermission(ServerPlayer player, String permission) {
-        return player.getTags().contains(permission)
-                || player.getTags().contains(CustomClaimsPermissions.BYPASS)
+        return player.tags().contains(permission)
+                || player.tags().contains(CustomClaimsPermissions.BYPASS)
                 || CoreConfig.DEFAULT_PLAYER_PERMISSIONS.get().contains(permission)
-                || player.createCommandSourceStack().hasPermission(CoreConfig.OP_PERMISSION_LEVEL.get());
+                || player.hasPermissions(CoreConfig.OP_PERMISSION_LEVEL.get());
     }
 
     public boolean hasPermission(CommandSourceStack source, String permission) {
@@ -19,6 +19,6 @@ public final class PermissionService {
         if (entity instanceof ServerPlayer player) {
             return hasPermission(player, permission);
         }
-        return source.hasPermission(4);
+        return true;
     }
 }

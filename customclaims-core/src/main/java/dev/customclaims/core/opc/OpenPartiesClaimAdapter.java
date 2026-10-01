@@ -57,7 +57,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
             }
 
             IPlayerChunkClaimAPI oldClaim = api(level.getServer()).getServerClaimsManager()
-                    .get(level.dimension().location(), chunkPos);
+                    .get(level.dimension().identifier(), chunkPos);
             int subConfigIndex = oldClaim == null ? 0 : oldClaim.getSubConfigIndex();
             boolean forceload = oldClaim != null && oldClaim.isForceloadable();
             return claimFromServer(level, chunkPos, ownerUuid, subConfigIndex, forceload)
@@ -80,7 +80,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
 
         UUID ownerUuid = party.getOwner().getUUID();
         IServerClaimsManagerAPI claimsManager = api.getServerClaimsManager();
-        IPlayerChunkClaimAPI oldClaim = claimsManager.get(level.dimension().location(), chunkPos);
+        IPlayerChunkClaimAPI oldClaim = claimsManager.get(level.dimension().identifier(), chunkPos);
         int subConfigIndex = oldClaim == null ? 0 : oldClaim.getSubConfigIndex();
         boolean forceload = oldClaim != null && oldClaim.isForceloadable();
         return claimFromServer(level, chunkPos, ownerUuid, subConfigIndex, forceload)
@@ -90,7 +90,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
     @Override
     public Optional<ClaimSnapshot> getClaimSnapshot(ServerLevel level, ChunkPos chunkPos) {
         OpenPACServerAPI api = api(level.getServer());
-        IPlayerChunkClaimAPI claim = api.getServerClaimsManager().get(level.dimension().location(), chunkPos);
+        IPlayerChunkClaimAPI claim = api.getServerClaimsManager().get(level.dimension().identifier(), chunkPos);
         if (claim == null) {
             return Optional.empty();
         }
@@ -116,11 +116,11 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
         // with tryToClaim(...): that is the player request path and applies player
         // limits plus economy integrations intended for manually purchased claims.
         api.getServerClaimsManager().claim(
-                level.dimension().location(),
+                level.dimension().identifier(),
                 ownerId,
                 subConfigIndex,
-                chunkPos.x,
-                chunkPos.z,
+                chunkPos.x(),
+                chunkPos.z(),
                 forceload
         );
         return getClaimSnapshot(level, chunkPos)
@@ -130,7 +130,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
 
     @Override
     public Optional<PartyId> getPlayerParty(ServerPlayer player) {
-        IServerPartyAPI party = api(player.server).getPartyManager().getPartyByMember(player.getUUID());
+        IServerPartyAPI party = api(player.getServer()).getPartyManager().getPartyByMember(player.getUUID());
         return Optional.ofNullable(party).map(value -> PartyId.of(value.getId().toString()));
     }
 
@@ -141,7 +141,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
             return false;
         }
 
-        IServerPartyAPI party = api(player.server).getPartyManager().getPartyById(partyUuid.get());
+        IServerPartyAPI party = api(player.getServer()).getPartyManager().getPartyById(partyUuid.get());
         return party != null && party.getMemberInfo(player.getUUID()) != null;
     }
 
@@ -202,7 +202,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
     }
 
     private Optional<ClaimSideId> getClaimSideOwner(OpenPACServerAPI api, ServerLevel level, ChunkPos chunkPos) {
-        IPlayerChunkClaimAPI claim = api.getServerClaimsManager().get(level.dimension().location(), chunkPos);
+        IPlayerChunkClaimAPI claim = api.getServerClaimsManager().get(level.dimension().identifier(), chunkPos);
         if (claim == null) {
             return Optional.empty();
         }

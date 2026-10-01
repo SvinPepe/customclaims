@@ -41,7 +41,7 @@ public final class XaeroWaypointService {
             return;
         }
 
-        String currentDimension = player.level().dimension().location().toString();
+        String currentDimension = player.level().dimension().identifier().toString();
         Map<String, WarMarkerDto> visibleMarkers = new HashMap<>();
         for (WarMarkerDto marker : markers) {
             if (currentDimension.equals(marker.dimension())) {

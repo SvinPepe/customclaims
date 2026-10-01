@@ -16,6 +16,6 @@ public final class MessageService {
     }
 
     public void actionBar(ServerPlayer player, String message) {
-        player.displayClientMessage(Component.literal(message), true);
+        player.sendOverlayMessage(Component.literal(message));
     }
 }

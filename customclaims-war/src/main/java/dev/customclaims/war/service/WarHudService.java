@@ -103,7 +103,7 @@ public final class WarHudService {
                 || coreServices.partyService().isSameSide(player, war.defenderSide())) {
             return true;
         }
-        if (!player.level().dimension().location().toString().equals(war.targetChunk().levelId())) {
+        if (!player.level().dimension().identifier().toString().equals(war.targetChunk().levelId())) {
             return false;
         }
         int radius = WarConfig.WAR_UI_BOSSBAR_VISIBLE_RADIUS_CHUNKS.get();
@@ -111,7 +111,7 @@ public final class WarHudService {
     }
 
     private int chunkDistance(ChunkPos left, ChunkPos right) {
-        return Math.max(Math.abs(left.x - right.x), Math.abs(left.z - right.z));
+        return Math.max(Math.abs(left.x() - right.x()), Math.abs(left.z() - right.z()));
     }
 
     private void removeAllPlayers(MinecraftServer server, ServerBossEvent bossEvent) {

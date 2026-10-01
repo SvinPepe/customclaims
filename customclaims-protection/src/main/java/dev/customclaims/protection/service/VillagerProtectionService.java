@@ -76,14 +76,14 @@ public final class VillagerProtectionService {
         if (!(entity.level() instanceof ServerLevel level)) {
             return false;
         }
-        return territoryService.getStatus(level, new ChunkPos(entity.blockPosition())) != TerritoryStatus.UNCLAIMED;
+        return territoryService.getStatus(level, ChunkPos.containing(entity.blockPosition())) != TerritoryStatus.UNCLAIMED;
     }
 
     private boolean isWarChunk(LivingEntity entity) {
         if (!(entity.level() instanceof ServerLevel level)) {
             return false;
         }
-        return territoryService.getStatus(level, new ChunkPos(entity.blockPosition())) == TerritoryStatus.WAR_CONTESTED;
+        return territoryService.getStatus(level, ChunkPos.containing(entity.blockPosition())) == TerritoryStatus.WAR_CONTESTED;
     }
 
     private boolean isPlayerDamage(DamageSource source) {

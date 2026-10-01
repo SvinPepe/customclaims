@@ -17,11 +17,11 @@ public record ChunkPosKey(String levelId, int x, int z) {
     }
 
     public static ChunkPosKey from(ServerLevel level, ChunkPos chunkPos) {
-        return new ChunkPosKey(level.dimension().location().toString(), chunkPos.x, chunkPos.z);
+        return new ChunkPosKey(level.dimension().identifier().toString(), chunkPos.x(), chunkPos.z());
     }
 
     public static ChunkPosKey from(ServerLevel level, BlockPos blockPos) {
-        return from(level, new ChunkPos(blockPos));
+        return from(level, ChunkPos.containing(blockPos));
     }
 
     public ChunkPos toChunkPos() {

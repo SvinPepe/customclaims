@@ -511,12 +511,12 @@ public final class WarManager {
     }
 
     private boolean isNear(ServerPlayer player, WarData war, int radiusChunks) {
-        if (!player.level().dimension().location().toString().equals(war.targetChunk().levelId())) {
+        if (!player.level().dimension().identifier().toString().equals(war.targetChunk().levelId())) {
             return false;
         }
         ChunkPos playerChunk = player.chunkPosition();
         ChunkPos target = war.targetChunk().toChunkPos();
-        int distance = Math.max(Math.abs(playerChunk.x - target.x), Math.abs(playerChunk.z - target.z));
+        int distance = Math.max(Math.abs(playerChunk.x() - target.x()), Math.abs(playerChunk.z() - target.z()));
         return distance <= radiusChunks;
     }
 

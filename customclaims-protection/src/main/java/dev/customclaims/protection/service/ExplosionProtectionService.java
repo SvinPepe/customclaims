@@ -99,7 +99,7 @@ public final class ExplosionProtectionService {
         boolean sourceNeedsBypass = false;
 
         for (BlockPos pos : affectedBlocks) {
-            ChunkPos chunkPos = new ChunkPos(pos);
+            ChunkPos chunkPos = ChunkPos.containing(pos);
             if (!affectedChunks.add(chunkPos)) {
                 continue;
             }
@@ -121,7 +121,7 @@ public final class ExplosionProtectionService {
             return false;
         }
 
-        ChunkPos chunkPos = new ChunkPos(pos);
+        ChunkPos chunkPos = ChunkPos.containing(pos);
         TerritoryStatus status = territoryService.getStatus(level, chunkPos);
         if (status == TerritoryStatus.UNCLAIMED) {
             return false;
@@ -287,7 +287,7 @@ public final class ExplosionProtectionService {
             boolean explosionsAllowed
     ) {
         OpenPACServerAPI api = OpenPACServerAPI.get(level.getServer());
-        IPlayerChunkClaimAPI claim = api.getServerClaimsManager().get(level.dimension().location(), chunkPos);
+        IPlayerChunkClaimAPI claim = api.getServerClaimsManager().get(level.dimension().identifier(), chunkPos);
         if (claim == null) {
             return false;
         }

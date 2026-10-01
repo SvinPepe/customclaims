@@ -40,7 +40,7 @@ public final class BorderChunkService {
 
     private boolean hasAttackableNeighbor(ServerLevel level, ChunkPos target, ClaimSideId attacker, int[][] offsets) {
         for (int[] offset : offsets) {
-            ChunkPos neighbor = new ChunkPos(target.x + offset[0], target.z + offset[1]);
+            ChunkPos neighbor = new ChunkPos(target.x() + offset[0], target.z() + offset[1]);
             java.util.Optional<ClaimSideId> owner = territoryService.getClaimOwnerSide(level, neighbor);
             if (owner.isEmpty() || owner.filter(attacker::equals).isPresent()) {
                 return true;

@@ -28,7 +28,7 @@ public final class XaeroMapWarStartOption extends RightClickOption {
             int blockZ
     ) {
         super(TRANSLATION_KEY, index, target);
-        this.dimension = dimension.location().toString();
+        this.dimension = dimension.identifier().toString();
         this.chunkX = SectionPos.blockToSectionCoord(blockX);
         this.chunkZ = SectionPos.blockToSectionCoord(blockZ);
     }
