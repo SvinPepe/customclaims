@@ -8,10 +8,15 @@ import net.minecraft.world.entity.Entity;
 
 public final class PermissionService {
     public boolean hasPermission(ServerPlayer player, String permission) {
-        return player.tags().contains(permission)
-                || player.tags().contains(CustomClaimsPermissions.BYPASS)
+        return player.getScoreboardTags().contains(permission)
+                || player.getScoreboardTags().contains(CustomClaimsPermissions.BYPASS)
                 || CoreConfig.DEFAULT_PLAYER_PERMISSIONS.get().contains(permission)
-                || player.hasPermissions(CoreConfig.OP_PERMISSION_LEVEL.get());
+                || isOp(player);
+    }
+
+    private boolean isOp(ServerPlayer player) {
+        var server = player.level().getServer();
+        return server != null && server.getPlayerList().isOp(player.getGameProfile());
     }
 
     public boolean hasPermission(CommandSourceStack source, String permission) {

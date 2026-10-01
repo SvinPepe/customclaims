@@ -89,12 +89,7 @@ public final class PartyService {
         }
 
         ServerPlayer online = server.getPlayerList().getPlayer(playerId.get());
-        String name = online != null
-                ? online.getScoreboardName()
-                : server.services().profileCache()
-                        .get(playerId.get())
-                        .map(GameProfile::name)
-                        .orElse(sideId.shortLabel());
+        String name = online != null ? online.getScoreboardName() : sideId.shortLabel();
         return Optional.of(new ClaimSideDisplayInfo(
                 sideId,
                 name,

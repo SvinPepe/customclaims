@@ -130,7 +130,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
 
     @Override
     public Optional<PartyId> getPlayerParty(ServerPlayer player) {
-        IServerPartyAPI party = api(player.getServer()).getPartyManager().getPartyByMember(player.getUUID());
+        IServerPartyAPI party = api(player.level().getServer()).getPartyManager().getPartyByMember(player.getUUID());
         return Optional.ofNullable(party).map(value -> PartyId.of(value.getId().toString()));
     }
 
@@ -141,7 +141,7 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
             return false;
         }
 
-        IServerPartyAPI party = api(player.getServer()).getPartyManager().getPartyById(partyUuid.get());
+        IServerPartyAPI party = api(player.level().getServer()).getPartyManager().getPartyById(partyUuid.get());
         return party != null && party.getMemberInfo(player.getUUID()) != null;
     }
 
