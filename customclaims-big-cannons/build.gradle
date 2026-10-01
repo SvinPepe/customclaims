@@ -6,8 +6,12 @@ dependencies {
     compileOnly "maven.modrinth:create:${create_version}"
     compileOnly "maven.modrinth:rpl:${rpl_version}"
     compileOnly "maven.modrinth:create-big-cannons:${cbc_version}"
+    compileOnly "net.createmod.catnip:Catnip-NeoForge-1.21.1:${catnip_version}"
+    compileOnly "net.createmod.ponder:Ponder-NeoForge-1.21.1:${ponder_version}"
 
     localRuntime "maven.modrinth:create:${create_version}"
     localRuntime "maven.modrinth:rpl:${rpl_version}"
     localRuntime "maven.modrinth:create-big-cannons:${cbc_version}"
+    localRuntime "net.createmod.catnip:Catnip-NeoForge-1.21.1:${catnip_version}"
+    localRuntime "net.createmod.ponder:Ponder-NeoForge-1.21.1:${ponder_version}"
 }

@@ -82,6 +82,9 @@ subprojects {
         maven {
             url = 'https://api.modrinth.com/maven'
         }
+        maven {
+            url = 'https://maven.createmod.net/'
+        }
     }
 
     sourceSets.main.resources {
