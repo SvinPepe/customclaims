@@ -15,18 +15,14 @@ For this release, that file is `opac-warfare-1.6.7.2.jar`.
 
 Required server mods:
 
-- NeoForge for Minecraft `1.21.1` baseline, with experimental same-jar
-  probes allowed through Minecraft `[1.21.1,26.0)` and NeoForge
-  `[21.1.232,26.0)`
-- Open Parties and Claims `0.27.5` or newer on the baseline stack
+- NeoForge for Minecraft `26.1` baseline, supporting Minecraft
+  `[26.1,26.3)` and NeoForge `[26.1.0,26.3)` (covers 26.1 and 26.2)
+- Open Parties and Claims `0.31.6` or newer on the baseline stack
 - Open Parties and Claims: Warfare
 
-The public jar is one modern artifact. `Minecraft 1.21.1 + NeoForge 21.1.232`
-is the full tested baseline; newer 1.21.x releases are experimental
-metadata-enabled support and must pass smoke tests before being called verified.
-Forge, Fabric, Quilt, older `1.20.x`, and Minecraft `26.x` are not supported by
-this jar - 26.x has incompatible APIs; see [Compatibility](compatibility.md).
-See [Compatibility](compatibility.md) before testing adjacent versions.
+This release artifact targets Minecraft `26.1` and `26.2` on NeoForge.
+For Minecraft 1.21.x releases, use the 1.21.x artifact from the `main` branch.
+See [Compatibility](compatibility.md) for more details.
 
 Optional integrations:
 

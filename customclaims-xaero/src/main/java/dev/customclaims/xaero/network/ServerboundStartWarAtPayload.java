@@ -11,14 +11,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundStartWarAtPayload(String dimension, int chunkX, int chunkZ) implements CustomPacketPayload {
     public static final Type<ServerboundStartWarAtPayload> TYPE = new Type<>(
-            ResourceLocation.parse(CustomClaimsXaeroMod.MOD_ID + ":start_war_at")
+            Identifier.parse(CustomClaimsXaeroMod.MOD_ID + ":start_war_at")
     );
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundStartWarAtPayload> STREAM_CODEC =
             StreamCodec.ofMember(ServerboundStartWarAtPayload::write, ServerboundStartWarAtPayload::read);
@@ -85,7 +85,7 @@ public record ServerboundStartWarAtPayload(String dimension, int chunkX, int chu
 
     private static boolean isValidDimension(String dimension) {
         try {
-            ResourceLocation.parse(dimension);
+            Identifier.parse(dimension);
             return true;
         } catch (RuntimeException exception) {
             return false;

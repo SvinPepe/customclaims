@@ -5,13 +5,13 @@ import dev.customclaims.protection.service.ClaimRuleUpdateResult;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundSetClaimRulePayload(String ruleId, boolean enabled) implements CustomPacketPayload {
     public static final Type<ServerboundSetClaimRulePayload> TYPE = new Type<>(
-            ResourceLocation.parse(CustomClaimsProtectionMod.MOD_ID + ":set_claimrule")
+            Identifier.parse(CustomClaimsProtectionMod.MOD_ID + ":set_claimrule")
     );
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundSetClaimRulePayload> STREAM_CODEC =
             StreamCodec.ofMember(ServerboundSetClaimRulePayload::write, ServerboundSetClaimRulePayload::read);

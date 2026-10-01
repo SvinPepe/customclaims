@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
@@ -121,7 +121,7 @@ public final class WarHudService {
     }
 
     private Optional<ServerLevel> resolveLevel(MinecraftServer server, ChunkPosKey key) {
-        ResourceLocation location = ResourceLocation.parse(key.levelId());
+        Identifier location = Identifier.parse(key.levelId());
         ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, location);
         return Optional.ofNullable(server.getLevel(dimension));
     }

@@ -37,7 +37,7 @@ public final class CustomClaimsProtectionMod {
         modEventBus.addListener(ProtectionNetwork::registerPayloads);
         modEventBus.addListener(CustomClaimsProtectionMod::onConfigLoading);
         modEventBus.addListener(CustomClaimsProtectionMod::onConfigReloading);
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (FMLEnvironment.getDist() == Dist.CLIENT) {
             ClaimRulesClientEventRegistrar.register(modEventBus);
         }
 

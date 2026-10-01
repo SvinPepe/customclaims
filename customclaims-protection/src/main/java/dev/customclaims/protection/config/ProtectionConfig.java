@@ -1,7 +1,7 @@
 package dev.customclaims.protection.config;
 
 import java.util.List;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ProtectionConfig {
@@ -17,7 +17,7 @@ public final class ProtectionConfig {
                         if (!(value instanceof String id) || !id.contains(":")) {
                             return false;
                         }
-                        ResourceLocation parsed = ResourceLocation.tryParse(id);
+                        Identifier parsed = Identifier.tryParse(id);
                         return parsed != null && parsed.toString().equals(id);
                     });
 

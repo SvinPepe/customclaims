@@ -8,12 +8,12 @@ import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ClientboundWarMarkersPayload(List<WarMarkerDto> markers) implements CustomPacketPayload {
     public static final Type<ClientboundWarMarkersPayload> TYPE = new Type<>(
-            ResourceLocation.parse(CustomClaimsXaeroMod.MOD_ID + ":war_markers")
+            Identifier.parse(CustomClaimsXaeroMod.MOD_ID + ":war_markers")
     );
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundWarMarkersPayload> STREAM_CODEC =
             StreamCodec.ofMember(ClientboundWarMarkersPayload::write, ClientboundWarMarkersPayload::read);

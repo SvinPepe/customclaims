@@ -1,10 +1,15 @@
 # Changelog
 
-## 1.6.7.2
+## 1.6.7.2 (Minecraft 26.1 / 26.2)
 
-### Fixed
+### Added
 
-* Narrowed `minecraft_version_range` to `[1.21.1,26.0)` and `neo_version_range` to `[21.1.232,26.0)` to prevent a startup crash on Minecraft 26.1 (`NoClassDefFoundError: net/minecraft/resources/ResourceLocation`, `NoSuchFieldError: FMLEnvironment.dist`). Minecraft 26.1 renamed `ResourceLocation` to `Identifier` and removed `FMLEnvironment.dist`, making the 1.21.x jar binary-incompatible. NeoForge will now correctly refuse to load the 1.21.x jar on 26.x rather than crashing.
+* Ported to Minecraft 26.1 and 26.2 on NeoForge 26.1+ (`[26.1,26.3)` / `[26.1.0,26.3)`).
+* Migrated from `ResourceLocation` to `Identifier` across all networking, config, and territory services.
+* Migrated from `FMLEnvironment.dist` field access to `FMLEnvironment.getDist()`.
+* Migrated `ResourceLocationArgument` to `IdentifierArgument` in `/waradmin`.
+* Updated build toolchain to Java 25 and NeoGradle 7.1.39.
+* Updated Open Parties and Claims baseline dependency to `0.31.6`.
 
 ## 1.6.7.1
 

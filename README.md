@@ -14,17 +14,14 @@ warfare and protection mechanics on top of OPaC territories.
 
 ## Requirements
 
-- Minecraft `1.21.1` baseline; metadata allows experimental `[1.21.1,26.0)` probes (supports 1.21.x through 1.21.11)
-- NeoForge `21.1.232` baseline; metadata allows experimental `[21.1.232,26.0)` probes
-- Java `21`
-- Open Parties and Claims `neoforge-1.21.1-0.27.5` or newer on the baseline stack
+- Minecraft `26.1` baseline; metadata allows `[26.1,26.3)` (supports Minecraft `26.1` and `26.2`)
+- NeoForge `26.1.2.112` baseline; metadata allows `[26.1.0,26.3)`
+- Java `25`
+- Open Parties and Claims `neoforge-26.3-0.31.6` or newer on the baseline stack
 
-The official jar is one modern artifact. `Minecraft 1.21.1 + NeoForge 21.1.232`
-is the fully tested baseline; newer 1.21.x releases are experimental same-jar support
-that must pass boot and gameplay smoke tests before being called verified. Forge, Fabric,
-Quilt, older `1.20.x`, and Minecraft `26.x` (which has incompatible APIs — see
-[Compatibility](docs/compatibility.md)) are not supported by this jar. See
-[Compatibility](docs/compatibility.md) for the support policy and probe workflow.
+This branch targets Minecraft `26.1` and `26.2` on NeoForge with Java 25.
+Earlier Minecraft 1.21.x releases are maintained on the `main` branch. See
+[Compatibility](docs/compatibility.md) for the support policy and version matrix.
 
 Optional integrations activate only when their target mods are installed:
 

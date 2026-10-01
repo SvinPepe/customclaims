@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.1.38' apply false
+    id 'net.neoforged.gradle.userdev' version '7.1.39' apply false
     id 'idea'
 }
 
@@ -72,7 +72,7 @@ subprojects {
         archivesName = moduleInfo.modId
     }
 
-    java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+    java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
     repositories {
         mavenCentral()

@@ -6,32 +6,28 @@ This project publishes one official server jar:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-## Baseline And Experimental Range
+## Baseline And Supported Range
 
-The full tested baseline remains:
+The baseline for this branch is:
 
-- Minecraft `1.21.1`
-- NeoForge `21.1.232`
-- Java `21`
-- Open Parties and Claims `neoforge-1.21.1-0.27.5` or newer for `1.21.1`
+- Minecraft `26.1`
+- NeoForge `26.1.2.112`
+- Java `25`
+- Open Parties and Claims `neoforge-26.3-0.31.6` or newer
 
-The jar metadata is intentionally wider for experimental same-jar probes:
+The metadata range covers:
 
-- Minecraft range: `[1.21.1,26.0)`
-- NeoForge range: `[21.1.232,26.0)`
+- Minecraft range: `[26.1,26.3)` (supports Minecraft `26.1` and `26.2`)
+- NeoForge range: `[26.1.0,26.3)`
 
-That means newer Minecraft 1.21.x and NeoForge 21.x/25.x builds can try the same
-jar, but only the baseline is considered verified until a server boot and gameplay
-smoke test pass.
+Key platform migrations in this branch:
 
-**Minecraft 26.x is not supported by this jar.** Minecraft 26.1 introduced
-breaking API changes incompatible with this 1.21.x build:
+- `net.minecraft.resources.ResourceLocation` migrated to `net.minecraft.resources.Identifier`.
+- `FMLEnvironment.dist` field access migrated to `FMLEnvironment.getDist()`.
+- `ResourceLocationArgument` migrated to `IdentifierArgument`.
+- Java 25 runtime and compile baseline.
 
-- `net.minecraft.resources.ResourceLocation` was renamed to `net.minecraft.resources.Identifier`.
-- `FMLEnvironment.dist` (static field) was removed in favour of `FMLEnvironment.getDist()`.
-- Java 25 is now required (this jar targets Java 21).
-
-A separate port for 26.x will be released as a distinct artifact.
+For Minecraft 1.21.x releases, use the separate 1.21.x release artifacts from the `main` branch.
 
 Optional integrations are compiled against the `1.21.1` stack:
 

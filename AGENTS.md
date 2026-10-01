@@ -5,16 +5,14 @@ For full context, read `docs/architecture.md` and `docs/development.md`.
 
 ## Project Snapshot
 
-- Gradle multi-module NeoForge project with Minecraft `1.21.1` compile baseline and Java `21`.
+- Gradle multi-module NeoForge project with Minecraft `26.1` compile baseline and Java `25`.
 - Product name: **Open Parties and Claims: Warfare**.
 - OPaC is the authority for parties and claims; this repo adds wars,
   protection, and compat integrations.
-- Normal server artifact: `opac-warfare/build/libs/opac-warfare-*.jar`.
-- Compatibility anchor: one official jar with baseline `Minecraft 1.21.1 +
-  NeoForge 21.1.232`; metadata allows experimental Minecraft
-  `[1.21.1,26.0)` and NeoForge `[21.1.232,26.0)` probes. Do not
-  promise failed candidates, Forge, Fabric, or Quilt from this artifact.
-  Minecraft 26.x is incompatible and requires a separate port.
+- Server artifact: `opac-warfare/build/libs/opac-warfare-*.jar`.
+- Compatibility anchor: baseline `Minecraft 26.1 + NeoForge 26.1.2.112`;
+  metadata allows Minecraft `[26.1,26.3)` and NeoForge `[26.1.0,26.3)` (covers 26.1 and 26.2).
+  Earlier 1.21.x releases are maintained on the `main` branch.
 
 ## Read First
 

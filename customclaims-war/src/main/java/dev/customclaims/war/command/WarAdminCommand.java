@@ -9,7 +9,7 @@ import dev.customclaims.core.api.model.ChunkPosKey;
 import dev.customclaims.core.permissions.CustomClaimsPermissions;
 import dev.customclaims.war.CustomClaimsWarMod;
 import dev.customclaims.war.service.WarOperationResult;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -29,12 +29,12 @@ public final class WarAdminCommand {
                         .then(Commands.literal("here")
                                 .executes(context -> stopHere(context.getSource())))
                         .then(Commands.literal("chunk")
-                                .then(Commands.argument("dimension", ResourceLocationArgument.id())
+                                .then(Commands.argument("dimension", IdentifierArgument.id())
                                         .then(Commands.argument("chunkX", IntegerArgumentType.integer())
                                                 .then(Commands.argument("chunkZ", IntegerArgumentType.integer())
                                                         .executes(context -> stopChunk(
                                                                 context.getSource(),
-                                                                ResourceLocationArgument.getId(context, "dimension").toString(),
+                                                                IdentifierArgument.getId(context, "dimension").toString(),
                                                                 IntegerArgumentType.getInteger(context, "chunkX"),
                                                                 IntegerArgumentType.getInteger(context, "chunkZ")
                                                         )))))))
@@ -42,12 +42,12 @@ public final class WarAdminCommand {
                         .then(Commands.literal("here")
                                 .executes(context -> skipPrepHere(context.getSource())))
                         .then(Commands.literal("chunk")
-                                .then(Commands.argument("dimension", ResourceLocationArgument.id())
+                                .then(Commands.argument("dimension", IdentifierArgument.id())
                                         .then(Commands.argument("chunkX", IntegerArgumentType.integer())
                                                 .then(Commands.argument("chunkZ", IntegerArgumentType.integer())
                                                         .executes(context -> skipPrepChunk(
                                                                 context.getSource(),
-                                                                ResourceLocationArgument.getId(context, "dimension").toString(),
+                                                                IdentifierArgument.getId(context, "dimension").toString(),
                                                                 IntegerArgumentType.getInteger(context, "chunkX"),
                                                                 IntegerArgumentType.getInteger(context, "chunkZ")
                                                         )))))))
@@ -59,13 +59,13 @@ public final class WarAdminCommand {
                                                 DoubleArgumentType.getDouble(context, "value")
                                         ))))
                         .then(Commands.literal("chunk")
-                                .then(Commands.argument("dimension", ResourceLocationArgument.id())
+                                .then(Commands.argument("dimension", IdentifierArgument.id())
                                         .then(Commands.argument("chunkX", IntegerArgumentType.integer())
                                                 .then(Commands.argument("chunkZ", IntegerArgumentType.integer())
                                                         .then(Commands.argument("value", DoubleArgumentType.doubleArg(0.0D, 100.0D))
                                                                 .executes(context -> setProgressChunk(
                                                                         context.getSource(),
-                                                                        ResourceLocationArgument.getId(context, "dimension").toString(),
+                                                                        IdentifierArgument.getId(context, "dimension").toString(),
                                                                         IntegerArgumentType.getInteger(context, "chunkX"),
                                                                         IntegerArgumentType.getInteger(context, "chunkZ"),
                                                                         DoubleArgumentType.getDouble(context, "value")

@@ -5,7 +5,7 @@ import dev.customclaims.protection.client.ClaimRulesClientPacketHandler;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ClientboundClaimRulesStatePayload(
@@ -14,7 +14,7 @@ public record ClientboundClaimRulesStatePayload(
         boolean openScreen
 ) implements CustomPacketPayload {
     public static final Type<ClientboundClaimRulesStatePayload> TYPE = new Type<>(
-            ResourceLocation.parse(CustomClaimsProtectionMod.MOD_ID + ":claimrules_state")
+            Identifier.parse(CustomClaimsProtectionMod.MOD_ID + ":claimrules_state")
     );
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundClaimRulesStatePayload> STREAM_CODEC =
             StreamCodec.ofMember(ClientboundClaimRulesStatePayload::write, ClientboundClaimRulesStatePayload::read);

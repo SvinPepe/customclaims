@@ -24,7 +24,7 @@ public final class CustomClaimsXaeroMod {
         modEventBus.addListener(XaeroNetwork::registerPayloads);
         NeoForge.EVENT_BUS.addListener(WarMarkerSyncHandler::onServerTick);
 
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (FMLEnvironment.getDist() == Dist.CLIENT) {
             ClientEventRegistrar.register();
         }
 

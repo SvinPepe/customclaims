@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -598,7 +598,7 @@ public final class WarManager {
 
     private Optional<ServerLevel> resolveLevel(MinecraftServer server, ChunkPosKey key) {
         try {
-            ResourceLocation location = ResourceLocation.parse(key.levelId());
+            Identifier location = Identifier.parse(key.levelId());
             ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, location);
             return Optional.ofNullable(server.getLevel(dimension));
         } catch (RuntimeException exception) {
