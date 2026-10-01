@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -51,7 +51,7 @@ public final class ClientOverlayService {
             return;
         }
 
-        GuiGraphics graphics = event.getGuiGraphics();
+        GuiGraphicsExtractor graphics = event.getGuiGraphics();
         Font font = minecraft.font;
         int width = graphics.guiWidth();
         renderNearestMarkerBanner(graphics, font, player, width);
@@ -60,7 +60,7 @@ public final class ClientOverlayService {
         int y = 24;
 
         graphics.fill(x - 4, y - 4, width - 8, y + 16 + Math.min(MARKERS.size(), MAX_RENDERED_MARKERS) * 21, 0x77000000);
-        graphics.drawString(font, "CustomClaims Wars", x, y, 0xFFE7E7E7, true);
+        graphics.text(font, "CustomClaims Wars", x, y, 0xFFE7E7E7, true);
         y += 13;
 
         List<WarMarkerDto> sorted = MARKERS.values().stream()
@@ -79,13 +79,13 @@ public final class ClientOverlayService {
                     + " DEF " + marker.defenderCount()
                     + " " + marker.viewerRelation(), 35);
             graphics.fill(x - 3, y, x - 1, y + 18, pulse);
-            graphics.drawString(font, firstLine, x, y, color, true);
-            graphics.drawString(font, secondLine, x, y + 10, 0xFFD6D6D6, true);
+            graphics.text(font, firstLine, x, y, color, true);
+            graphics.text(font, secondLine, x, y + 10, 0xFFD6D6D6, true);
             y += 21;
         }
     }
 
-    private static void renderNearestMarkerBanner(GuiGraphics graphics, Font font, LocalPlayer player, int width) {
+    private static void renderNearestMarkerBanner(GuiGraphicsExtractor graphics, Font font, LocalPlayer player, int width) {
         WarMarkerDto nearest = MARKERS.values().stream()
                 .map(MarkerView::marker)
                 .filter(marker -> distanceChunks(player, marker) != Integer.MAX_VALUE)
@@ -103,7 +103,7 @@ public final class ClientOverlayService {
         int y = 8;
         graphics.fill(x - 8, y - 4, x + textWidth + 8, y + 12, 0xAA000000);
         graphics.fill(x - 8, y - 4, x + textWidth + 8, y - 2, pulse);
-        graphics.drawString(font, text, x, y, color, true);
+        graphics.text(font, text, x, y, color, true);
     }
 
     private static String key(WarMarkerDto marker) {
