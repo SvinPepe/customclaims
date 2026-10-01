@@ -7,13 +7,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Drowned;
-import net.minecraft.world.entity.monster.Husk;
-import net.minecraft.world.entity.monster.Zombie;
-import net.minecraft.world.entity.monster.ZombieVillager;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.ChunkPos;
@@ -68,8 +63,9 @@ public final class VillagerProtectionService {
     }
 
     private boolean isProtectedEntity(LivingEntity entity) {
-        return entity instanceof Villager
-                || (ProtectionConfig.PROTECT_WANDERING_TRADERS.get() && entity instanceof WanderingTrader);
+        EntityType<?> type = entity.getType();
+        return type == EntityType.VILLAGER
+                || (ProtectionConfig.PROTECT_WANDERING_TRADERS.get() && type == EntityType.WANDERING_TRADER);
     }
 
     private boolean isOnClaim(LivingEntity entity) {
@@ -92,10 +88,14 @@ public final class VillagerProtectionService {
 
     private boolean isZombieDamage(DamageSource source) {
         Entity entity = source.getEntity();
-        return entity instanceof Zombie
-                || entity instanceof ZombieVillager
-                || entity instanceof Husk
-                || entity instanceof Drowned;
+        if (entity == null) {
+            return false;
+        }
+        EntityType<?> type = entity.getType();
+        return type == EntityType.ZOMBIE
+                || type == EntityType.ZOMBIE_VILLAGER
+                || type == EntityType.HUSK
+                || type == EntityType.DROWNED;
     }
 
     private boolean isFireDamage(DamageSource source) {
@@ -107,8 +107,6 @@ public final class VillagerProtectionService {
     }
 
     private boolean isProjectileDamage(DamageSource source) {
-        return source.is(DamageTypes.ARROW)
-                || source.is(DamageTypes.TRIDENT)
-                || source.getDirectEntity() instanceof Projectile;
+        return source.getDirectEntity() instanceof Projectile;
     }
 }

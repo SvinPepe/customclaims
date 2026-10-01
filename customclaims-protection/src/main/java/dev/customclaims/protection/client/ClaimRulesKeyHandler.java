@@ -6,7 +6,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 public final class ClaimRulesKeyHandler {
@@ -30,7 +30,7 @@ public final class ClaimRulesKeyHandler {
             if (minecraft.player == null || minecraft.level == null) {
                 continue;
             }
-            PacketDistributor.sendToServer(new ServerboundOpenClaimRulesPayload());
+            ClientPacketDistributor.sendToServer(new ServerboundOpenClaimRulesPayload());
         }
     }
 }

@@ -4,11 +4,11 @@ import dev.customclaims.protection.network.ClaimRulesStateDto;
 import dev.customclaims.protection.network.ServerboundSetClaimRulePayload;
 import dev.customclaims.protection.service.ClaimRulesService;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.ClientPacketDistributor;
 
 public final class ClaimRulesScreen extends Screen {
     private ClaimRulesStateDto state;
@@ -51,7 +51,7 @@ public final class ClaimRulesScreen extends Screen {
         int y = Math.max(84, height / 2 - 48);
 
         addRenderableWidget(Button.builder(explosionButtonLabel(), button ->
-                        PacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
+                        ClientPacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
                                 ClaimRulesService.RULE_EXPLOSIONS,
                                 !state.explosionProtectionEnabled()
                         )))
@@ -61,7 +61,7 @@ public final class ClaimRulesScreen extends Screen {
                 && explosionCooldownSeconds <= 0L;
 
         addRenderableWidget(Button.builder(createButtonLabel(), button ->
-                        PacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
+                        ClientPacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
                                 ClaimRulesService.RULE_CREATE,
                                 !state.createMachinesEnabled()
                         )))
@@ -71,7 +71,7 @@ public final class ClaimRulesScreen extends Screen {
                 && createCooldownSeconds <= 0L;
 
         addRenderableWidget(Button.builder(assemblyButtonLabel(), button ->
-                        PacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
+                        ClientPacketDistributor.sendToServer(new ServerboundSetClaimRulePayload(
                                 ClaimRulesService.RULE_ASSEMBLY,
                                 !state.assemblyEnabled()
                         )))
@@ -111,21 +111,21 @@ public final class ClaimRulesScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        extractBackground(graphics, mouseX, mouseY, partialTick);
         int center = width / 2;
         int y = Math.max(22, height / 2 - 104);
-        graphics.drawCenteredString(font, title, center, y, 0xFFFFFFFF);
-        graphics.drawCenteredString(font, state.sideLabel(), center, y + 18, state.hasSide() ? 0xFFD6F4FF : 0xFFFFAAAA);
+        graphics.centeredText(font, title, center, y, 0xFFFFFFFF);
+        graphics.centeredText(font, state.sideLabel(), center, y + 18, state.hasSide() ? 0xFFD6F4FF : 0xFFFFAAAA);
 
-        graphics.drawCenteredString(font, cooldownLine("Explosions", explosionCooldownSeconds), center, y + 40, 0xFFBDBDBD);
-        graphics.drawCenteredString(font, cooldownLine("Mining", createCooldownSeconds), center, y + 52, 0xFFBDBDBD);
-        graphics.drawCenteredString(font, cooldownLine("Assembly", assemblyCooldownSeconds), center, y + 64, 0xFFBDBDBD);
+        graphics.centeredText(font, cooldownLine("Explosions", explosionCooldownSeconds), center, y + 40, 0xFFBDBDBD);
+        graphics.centeredText(font, cooldownLine("Mining", createCooldownSeconds), center, y + 52, 0xFFBDBDBD);
+        graphics.centeredText(font, cooldownLine("Assembly", assemblyCooldownSeconds), center, y + 64, 0xFFBDBDBD);
 
         if (!message.isBlank()) {
-            graphics.drawCenteredString(font, trim(message, 60), center, height - 36, 0xFFFFF0A6);
+            graphics.centeredText(font, trim(message, 60), center, height - 36, 0xFFFFF0A6);
         }
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
