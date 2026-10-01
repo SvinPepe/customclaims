@@ -11,20 +11,21 @@ Use the `opac-warfare` distribution jar for normal server installs:
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that file is `opac-warfare-1.6.7.1.jar`.
+For this release, that file is `opac-warfare-1.6.7.2.jar`.
 
 Required server mods:
 
 - NeoForge for Minecraft `1.21.1` baseline, with experimental same-jar
-  probes allowed through Minecraft `[1.21.1,)` and NeoForge
-  `[21.1.232,)`
+  probes allowed through Minecraft `[1.21.1,26.0)` and NeoForge
+  `[21.1.232,26.0)`
 - Open Parties and Claims `0.27.5` or newer on the baseline stack
 - Open Parties and Claims: Warfare
 
 The public jar is one modern artifact. `Minecraft 1.21.1 + NeoForge 21.1.232`
-is the full tested baseline; newer releases (including `1.21.11+` and subsequent versions) are experimental
+is the full tested baseline; newer 1.21.x releases are experimental
 metadata-enabled support and must pass smoke tests before being called verified.
-Forge, Fabric, Quilt, and older `1.20.x` are not promised.
+Forge, Fabric, Quilt, older `1.20.x`, and Minecraft `26.x` are not supported by
+this jar - 26.x has incompatible APIs; see [Compatibility](compatibility.md).
 See [Compatibility](compatibility.md) before testing adjacent versions.
 
 Optional integrations:

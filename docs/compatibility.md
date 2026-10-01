@@ -17,12 +17,21 @@ The full tested baseline remains:
 
 The jar metadata is intentionally wider for experimental same-jar probes:
 
-- Minecraft range: `[1.21.1,)`
-- NeoForge range: `[21.1.232,)`
+- Minecraft range: `[1.21.1,26.0)`
+- NeoForge range: `[21.1.232,26.0)`
 
-That means newer Minecraft and NeoForge builds (including `1.21.11+` and subsequent
-releases under the current versioning scheme) can try the same jar, but only the
-baseline is considered verified until a server boot and gameplay smoke test pass.
+That means newer Minecraft 1.21.x and NeoForge 21.x/25.x builds can try the same
+jar, but only the baseline is considered verified until a server boot and gameplay
+smoke test pass.
+
+**Minecraft 26.x is not supported by this jar.** Minecraft 26.1 introduced
+breaking API changes incompatible with this 1.21.x build:
+
+- `net.minecraft.resources.ResourceLocation` was renamed to `net.minecraft.resources.Identifier`.
+- `FMLEnvironment.dist` (static field) was removed in favour of `FMLEnvironment.getDist()`.
+- Java 25 is now required (this jar targets Java 21).
+
+A separate port for 26.x will be released as a distinct artifact.
 
 Optional integrations are compiled against the `1.21.1` stack:
 
@@ -34,8 +43,8 @@ Optional integrations are compiled against the `1.21.1` stack:
 
 ## Unsupported Targets
 
-The official jar is not promised to work on older `1.20.x`, Forge, Fabric, or
-Quilt targets.
+The official jar is not promised to work on older `1.20.x`, Minecraft `26.x`,
+Forge, Fabric, or Quilt targets.
 
 Open Parties and Claims publishes many loader and Minecraft-version builds, but
 this addon uses Minecraft, NeoForge, optional compat-mod, and mixin APIs that
@@ -45,7 +54,7 @@ Xaero internals still match on every candidate.
 
 ## Compatibility Probe
 
-Use this workflow for any candidate version:
+Use this workflow for any candidate 1.21.x version:
 
 1. Build the normal release jar:
 
