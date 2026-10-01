@@ -53,7 +53,7 @@ public final class CreateContraptionProtectionHooks {
             return;
         }
 
-        int breakerId = data.getInt(BREAKER_ID);
+        int breakerId = data.getInt(BREAKER_ID).orElse(0);
         BlockPos breakingPos = readBlockPos(data, BREAKING_POS);
         if (breakingPos == null) {
             return;
@@ -67,7 +67,11 @@ public final class CreateContraptionProtectionHooks {
     public static BlockPos readBlockPos(CompoundTag data, String key) {
         Tag tag = data.get(key);
         if (tag instanceof CompoundTag compound) {
-            return new BlockPos(compound.getInt("X"), compound.getInt("Y"), compound.getInt("Z"));
+            return new BlockPos(
+                    compound.getInt("X").orElse(0),
+                    compound.getInt("Y").orElse(0),
+                    compound.getInt("Z").orElse(0)
+            );
         }
         if (tag instanceof IntArrayTag arrayTag) {
             int[] values = arrayTag.getAsIntArray();
@@ -76,7 +80,7 @@ public final class CreateContraptionProtectionHooks {
             }
         }
         if (tag instanceof LongTag longTag) {
-            return BlockPos.of(longTag.getAsLong());
+            return BlockPos.of(longTag.longValue());
         }
         return null;
     }
