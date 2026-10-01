@@ -96,7 +96,7 @@ public final class ClaimRulesCommand {
 
     private static int resetLimits(CommandSourceStack source, ServerPlayer target) {
         CustomClaimsProtectionMod.services().foreignInteractionLimitService().reset(target.getUUID());
-        source.sendSuccess(() -> Component.literal("Foreign claim limits reset for " + target.getGameProfile().getName() + "."), true);
+        source.sendSuccess(() -> Component.literal("Foreign claim limits reset for " + target.getScoreboardName() + "."), true);
         return Command.SINGLE_SUCCESS;
     }
 

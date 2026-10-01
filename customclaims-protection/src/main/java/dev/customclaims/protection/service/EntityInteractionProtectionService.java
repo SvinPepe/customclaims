@@ -16,7 +16,7 @@ public final class EntityInteractionProtectionService {
     }
 
     public boolean shouldBypassOpenPartiesProtection(ServerPlayer player, Entity target) {
-        if (!(target.level() instanceof ServerLevel level) || player.serverLevel() != level) {
+        if (!(target.level() instanceof ServerLevel level) || player.level() != level) {
             return false;
         }
 

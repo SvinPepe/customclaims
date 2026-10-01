@@ -13,6 +13,7 @@ import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class WarAdminCommand {
@@ -83,7 +84,7 @@ public final class WarAdminCommand {
             ServerPlayer player = source.getPlayerOrException();
             WarOperationResult result = CustomClaimsWarMod.services()
                     .warManager()
-                    .adminStopChunk(source.getServer(), ChunkPosKey.from(player.serverLevel(), player.chunkPosition()));
+                    .adminStopChunk(source.getServer(), ChunkPosKey.from((ServerLevel) player.level(), player.chunkPosition()));
             send(source, result);
             return result.success() ? Command.SINGLE_SUCCESS : 0;
         } catch (Exception exception) {
@@ -105,7 +106,7 @@ public final class WarAdminCommand {
             ServerPlayer player = source.getPlayerOrException();
             WarOperationResult result = CustomClaimsWarMod.services()
                     .warManager()
-                    .adminSkipPreparationChunk(source.getServer(), ChunkPosKey.from(player.serverLevel(), player.chunkPosition()));
+                    .adminSkipPreparationChunk(source.getServer(), ChunkPosKey.from((ServerLevel) player.level(), player.chunkPosition()));
             send(source, result);
             return result.success() ? Command.SINGLE_SUCCESS : 0;
         } catch (Exception exception) {
@@ -127,7 +128,7 @@ public final class WarAdminCommand {
             ServerPlayer player = source.getPlayerOrException();
             WarOperationResult result = CustomClaimsWarMod.services()
                     .warManager()
-                    .adminSetProgressChunk(source.getServer(), ChunkPosKey.from(player.serverLevel(), player.chunkPosition()), value);
+                    .adminSetProgressChunk(source.getServer(), ChunkPosKey.from((ServerLevel) player.level(), player.chunkPosition()), value);
             send(source, result);
             return result.success() ? Command.SINGLE_SUCCESS : 0;
         } catch (Exception exception) {

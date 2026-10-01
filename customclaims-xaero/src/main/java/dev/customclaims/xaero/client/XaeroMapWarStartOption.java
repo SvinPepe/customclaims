@@ -41,9 +41,8 @@ public final class XaeroMapWarStartOption extends RightClickOption {
             CustomClaimsXaeroMod.LOGGER.warn("Failed to send Xaero map war-start request", exception);
             Minecraft minecraft = Minecraft.getInstance();
             if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(
-                        Component.literal("Xaero map war start is not available on this server."),
-                        false
+                minecraft.player.sendSystemMessage(
+                        Component.literal("Xaero map war start is not available on this server.")
                 );
             }
         }

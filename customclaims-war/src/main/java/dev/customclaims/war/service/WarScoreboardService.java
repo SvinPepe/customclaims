@@ -83,7 +83,7 @@ public final class WarScoreboardService {
                 continue;
             }
 
-            String scoreboardName = prefix + player.getGameProfile().getName();
+            String scoreboardName = prefix + player.getScoreboardName();
             currentEntries.add(scoreboardName);
             scoreboard.getOrCreatePlayerScore(ScoreHolder.forNameOnly(scoreboardName), objective).set(entry.getValue());
         }

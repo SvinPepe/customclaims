@@ -38,7 +38,8 @@ public final class ClaimRulesService {
     }
 
     public ClaimRulesState stateFor(ServerPlayer player) {
-        ensureAssemblyMigration(player.server);
+        MinecraftServer server = player.level().getServer();
+        ensureAssemblyMigration(server);
         boolean canToggleExplosions = permissionService.hasPermission(player, CustomClaimsPermissions.EXPLOSIONS_TOGGLE);
         boolean canToggleCreate = permissionService.hasPermission(player, CustomClaimsPermissions.CREATE_TOGGLE);
         boolean canToggleAssembly = permissionService.hasPermission(player, CustomClaimsPermissions.ASSEMBLY_TOGGLE);
@@ -50,12 +51,12 @@ public final class ClaimRulesService {
                 true,
                 sideId,
                 sideLabel(player.createCommandSourceStack(), sideId),
-                explosionProtectionService.isExplosionProtectionEnabled(player.server, sideId),
-                createMachinesProtectionService.isCreateMachinesEnabled(player.server, sideId),
-                createMachinesProtectionService.isAssemblyEnabled(player.server, sideId),
-                bypassed ? 0L : cooldownService.remainingSeconds(player.server, sideId, RULE_EXPLOSIONS, now),
-                bypassed ? 0L : cooldownService.remainingSeconds(player.server, sideId, RULE_CREATE, now),
-                bypassed ? 0L : cooldownService.remainingSeconds(player.server, sideId, RULE_ASSEMBLY, now),
+                explosionProtectionService.isExplosionProtectionEnabled(server, sideId),
+                createMachinesProtectionService.isCreateMachinesEnabled(server, sideId),
+                createMachinesProtectionService.isAssemblyEnabled(server, sideId),
+                bypassed ? 0L : cooldownService.remainingSeconds(server, sideId, RULE_EXPLOSIONS, now),
+                bypassed ? 0L : cooldownService.remainingSeconds(server, sideId, RULE_CREATE, now),
+                bypassed ? 0L : cooldownService.remainingSeconds(server, sideId, RULE_ASSEMBLY, now),
                 canToggleExplosions,
                 canToggleCreate,
                 canToggleAssembly

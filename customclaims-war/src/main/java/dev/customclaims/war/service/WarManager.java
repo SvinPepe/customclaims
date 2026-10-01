@@ -80,11 +80,11 @@ public final class WarManager {
     }
 
     public WarOperationResult startWar(ServerPlayer player) {
-        return startWarAt(player, ChunkPosKey.from(player.serverLevel(), player.chunkPosition()));
+        return startWarAt(player, ChunkPosKey.from((ServerLevel) player.level(), player.chunkPosition()));
     }
 
     public WarOperationResult startWarAt(ServerPlayer player, ChunkPosKey targetKey) {
-        MinecraftServer server = player.server;
+        MinecraftServer server = player.level().getServer();
         ensureLoaded(server);
 
         ClaimSideId attackerSide = coreServices.partyService().getPlayerSide(player);
@@ -174,10 +174,11 @@ public final class WarManager {
     }
 
     public WarOperationResult status(ServerPlayer player) {
-        ensureLoaded(player.server);
-        ChunkPosKey key = ChunkPosKey.from(player.serverLevel(), player.chunkPosition());
+        MinecraftServer server = player.level().getServer();
+        ensureLoaded(server);
+        ChunkPosKey key = ChunkPosKey.from((ServerLevel) player.level(), player.chunkPosition());
         return findByChunk(key)
-                .map(war -> WarOperationResult.ok(displayService.formatWarStatus(player.server, war, Instant.now())))
+                .map(war -> WarOperationResult.ok(displayService.formatWarStatus(server, war, Instant.now())))
                 .orElseGet(() -> WarOperationResult.ok("No active war for this chunk."));
     }
 
@@ -192,16 +193,18 @@ public final class WarManager {
     }
 
     public WarOperationResult list(ServerPlayer player) {
-        ensureLoaded(player.server);
+        MinecraftServer server = player.level().getServer();
+        ensureLoaded(server);
         List<WarData> visible = visibleWarsFor(player, DEFAULT_NEAR_RADIUS_CHUNKS).toList();
         if (visible.isEmpty()) {
             return WarOperationResult.ok("No visible active or preparing wars.");
         }
-        return WarOperationResult.ok("Visible wars:\n" + formatWarList(player.server, visible, Instant.now()));
+        return WarOperationResult.ok("Visible wars:\n" + formatWarList(server, visible, Instant.now()));
     }
 
     public WarOperationResult near(ServerPlayer player, int radiusChunks) {
-        ensureLoaded(player.server);
+        MinecraftServer server = player.level().getServer();
+        ensureLoaded(server);
         int radius = Math.max(0, Math.min(MAX_NEAR_RADIUS_CHUNKS, radiusChunks));
         List<WarData> nearby = activeWars()
                 .filter(war -> isNear(player, war, radius))
@@ -210,7 +213,7 @@ public final class WarManager {
             return WarOperationResult.ok("No active or preparing wars within " + radius + " chunks.");
         }
         return WarOperationResult.ok("Nearby wars within " + radius + " chunks:\n"
-                + formatWarList(player.server, nearby, Instant.now()));
+                + formatWarList(server, nearby, Instant.now()));
     }
 
     public WarOperationResult adminList(MinecraftServer server) {
@@ -292,7 +295,7 @@ public final class WarManager {
             int radiusChunks,
             boolean visibleToAllPlayers
     ) {
-        ensureLoaded(player.server);
+        ensureLoaded(player.level().getServer());
         int radius = Math.max(0, Math.min(MAX_NEAR_RADIUS_CHUNKS, radiusChunks));
         java.util.stream.Stream<WarData> markers = activeWars();
         if (!visibleToAllPlayers) {
@@ -304,7 +307,7 @@ public final class WarManager {
     }
 
     public void onPlayerDeath(ServerPlayer player) {
-        MinecraftServer server = player.server;
+        MinecraftServer server = player.level().getServer();
         ensureLoaded(server);
         Optional<WarData> war = activeWars()
                 .filter(value -> value.state() == WarState.ACTIVE)
@@ -321,7 +324,7 @@ public final class WarManager {
         }
 
         coreServices.warLogService().log(server, "LIFE_LOST " + describe(war.get())
-                + " player=" + player.getGameProfile().getName()
+                + " player=" + player.getScoreboardName()
                 + " remaining=" + remainingLives.get());
         notificationService.notifyLifeLost(server, war.get(), player, remainingLives.get());
         scoreboardService.update(server, activeWars().toList());
@@ -526,13 +529,14 @@ public final class WarManager {
             int radiusChunks,
             boolean visibleToAllPlayers
     ) {
-        String attackerName = displayService.sideName(player.server, war.attackerSide());
-        String defenderName = displayService.sideName(player.server, war.defenderSide());
+        MinecraftServer server = player.level().getServer();
+        String attackerName = displayService.sideName(server, war.attackerSide());
+        String defenderName = displayService.sideName(server, war.defenderSide());
         String relation = viewerRelation(player, war, radiusChunks)
                 .orElse(visibleToAllPlayers ? "global" : "hidden");
         return new WarMarkerDto(
-                markerLabel(player.server, war, relation),
-                waypointName(player.server, war, relation),
+                markerLabel(server, war, relation),
+                waypointName(server, war, relation),
                 displayService.stateName(war.state()),
                 war.targetChunk().levelId(),
                 war.targetChunk().x(),

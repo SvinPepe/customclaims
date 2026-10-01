@@ -49,11 +49,11 @@ public final class WarNotificationService {
 
     public void notifyLifeLost(MinecraftServer server, WarData war, ServerPlayer player, int remainingLives) {
         if (remainingLives > 0) {
-            send(server, war, player.getGameProfile().getName() + " lost a war life: "
+            send(server, war, player.getScoreboardName() + " lost a war life: "
                     + remainingLives + " remaining.");
             return;
         }
-        send(server, war, player.getGameProfile().getName()
+        send(server, war, player.getScoreboardName()
                 + " has no war lives left and no longer contributes to capture.");
     }
 

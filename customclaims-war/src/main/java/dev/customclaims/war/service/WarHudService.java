@@ -63,6 +63,7 @@ public final class WarHudService {
 
     private void updateBossbar(MinecraftServer server, WarData war) {
         ServerBossEvent bossEvent = bossEvents.computeIfAbsent(war.id(), id -> new ServerBossEvent(
+                id,
                 Component.literal(displayService.label(server, war)),
                 BossEvent.BossBarColor.RED,
                 BossEvent.BossBarOverlay.PROGRESS
@@ -89,7 +90,7 @@ public final class WarHudService {
         ChunkPos target = war.targetChunk().toChunkPos();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             if (player.level().dimension().equals(level.get().dimension()) && player.chunkPosition().equals(target)) {
-                player.displayClientMessage(Component.literal(displayService.actionbarText(war)), true);
+                player.sendOverlayMessage(Component.literal(displayService.actionbarText(war)));
             }
         }
     }
