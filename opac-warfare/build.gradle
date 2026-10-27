@@ -1,5 +1,4 @@
 def bundledProjects = [
-        project(':customclaims-core'),
         project(':customclaims-war'),
         project(':customclaims-xaero')
 ]
@@ -24,7 +23,12 @@ tasks.named('jar', Jar).configure {
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
+    dependsOn project(':customclaims-core').tasks.named('jar')
     dependsOn bundledProjects.collect { it.tasks.named('classes') }
+
+    from(project(':customclaims-core').tasks.named('jar')) {
+        into 'META-INF/jarjar'
+    }
 
     bundledProjects.each { bundledProject ->
         from(bundledProject.sourceSets.main.output) {

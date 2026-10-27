@@ -55,20 +55,20 @@ public final class CustomClaimsPermissions {
     private static final Map<String, PermissionNode<Boolean>> NODES = new HashMap<>();
     private static final Map<String, String> ALIAS_MAP = new HashMap<>();
 
-    public static final PermissionNode<Boolean> NODE_WAR_START = registerNode("opac", "warfare.start", false, "Start wars");
+    public static final PermissionNode<Boolean> NODE_WAR_START = registerNode("opac", "warfare.start", true, "Start wars");
     public static final PermissionNode<Boolean> NODE_WAR_CANCEL = registerNode("opac", "warfare.cancel", false, "Cancel wars");
-    public static final PermissionNode<Boolean> NODE_WAR_STATUS = registerNode("opac", "warfare.status", false, "View war status");
+    public static final PermissionNode<Boolean> NODE_WAR_STATUS = registerNode("opac", "warfare.status", true, "View war status");
     public static final PermissionNode<Boolean> NODE_WAR_ADMIN = registerNode("opac", "warfare.admin", false, "War administration");
     public static final PermissionNode<Boolean> NODE_WAR_BYPASS = registerNode("opac", "warfare.bypass", false, "Bypass war restrictions");
     public static final PermissionNode<Boolean> NODE_ROLLBACK = registerNode("opac", "warfare.rollback", false, "Perform rollback");
 
-    public static final PermissionNode<Boolean> NODE_CLAIMRULES = registerNode("opac", "protection.claimrules", false, "Use /claimrules GUI");
-    public static final PermissionNode<Boolean> NODE_EXPLOSIONS_STATUS = registerNode("opac", "protection.explosions.status", false, "Check explosion rule");
-    public static final PermissionNode<Boolean> NODE_EXPLOSIONS_TOGGLE = registerNode("opac", "protection.explosions.toggle", false, "Toggle explosion rule");
-    public static final PermissionNode<Boolean> NODE_CREATE_STATUS = registerNode("opac", "protection.create.status", false, "Check Create machine rule");
-    public static final PermissionNode<Boolean> NODE_CREATE_TOGGLE = registerNode("opac", "protection.create.toggle", false, "Toggle Create machine rule");
-    public static final PermissionNode<Boolean> NODE_ASSEMBLY_STATUS = registerNode("opac", "protection.assembly.status", false, "Check assembly rule");
-    public static final PermissionNode<Boolean> NODE_ASSEMBLY_TOGGLE = registerNode("opac", "protection.assembly.toggle", false, "Toggle assembly rule");
+    public static final PermissionNode<Boolean> NODE_CLAIMRULES = registerNode("opac", "protection.claimrules", true, "Use /claimrules GUI");
+    public static final PermissionNode<Boolean> NODE_EXPLOSIONS_STATUS = registerNode("opac", "protection.explosions.status", true, "Check explosion rule");
+    public static final PermissionNode<Boolean> NODE_EXPLOSIONS_TOGGLE = registerNode("opac", "protection.explosions.toggle", true, "Toggle explosion rule");
+    public static final PermissionNode<Boolean> NODE_CREATE_STATUS = registerNode("opac", "protection.create.status", true, "Check Create machine rule");
+    public static final PermissionNode<Boolean> NODE_CREATE_TOGGLE = registerNode("opac", "protection.create.toggle", true, "Toggle Create machine rule");
+    public static final PermissionNode<Boolean> NODE_ASSEMBLY_STATUS = registerNode("opac", "protection.assembly.status", true, "Check assembly rule");
+    public static final PermissionNode<Boolean> NODE_ASSEMBLY_TOGGLE = registerNode("opac", "protection.assembly.toggle", true, "Toggle assembly rule");
     public static final PermissionNode<Boolean> NODE_LIMITS_RESET = registerNode("opac", "protection.limits.reset", false, "Reset interaction limits");
     public static final PermissionNode<Boolean> NODE_PROTECTION_BYPASS = registerNode("opac", "protection.bypass", false, "Bypass protection limits");
     public static final PermissionNode<Boolean> NODE_PROTECTION_ADMIN = registerNode("opac", "protection.admin", false, "Protection administration");

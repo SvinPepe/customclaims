@@ -4,6 +4,10 @@ license="${mod_license}"
 issueTrackerURL="https://github.com/SvinPepe/customclaims/issues"
 showAsResourcePack=false
 
+[[jarJar]]
+identifier { group = "dev.customclaims", artifact = "customclaims-core" }
+version { range = "[${mod_version},)", artifactVersion = "${mod_version}" }
+
 [[mixins]]
 config="customclaims_create.mixins.json"
 
@@ -42,6 +46,13 @@ side="BOTH"
 modId="openpartiesandclaims"
 type="required"
 versionRange="[0.27.5,)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.opac_better_protection]]
+modId="customclaims_core"
+type="required"
+versionRange="[${mod_version},)"
 ordering="AFTER"
 side="BOTH"
 

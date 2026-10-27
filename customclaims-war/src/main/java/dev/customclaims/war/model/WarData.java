@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 
 public final class WarData {
@@ -80,13 +81,18 @@ public final class WarData {
         return Collections.unmodifiableSet(sectorChunks);
     }
 
-    public boolean isInSector(ChunkPos chunkPos) {
-        for (ChunkPosKey chunk : sectorChunks) {
-            if (chunk.x() == chunkPos.x && chunk.z() == chunkPos.z) {
-                return true;
-            }
+    public boolean isInSector(ServerLevel level, ChunkPos chunkPos) {
+        if (level == null || level.dimension() == null || level.dimension().location() == null) {
+            return false;
         }
-        return false;
+        return isInSector(level.dimension().location().toString(), chunkPos);
+    }
+
+    public boolean isInSector(String levelId, ChunkPos chunkPos) {
+        if (levelId == null || chunkPos == null) {
+            return false;
+        }
+        return isInSector(new ChunkPosKey(levelId, chunkPos.x, chunkPos.z));
     }
 
     public boolean isInSector(ChunkPosKey key) {

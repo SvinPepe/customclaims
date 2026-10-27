@@ -4,10 +4,12 @@ import com.mojang.logging.LogUtils;
 import dev.customclaims.core.config.CoreConfig;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
+@Mod(CustomClaimsCoreMod.MOD_ID)
 public final class CustomClaimsCoreMod {
     public static final String MOD_ID = "customclaims_core";
     public static final Logger LOGGER = LogUtils.getLogger();

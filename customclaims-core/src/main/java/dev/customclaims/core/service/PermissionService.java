@@ -30,11 +30,14 @@ public final class PermissionService {
             return true;
         }
 
-        // 3. Fallback to scoreboard tags, default permissions from config, and OP check
-        return player.getTags().contains(permission)
+        // 3. Fallback to scoreboard tags, OP check, and default list only for unregistered legacy permissions
+        if (player.getTags().contains(permission)
                 || player.getTags().contains(CustomClaimsPermissions.BYPASS)
-                || CoreConfig.DEFAULT_PLAYER_PERMISSIONS.get().contains(permission)
-                || isOp(player);
+                || isOp(player)) {
+            return true;
+        }
+
+        return node == null && CoreConfig.DEFAULT_PLAYER_PERMISSIONS.get().contains(permission);
     }
 
     private boolean isBypassOrAdmin(ServerPlayer player, String permission) {

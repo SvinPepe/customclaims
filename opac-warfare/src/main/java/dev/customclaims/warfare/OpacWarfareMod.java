@@ -1,6 +1,5 @@
 package dev.customclaims.warfare;
 
-import dev.customclaims.core.CustomClaimsCoreMod;
 import dev.customclaims.war.CustomClaimsWarMod;
 import dev.customclaims.xaero.CustomClaimsXaeroMod;
 import net.neoforged.bus.api.IEventBus;
@@ -12,7 +11,6 @@ public final class OpacWarfareMod {
     public static final String MOD_ID = "opac_warfare";
 
     public OpacWarfareMod(IEventBus modEventBus, ModContainer modContainer) {
-        CustomClaimsCoreMod.init(modEventBus, modContainer);
         CustomClaimsWarMod.init(modEventBus, modContainer);
         CustomClaimsXaeroMod.init(modEventBus, modContainer);
     }

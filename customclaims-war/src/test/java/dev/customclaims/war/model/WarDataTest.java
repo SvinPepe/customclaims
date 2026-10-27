@@ -92,10 +92,11 @@ class WarDataTest {
 
         WarData war = new WarData(warId, attackerSide, defenderSide, targetChunk, sector, Instant.now());
 
-        assertTrue(war.isInSector(new ChunkPos(5, 5)));
-        assertTrue(war.isInSector(new ChunkPos(5, 6)));
-        assertTrue(war.isInSector(new ChunkPos(6, 5)));
-        assertFalse(war.isInSector(new ChunkPos(7, 5)));
-        assertFalse(war.isInSector(new ChunkPos(0, 0)));
+        assertTrue(war.isInSector("minecraft:overworld", new ChunkPos(5, 5)));
+        assertTrue(war.isInSector("minecraft:overworld", new ChunkPos(5, 6)));
+        assertTrue(war.isInSector("minecraft:overworld", new ChunkPos(6, 5)));
+        assertFalse(war.isInSector("minecraft:overworld", new ChunkPos(7, 5)));
+        assertFalse(war.isInSector("minecraft:overworld", new ChunkPos(0, 0)));
+        assertFalse(war.isInSector("minecraft:the_nether", new ChunkPos(5, 5)));
     }
 }

@@ -101,7 +101,7 @@ public final class WarHudService {
         }
 
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            if (player.level().dimension().equals(level.get().dimension()) && war.isInSector(player.chunkPosition())) {
+            if (player.level().dimension().equals(level.get().dimension()) && war.isInSector(level.get(), player.chunkPosition())) {
                 player.displayClientMessage(displayService.actionbarComponent(war, player), true);
             }
         }

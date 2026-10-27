@@ -29,7 +29,7 @@ public final class CaptureProgressService {
             if (!player.level().dimension().equals(level.dimension())) {
                 continue;
             }
-            if (!war.isInSector(player.chunkPosition())) {
+            if (!war.isInSector(level, player.chunkPosition())) {
                 continue;
             }
             if (afkTracker.isAfk(player)) {
