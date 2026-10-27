@@ -261,13 +261,19 @@ public final class WarData {
     public Optional<Integer> decrementLives(UUID playerId) {
         Integer attackerValue = attackerLives.get(playerId);
         if (attackerValue != null) {
-            int next = Math.max(0, attackerValue - 1);
+            if (attackerValue <= 0) {
+                return Optional.empty();
+            }
+            int next = attackerValue - 1;
             attackerLives.put(playerId, next);
             return Optional.of(next);
         }
         Integer defenderValue = defenderLives.get(playerId);
         if (defenderValue != null) {
-            int next = Math.max(0, defenderValue - 1);
+            if (defenderValue <= 0) {
+                return Optional.empty();
+            }
+            int next = defenderValue - 1;
             defenderLives.put(playerId, next);
             return Optional.of(next);
         }

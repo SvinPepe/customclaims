@@ -69,6 +69,7 @@ public final class PermissionService {
         if (entity instanceof ServerPlayer player) {
             return hasPermission(player, permission);
         }
-        return source.hasPermission(4);
+        // Non-player sources (console, command blocks) are trusted
+        return true;
     }
 }
