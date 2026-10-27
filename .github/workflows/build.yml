@@ -8,16 +8,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      _JAVA_OPTIONS: "-Djava.net.preferIPv4Stack=true"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 21
+      - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 25
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -28,9 +30,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build
-        run: ./gradlew --no-daemon :opac-warfare:jar :opac-better-protection:jar test
-        env:
-          GRADLE_OPTS: "-Djava.net.preferIPv4Stack=true"
+        run: gradle --no-daemon :opac-warfare:jar :opac-better-protection:jar test
 
       - name: Upload release jars
         uses: actions/upload-artifact@v4
