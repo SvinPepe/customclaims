@@ -23,6 +23,7 @@ public final class ClaimRulesCommand {
 
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("claimrules")
+                .executes(context -> openGui(context.getSource()))
                 .then(Commands.literal("limits")
                         .then(Commands.literal("me")
                                 .executes(context -> limitsMe(context.getSource())))

@@ -48,6 +48,11 @@ ext.customClaimsModules = [
                 modId      : 'opac_warfare',
                 modName    : 'Open Parties and Claims: Warfare',
                 description: 'Single-jar distribution for the unofficial Open Parties and Claims: Warfare addon.'
+        ],
+        'opac-better-protection'  : [
+                modId      : 'opac_better_protection',
+                modName    : 'Open Parties and Claims: Better Protection',
+                description: 'Single-jar distribution for the Open Parties and Claims: Better Protection addon.'
         ]
 ]
 
@@ -82,6 +87,9 @@ subprojects {
         maven {
             url = 'https://api.modrinth.com/maven'
         }
+        maven {
+            url = 'https://maven.createmod.net/'
+        }
     }
 
     sourceSets.main.resources {
@@ -96,6 +104,12 @@ subprojects {
 
     dependencies {
         implementation "net.neoforged:neoforge:${neo_version}"
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
     }
 
     runs {

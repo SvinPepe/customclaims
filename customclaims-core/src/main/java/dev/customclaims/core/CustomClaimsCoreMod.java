@@ -4,12 +4,10 @@ import com.mojang.logging.LogUtils;
 import dev.customclaims.core.config.CoreConfig;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
-@Mod(CustomClaimsCoreMod.MOD_ID)
 public final class CustomClaimsCoreMod {
     public static final String MOD_ID = "customclaims_core";
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -17,8 +15,16 @@ public final class CustomClaimsCoreMod {
     private static CoreServices services;
 
     public CustomClaimsCoreMod(IEventBus modEventBus, ModContainer modContainer) {
+        init(modEventBus, modContainer);
+    }
+
+    public static synchronized void init(IEventBus modEventBus, ModContainer modContainer) {
+        if (services != null) {
+            return;
+        }
         modContainer.registerConfig(ModConfig.Type.COMMON, CoreConfig.SPEC);
         services = CoreServices.create();
+        NeoForge.EVENT_BUS.addListener(dev.customclaims.core.permissions.CustomClaimsPermissions::onGatherNodes);
         NeoForge.EVENT_BUS.addListener(services.metricsService()::onServerStarted);
         NeoForge.EVENT_BUS.addListener(services.metricsService()::onServerTick);
         NeoForge.EVENT_BUS.addListener(services.metricsService()::onServerStopping);
