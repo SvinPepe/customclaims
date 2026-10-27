@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      _JAVA_OPTIONS: "-Djava.net.preferIPv4Stack=true"
 
     steps:
       - name: Checkout repository
@@ -28,9 +30,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build
-        run: ./gradlew --no-daemon :opac-warfare:jar :opac-better-protection:jar test
-        env:
-          GRADLE_OPTS: "-Djava.net.preferIPv4Stack=true"
+        run: gradle --no-daemon :opac-warfare:jar :opac-better-protection:jar test
 
       - name: Upload release jars
         uses: actions/upload-artifact@v4
