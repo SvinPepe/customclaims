@@ -19,7 +19,7 @@ public final class ClaimRulesScreen extends Screen {
     private int cooldownTickCounter;
 
     private ClaimRulesScreen(ClaimRulesStateDto state, String message) {
-        super(Component.literal("CustomClaims Rules"));
+        super(Component.translatable("screen.opac_better_protection.claimrules.title"));
         this.state = state;
         this.message = message == null ? "" : message;
         resetCooldowns(state);
@@ -71,7 +71,7 @@ public final class ClaimRulesScreen extends Screen {
                 && state.canToggleAssembly()
                 && assemblyCooldownSeconds <= 0L;
 
-        addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
+        addRenderableWidget(Button.builder(Component.translatable("screen.opac_better_protection.claimrules.done"), button -> onClose())
                 .bounds(center - 50, y + 86, 100, 20)
                 .build());
     }
@@ -118,9 +118,9 @@ public final class ClaimRulesScreen extends Screen {
         graphics.centeredText(font, title, center, y, 0xFFFFFFFF);
         graphics.centeredText(font, state.sideLabel(), center, y + 18, state.hasSide() ? 0xFFD6F4FF : 0xFFFFAAAA);
 
-        graphics.centeredText(font, cooldownLine("Explosions", explosionCooldownSeconds), center, y + 40, 0xFFBDBDBD);
-        graphics.centeredText(font, cooldownLine("Mining", createCooldownSeconds), center, y + 52, 0xFFBDBDBD);
-        graphics.centeredText(font, cooldownLine("Assembly", assemblyCooldownSeconds), center, y + 64, 0xFFBDBDBD);
+        graphics.centeredText(font, cooldownLine("screen.opac_better_protection.claimrules.label.explosions", explosionCooldownSeconds), center, y + 40, 0xFFBDBDBD);
+        graphics.centeredText(font, cooldownLine("screen.opac_better_protection.claimrules.label.mining", createCooldownSeconds), center, y + 52, 0xFFBDBDBD);
+        graphics.centeredText(font, cooldownLine("screen.opac_better_protection.claimrules.label.assembly", assemblyCooldownSeconds), center, y + 64, 0xFFBDBDBD);
 
         if (!message.isBlank()) {
             graphics.centeredText(font, trim(message, 60), center, height - 36, 0xFFFFF0A6);
@@ -134,32 +134,66 @@ public final class ClaimRulesScreen extends Screen {
     }
 
     private Component explosionButtonLabel() {
-        String status = state.explosionProtectionEnabled() ? "enabled" : "disabled";
+        Component status = Component.translatable(state.explosionProtectionEnabled()
+                ? "screen.opac_better_protection.claimrules.status.enabled"
+                : "screen.opac_better_protection.claimrules.status.disabled");
         if (explosionCooldownSeconds > 0L) {
-            return Component.literal("Explosions: " + status + " | Cooldown " + ClaimRulesService.formatDuration(explosionCooldownSeconds));
+            return Component.translatable(
+                    "screen.opac_better_protection.claimrules.explosions.cooldown",
+                    status,
+                    ClaimRulesService.formatDuration(explosionCooldownSeconds)
+            );
         }
-        String action = state.explosionProtectionEnabled() ? "Disable" : "Enable";
-        return Component.literal("Explosions: " + status + " | " + action);
+        Component action = Component.translatable(state.explosionProtectionEnabled()
+                ? "screen.opac_better_protection.claimrules.action.disable"
+                : "screen.opac_better_protection.claimrules.action.enable");
+        return Component.translatable(
+                "screen.opac_better_protection.claimrules.explosions.status",
+                status,
+                action
+        );
     }
 
     private Component createButtonLabel() {
-        String status = state.createMachinesEnabled() ? "allowed" : "blocked";
+        Component status = Component.translatable(state.createMachinesEnabled()
+                ? "screen.opac_better_protection.claimrules.status.allowed"
+                : "screen.opac_better_protection.claimrules.status.blocked");
         if (createCooldownSeconds > 0L) {
-            return Component.literal("Create/Offroad mining: " + status + " | Cooldown "
-                    + ClaimRulesService.formatDuration(createCooldownSeconds));
+            return Component.translatable(
+                    "screen.opac_better_protection.claimrules.create.cooldown",
+                    status,
+                    ClaimRulesService.formatDuration(createCooldownSeconds)
+            );
         }
-        String action = state.createMachinesEnabled() ? "Block" : "Allow";
-        return Component.literal("Create/Offroad mining: " + status + " | " + action);
+        Component action = Component.translatable(state.createMachinesEnabled()
+                ? "screen.opac_better_protection.claimrules.action.block"
+                : "screen.opac_better_protection.claimrules.action.allow");
+        return Component.translatable(
+                "screen.opac_better_protection.claimrules.create.status",
+                status,
+                action
+        );
     }
 
     private Component assemblyButtonLabel() {
-        String status = state.assemblyEnabled() ? "allowed" : "blocked";
+        Component status = Component.translatable(state.assemblyEnabled()
+                ? "screen.opac_better_protection.claimrules.status.allowed"
+                : "screen.opac_better_protection.claimrules.status.blocked");
         if (assemblyCooldownSeconds > 0L) {
-            return Component.literal("Create/Sable assembly: " + status + " | Cooldown "
-                    + ClaimRulesService.formatDuration(assemblyCooldownSeconds));
+            return Component.translatable(
+                    "screen.opac_better_protection.claimrules.assembly.cooldown",
+                    status,
+                    ClaimRulesService.formatDuration(assemblyCooldownSeconds)
+            );
         }
-        String action = state.assemblyEnabled() ? "Block" : "Allow";
-        return Component.literal("Create/Sable assembly: " + status + " | " + action);
+        Component action = Component.translatable(state.assemblyEnabled()
+                ? "screen.opac_better_protection.claimrules.action.block"
+                : "screen.opac_better_protection.claimrules.action.allow");
+        return Component.translatable(
+                "screen.opac_better_protection.claimrules.assembly.status",
+                status,
+                action
+        );
     }
 
     private void resetCooldowns(ClaimRulesStateDto state) {
@@ -173,11 +207,16 @@ public final class ClaimRulesScreen extends Screen {
         return explosionCooldownSeconds > 0L || createCooldownSeconds > 0L || assemblyCooldownSeconds > 0L;
     }
 
-    private static String cooldownLine(String label, long seconds) {
+    private static Component cooldownLine(String labelKey, long seconds) {
+        Component label = Component.translatable(labelKey);
         if (seconds <= 0L) {
-            return label + " toggle ready";
+            return Component.translatable("screen.opac_better_protection.claimrules.cooldown.ready", label);
         }
-        return label + " cooldown: " + ClaimRulesService.formatDuration(seconds);
+        return Component.translatable(
+                "screen.opac_better_protection.claimrules.cooldown.remaining",
+                label,
+                ClaimRulesService.formatDuration(seconds)
+        );
     }
 
     private static String trim(String value, int maxLength) {

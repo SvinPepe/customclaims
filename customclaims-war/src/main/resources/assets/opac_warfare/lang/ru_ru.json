@@ -1,0 +1,22 @@
+{
+  "opac_warfare.actionbar.zone": "⚔ Зона осады | ⚔ %d vs %d 🛡 | ❤ Жизни: %d/%d",
+  "opac_warfare.actionbar.contested": "⚔ Оспаривается! | ⚔ %d vs %d 🛡 | ❤ Жизни: %d/%d",
+  "opac_warfare.bossbar.title": "⚔ Осада: %s vs %s | Сектор: %d чанков | Фронт: %d%%",
+  "opac_warfare.state.preparing": "Подготовка",
+  "opac_warfare.state.active": "Активна",
+  "opac_warfare.state.finished": "Завершена",
+  "opac_warfare.state.cancelled": "Отменена",
+  "opac_warfare.state.failed": "Провалена",
+  "opac_warfare.status.progress": "Прогресс захвата: %s%%",
+  "opac_warfare.status.attackers": "Атакующие: %d",
+  "opac_warfare.status.defenders": "Обороняющиеся: %d",
+  "opac_warfare.notification.declared": "Объявлена война: %s. Подготовка: %s.",
+  "opac_warfare.notification.preparation_warning": "Война начнётся через %s: %s.",
+  "opac_warfare.notification.admin_skip": "Подготовка пропущена администратором: %s.",
+  "opac_warfare.notification.active": "Война активна: %s. %s.",
+  "opac_warfare.notification.milestone": "Захват достиг %d%%: %s.",
+  "opac_warfare.notification.empty_decay": "Зона пуста, захват падает: %s.",
+  "opac_warfare.notification.life_lost": "%s потерял жизнь: осталось %d.",
+  "opac_warfare.notification.lives_exhausted": "%s потерял все жизни и больше не участвует в захвате.",
+  "opac_warfare.notification.ended": "%s: %s (%s)."
+}

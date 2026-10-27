@@ -113,7 +113,23 @@ public final class CreateMachinesProtectionService {
         }
 
         Optional<ClaimSideId> owner = territoryService.getClaimOwnerSide(level, chunkPos);
-        return owner.map(sideId -> isCreateMachinesEnabled(level.getServer(), sideId)).orElse(true);
+        if (owner.isEmpty()) {
+            return true;
+        }
+        if (actorId != null && isOwnerOrMember(level.getServer(), owner.get(), actorId)) {
+            return true;
+        }
+        return isCreateMachinesEnabled(level.getServer(), owner.get());
+    }
+
+    private boolean isOwnerOrMember(MinecraftServer server, ClaimSideId sideId, UUID actorId) {
+        if (actorId == null) {
+            return false;
+        }
+        if (sideId.isPlayer()) {
+            return sideId.playerUuid().filter(actorId::equals).isPresent();
+        }
+        return partyService.sideMemberIds(server, sideId).contains(actorId);
     }
 
     public boolean canCreateAssembly(ServerLevel level, Iterable<BlockPos> sourcePositions) {

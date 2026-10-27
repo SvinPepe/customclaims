@@ -9,12 +9,10 @@ import dev.customclaims.war.event.WarLivesEventHandler;
 import dev.customclaims.war.event.WarTickHandler;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
-@Mod(CustomClaimsWarMod.MOD_ID)
 public final class CustomClaimsWarMod {
     public static final String MOD_ID = "customclaims_war";
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -22,6 +20,13 @@ public final class CustomClaimsWarMod {
     private static WarServices services;
 
     public CustomClaimsWarMod(IEventBus modEventBus, ModContainer modContainer) {
+        init(modEventBus, modContainer);
+    }
+
+    public static synchronized void init(IEventBus modEventBus, ModContainer modContainer) {
+        if (services != null) {
+            return;
+        }
         modContainer.registerConfig(ModConfig.Type.COMMON, WarConfig.SPEC);
         services = WarServices.create(CustomClaimsCoreMod.services());
 

@@ -8,9 +8,6 @@ import dev.customclaims.protection.service.EntityInteractionProtectionService;
 import dev.customclaims.protection.service.ExplosionProtectionService;
 import dev.customclaims.protection.service.ForeignInteractionLimitService;
 import dev.customclaims.protection.service.OpenPartiesProtectionBypassService;
-import dev.customclaims.protection.service.VillagerProtectionService;
-import dev.customclaims.protection.service.WitherRulesService;
-
 public record ProtectionServices(
         ExplosionProtectionService explosionProtectionService,
         CreateMachinesProtectionService createMachinesProtectionService,
@@ -18,9 +15,7 @@ public record ProtectionServices(
         ClaimRulesService claimRulesService,
         ForeignInteractionLimitService foreignInteractionLimitService,
         OpenPartiesProtectionBypassService openPartiesProtectionBypassService,
-        EntityInteractionProtectionService entityInteractionProtectionService,
-        WitherRulesService witherRulesService,
-        VillagerProtectionService villagerProtectionService
+        EntityInteractionProtectionService entityInteractionProtectionService
 ) {
     static ProtectionServices create(CoreServices coreServices) {
         ForeignInteractionLimitService foreignInteractionLimitService = new ForeignInteractionLimitService(
@@ -50,8 +45,6 @@ public record ProtectionServices(
                 createMachinesProtectionService,
                 claimRulesCooldownService
         );
-        WitherRulesService witherRulesService = new WitherRulesService();
-        VillagerProtectionService villagerProtectionService = new VillagerProtectionService(coreServices.territoryService());
 
         return new ProtectionServices(
                 explosionProtectionService,
@@ -60,9 +53,7 @@ public record ProtectionServices(
                 claimRulesService,
                 foreignInteractionLimitService,
                 openPartiesProtectionBypassService,
-                new EntityInteractionProtectionService(coreServices.territoryService()),
-                witherRulesService,
-                villagerProtectionService
+                new EntityInteractionProtectionService(coreServices.territoryService())
         );
     }
 }

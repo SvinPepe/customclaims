@@ -27,8 +27,18 @@ public final class CoreConfig {
             .comment("Permission nodes granted to every player without requiring OP or tags.")
             .defineListAllowEmpty("permissions.default_player_permissions",
                     List.of(
+                            "opac.warfare.start",
+                            "opac.warfare.status",
+                            "opac.protection.claimrules",
+                            "opac.protection.explosions.status",
+                            "opac.protection.explosions.toggle",
+                            "opac.protection.create.status",
+                            "opac.protection.create.toggle",
+                            "opac.protection.assembly.status",
+                            "opac.protection.assembly.toggle",
                             "customclaims.war.start",
                             "customclaims.war.status",
+                            "customclaims.claimrules",
                             "customclaims.explosions.status",
                             "customclaims.explosions.toggle",
                             "customclaims.create.status",
@@ -36,7 +46,7 @@ public final class CoreConfig {
                             "customclaims.assembly.status",
                             "customclaims.assembly.toggle"
                     ),
-                    () -> "customclaims.war.start",
+                    () -> "opac.warfare.start",
                     value -> value instanceof String);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
