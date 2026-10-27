@@ -46,14 +46,6 @@ public final class WarConfig {
             .comment("If true, all players in an actively contested sector receive the Glowing effect to prevent hiding.")
             .define("war.capture.glowing_effect_enabled", true);
 
-    public static final ModConfigSpec.DoubleValue PLAYER_WEIGHT_PER_SECOND = BUILDER
-            .comment("Legacy progress weight per non-AFK participant.")
-            .defineInRange("war.capture.player_weight_per_second", 0.35D, 0.0D, 100.0D);
-
-    public static final ModConfigSpec.DoubleValue ATTACKER_PRESENCE_BONUS_PER_SECOND = BUILDER
-            .comment("Legacy flat bonus progress per second.")
-            .defineInRange("war.capture.attacker_presence_bonus_per_second", 0.25D, 0.0D, 100.0D);
-
     public static final ModConfigSpec.DoubleValue EMPTY_CHUNK_DECAY_PER_SECOND = BUILDER
             .comment("Progress decay per second when no non-AFK attackers or defenders are in the contested chunk.")
             .defineInRange("war.capture.empty_chunk_decay_per_second", 0.50D, 0.0D, 100.0D);

@@ -22,15 +22,22 @@ Default player permissions:
 permissions.default_player_permissions = [
   "opac.warfare.start",
   "opac.warfare.status",
-  "opac.protection.explosions.toggle",
-  "opac.protection.create.toggle",
   "opac.protection.claimrules",
+  "opac.protection.explosions.status",
+  "opac.protection.explosions.toggle",
+  "opac.protection.create.status",
+  "opac.protection.create.toggle",
+  "opac.protection.assembly.status",
+  "opac.protection.assembly.toggle",
   "customclaims.war.start",
   "customclaims.war.status",
+  "customclaims.claimrules",
   "customclaims.explosions.status",
   "customclaims.explosions.toggle",
   "customclaims.create.status",
-  "customclaims.create.toggle"
+  "customclaims.create.toggle",
+  "customclaims.assembly.status",
+  "customclaims.assembly.toggle"
 ]
 ```
 
@@ -48,8 +55,6 @@ permissions.default_player_permissions = [
 | `war.capture.max_capture_rate_per_second` | `0.60` | Anti-zerg hard cap on total positive capture rate per second. |
 | `war.capture.defender_weight_per_second` | `0.35` | Progress reduction per second per defending player inside the sector. |
 | `war.capture.glowing_effect_enabled` | `true` | Applies Glowing (MobEffects.GLOWING) when attackers and defenders contest the sector. |
-| `war.capture.player_weight_per_second` | `0.35` | Progress weight per non-AFK participant in the contested sector each second. |
-| `war.capture.attacker_presence_bonus_per_second` | `0.25` | Flat bonus per second when at least one non-AFK attacker is present. |
 | `war.capture.empty_chunk_decay_per_second` | `0.50` | Progress decay per second when no non-AFK attackers or defenders are present. |
 | `war.cooldown.attacker_seconds` | `7200` | Fixed attack window opened by a side's first successful declaration; `0` disables the timed window. |
 | `war.cooldown.defender_seconds` | `3600` | Fixed defense/protection window opened by a side's first accepted incoming declaration; `0` disables the timed window. |

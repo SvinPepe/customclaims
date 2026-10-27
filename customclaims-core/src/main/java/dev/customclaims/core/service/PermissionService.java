@@ -32,8 +32,12 @@ public final class PermissionService {
         }
 
         // 3. Fallback to default permissions from config and OP check
-        return CoreConfig.DEFAULT_PLAYER_PERMISSIONS.get().contains(permission)
-                || isOp(player);
+        if (player.entityTags().contains(permission)
+                || player.entityTags().contains(CustomClaimsPermissions.BYPASS)
+                || isOp(player)) {
+            return true;
+        }
+        return node == null && CoreConfig.DEFAULT_PLAYER_PERMISSIONS.get().contains(permission);
     }
 
     private boolean isBypassOrAdmin(ServerPlayer player, String permission) {
