@@ -1,6 +1,5 @@
 dependencies {
     implementation project(':customclaims-core')
-    implementation project(':customclaims-war')
     implementation project(':customclaims-protection')
 
     compileOnly("maven.modrinth:create:${create_version}") { transitive = false }

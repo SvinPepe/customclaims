@@ -48,7 +48,7 @@ side="BOTH"
 
 [[dependencies.${mod_id}]]
 modId="customclaims_war"
-type="required"
+type="optional"
 versionRange="[${mod_version},)"
 ordering="AFTER"
 side="BOTH"
