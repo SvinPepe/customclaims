@@ -86,14 +86,5 @@ Run test suite:
 
 For detailed documentation, see [Multi-Loader & Multi-Version Architecture](multiversion-multiloader.md) and `stonecutter.gradle`.
 
-Stonecutter allows switching target versions during development:
+Stonecutter allows switching target versions during development by setting `stonecutter.active "<version>"` in `stonecutter.gradle` or using the Stonecutter IntelliJ IDEA plugin version switcher.
 
-```powershell
-.\gradlew.bat SetActiveVersion --version 1.21.1
-```
-
-Or building across configured version matrices:
-
-```powershell
-.\gradlew.bat chiseledBuild
-```

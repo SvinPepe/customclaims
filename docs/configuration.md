@@ -92,49 +92,6 @@ Daily limits remain optional and are evaluated in addition to cooldowns when con
 
 > Migration: remove the obsolete `war.contested_owner_uuid` and `war.contested_owner_name` keys. Active wars are reassigned to OPaC's built-in `Server` owner when loaded.
 
-## `customclaims_protection-common.toml`
-
-| Key | Default | Meaning |
-| --- | --- | --- |
-| `foreign_interaction.block_break_limit` | `0` | Runtime-session block break limit for foreign peaceful claims. |
-| `foreign_interaction.block_place_limit` | `0` | Runtime-session block place limit for foreign peaceful claims. |
-| `foreign_interaction.limit_reset_interval_seconds` | `3600` | Global runtime reset interval for foreign claim counters. |
-| `entity_interaction.contested_exceptions` | `["corpse:corpse"]` | Exact entity type IDs whose right-click interactions grant an OPaC bypass to attacking/defending sides in the target entity's contested chunk. |
-| `claimrules.toggle_cooldown_seconds` | `600` | Cooldown for side-level `/claimrules` toggles. |
-| `explosions.custom_filter_enabled` | `true` | Filters block damage from explosions in protected claimed chunks via direct OPAC API sync. |
-| `explosions.allow_in_war_chunks` | `true` | Does not filter explosion block damage in contested war chunks (via IWarfareBridge soft hook). |
-| `big_cannons.block_projectile_launch_from_protected_claims` | `true` | Cancels Create Big Cannons projectiles spawned from protected claimed chunks and displays an actionbar alert. |
-| `big_cannons.log_blocked_projectiles` | `true` | Logs Create Big Cannons projectiles blocked by explosion protection. |
-
-The runtime `/claimrules create` side toggle is persisted in `protection/create-machines.txt`. It controls foreign Create machines (drills, saws, deployers) across borders while allowing claim owners/members to freely use their machines inside their claims.
-
-`entity_interaction.contested_exceptions` accepts exact `namespace:path` IDs, not
-wildcards or tags. An empty list (`[]`) disables these exceptions. IDs for mods
-that are not installed are harmless; Corpse is not a required dependency. The
-server reads the current list on each interaction, including after a config reload.
-For example:
-
-```toml
-[entity_interaction]
-contested_exceptions = ["corpse:corpse", "minecraft:chest_minecart"]
-```
-
-Only participants of the war at the target entity's chunk receive this bypass.
-Outsiders, peaceful claims, and unclaimed chunks receive no new pass. This handles
-right-click interactions only and preserves the entity mod's own ownership/access
-rules and event cancellations. Like the existing block bypass, it grants a full
-OPaC pass until the next server tick, so the pass is broader than one interaction
-while active. Clearing the list prevents new grants; an existing pass expires on
-the next tick.
-
-The independent `/claimrules assembly` side toggle is persisted in `protection/create-assemblies.txt`. It controls Create and optional Sable contraption assembly. On the first upgrade that creates this file, existing `create` values and their cooldowns are copied to `assembly`.
-
-Wither blocking and villager/trader damage protection are opt-in. With the defaults above, CustomClaims neither cancels Wither spawns nor villager/trader damage, leaving vanilla and OPaC mechanics unchanged.
-
-NeoForge preserves values already present in server config files. Existing servers that want the new passive behavior must set all three `wither_rules.disable_wither_summon_in_*` values and `villager_protection.enable_villager_protection` to `false`, or regenerate the protection config.
-
-The removed `storage_rules.*` keys are obsolete and can be deleted from existing config files. Storage access and breaking are now governed by vanilla and OPaC only.
-
 ## `customclaims_xaero-common.toml`
 
 | Key | Default | Meaning |
@@ -150,9 +107,7 @@ The removed `storage_rules.*` keys are obsolete and can be deleted from existing
 ## Operational Defaults To Review
 
 - Tighten `permissions.default_player_permissions` if normal players should not
-  start wars or toggle side rules.
+  start wars.
 - Review `raid_window.timezone` and `raid_window.blocked_windows` before public
   use; the default timezone is `Europe/Moscow`.
-- `foreign_interaction.block_break_limit = 0` and
-  `foreign_interaction.block_place_limit = 0` mean foreign peaceful block
-  break/place actions are not allowed by the limit service.
+

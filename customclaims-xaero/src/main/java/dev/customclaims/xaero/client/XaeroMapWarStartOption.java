@@ -1,5 +1,6 @@
 package dev.customclaims.xaero.client;
 
+import dev.customclaims.core.platform.PlatformHelperHolder;
 import dev.customclaims.xaero.CustomClaimsXaeroMod;
 import dev.customclaims.xaero.network.ServerboundStartWarAtPayload;
 import net.minecraft.client.Minecraft;
@@ -8,7 +9,6 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
 import xaero.map.gui.GuiMap;
 import xaero.map.gui.IRightClickableElement;
 import xaero.map.gui.dropdown.rightclick.RightClickOption;
@@ -36,7 +36,7 @@ public final class XaeroMapWarStartOption extends RightClickOption {
     @Override
     public void onAction(Screen screen) {
         try {
-            PacketDistributor.sendToServer(new ServerboundStartWarAtPayload(dimension, chunkX, chunkZ));
+            PlatformHelperHolder.getNetwork().sendToServer(new ServerboundStartWarAtPayload(dimension, chunkX, chunkZ));
         } catch (RuntimeException exception) {
             CustomClaimsXaeroMod.LOGGER.warn("Failed to send Xaero map war-start request", exception);
             Minecraft minecraft = Minecraft.getInstance();
