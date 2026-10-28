@@ -1,24 +1,17 @@
 # Architecture
 
-This repository is a Gradle multi-module NeoForge project with a Minecraft
-`1.21.1` compile baseline and experimental metadata for Minecraft
-`[1.21.1,26.0)` on NeoForge `[21.1.232,26.0)`. Open Parties and
-Claims is the source of party membership and claim
-ownership. This project adds territory-aware services, war state, protection
-rules, and optional compat behavior.
+This repository is a Gradle multi-module project with a Minecraft `1.21.1` compile baseline and experimental metadata for Minecraft `[1.21.1,26.0)` on NeoForge `[21.1.232,26.0)`. Open Parties and Claims is the source of party membership and claim ownership. This project adds territory-aware services, chunk wars, contested claims, raid windows, capture progress, war lives, fair-play Xaero map integration, and discord webhooks.
+
+For details on the forward-looking multi-loader (Fabric + NeoForge via Architectury) and multi-version (Minecraft 1.21.1 and 26.1 via Stonecutter) plan, see [Multi-Loader & Multi-Version Architecture](multiversion-multiloader.md).
 
 ## Modules
 
 | Gradle project | Mod id | Role |
 | --- | --- | --- |
-| `customclaims-core` | `customclaims_core` | Shared OPaC adapters, territory services, permissions, storage, messages, logs, and rollback interface. |
-| `customclaims-war` | `customclaims_war` | War lifecycle, raid windows, border checks, capture progress, war lives, HUD, notifications, and war commands. |
-| `customclaims-protection` | `customclaims_protection` | Claim rules, foreign interaction limits, explosions, opt-in Wither and villager/trader protection, GUI payloads, and `/claimrules`. |
-| `customclaims-create` | `customclaims_create` | Optional Create contraption movement and block-breaking hooks. |
-| `customclaims-aeronautics` | `customclaims_aeronautics` | Optional Aeronautics/Offroad bore-mining and Sable assembly hooks. |
-| `customclaims-big-cannons` | `customclaims_big_cannons` | Optional Create Big Cannons launch and terrain-damage hooks. |
-| `customclaims-xaero` | `customclaims_xaero` | Configurable global/filtered war-marker sync, optional client waypoints/overlay, and Xaero World Map war-start action. |
-| `opac-warfare` | multiple mod ids | Single-jar distribution that bundles the seven functional modules. |
+| `customclaims-core` | `customclaims_core` | Shared OPaC adapters, territory services, permissions, storage, messages, logs, anonymous metrics, and rollback interface. |
+| `customclaims-war` | `customclaims_war` | War lifecycle, raid windows, border checks, capture progress, war lives, HUD, notifications, Discord webhooks, and war commands. |
+| `customclaims-xaero` | `customclaims_xaero` | Fair-play war-marker sync, client waypoints/overlay, and Xaero World Map war-start action. |
+| `opac-warfare` | multiple mod ids | Single-jar distribution that bundles `customclaims-core`, `customclaims-war`, and `customclaims-xaero`. |
 
 ## Dependency Shape
 
@@ -27,89 +20,39 @@ Project dependencies:
 ```text
 customclaims-core
   <- customclaims-war
-  <- customclaims-protection
-       <- customclaims-create
-       <- customclaims-aeronautics
-       <- customclaims-big-cannons
-customclaims-war
-  <- customclaims-protection
-  <- customclaims-big-cannons
   <- customclaims-xaero
-opac-warfare bundles all functional modules
+opac-warfare bundles customclaims-core, customclaims-war, customclaims-xaero
 ```
 
 External dependencies:
 
 - `customclaims-core` requires Open Parties and Claims.
-- `customclaims-create` has optional Create integration guarded by
-  `ModList.get().isLoaded("create")`.
-- `customclaims-aeronautics` has optional Aeronautics/Offroad integration guarded
-  by `ModList.get().isLoaded("offroad")` and optional mixins.
-- `customclaims-big-cannons` has optional Create Big Cannons integration guarded
-  by `ModList.get().isLoaded("createbigcannons")`.
-- `customclaims-xaero` has optional client-side Xaero behavior, including a
-  Xaero World Map right-click war-start mixin, global active-war marker
-  visibility by default, and configurable side/admin/radius filtering.
+- `customclaims-xaero` has optional client-side Xaero behavior, including a Xaero World Map right-click war-start mixin, global active-war marker visibility by default, and configurable side/admin/radius filtering.
 
 ## Service Records
 
 The code uses small service containers created by module entrypoints:
 
-- `CoreServices` creates OPaC adapters, party/claim/territory services,
-  permission service, data storage, logs, message service, anonymous dedicated-server
-  metrics, and rollback service.
-- `WarServices` builds war storage, side attack/defense cooldown storage, optional daily
-  outgoing/accepted start-limit storage, raid windows, border checks, AFK tracking,
-  capture progress, display/HUD, notifications, lives, scoreboard, and `WarManager`.
-- `ProtectionServices` builds foreign interaction limits, OPaC bypass service,
-  contested entity interaction exceptions, explosion protection, Create mining/assembly rules, claim-rule cooldowns,
-  `/claimrules` orchestration, opt-in Wither rules, and opt-in villager/trader
-  protection.
+- `CoreServices` creates OPaC adapters, party/claim/territory services, permission service, data storage, logs, message service, anonymous dedicated-server metrics, and rollback service.
+- `WarServices` builds war storage, side attack/defense cooldown storage, optional daily outgoing/accepted start-limit storage, raid windows, border checks, AFK tracking, capture progress, display/HUD, notifications, lives, scoreboard, and `WarManager`.
 
-When adding behavior, prefer placing domain logic in a service and keeping event
-handlers and command classes thin.
+When adding behavior, prefer placing domain logic in a service and keeping event handlers and command classes thin.
 
 ## Entrypoints And Events
 
 Core:
 
-- `CustomClaimsCoreMod` registers `CoreConfig` and initializes
-  `CoreServices`. Its metrics service listens for server start, tick, and stop
-  events; HTTP delivery runs asynchronously off the server thread.
+- `CustomClaimsCoreMod` registers `CoreConfig` and initializes `CoreServices`. Its metrics service listens for server start, tick, and stop events; HTTP delivery runs asynchronously off the server thread.
 
 War:
 
 - `CustomClaimsWarMod` registers `WarConfig` and initializes `WarServices`.
 - Registers `/war` and `/waradmin`.
-- Handles server ticks, block/entity interaction activity, and death events for
-  war lives.
-
-Protection:
-
-- `CustomClaimsProtectionMod` registers `ProtectionConfig`, claim-rule payloads,
-  and client-only GUI/keybind registration when running on the client.
-- Registers `/claimrules`.
-- Handles block interaction, break/place, explosions, opt-in Wither spawn
-  blocking, opt-in villager/trader damage protection, and foreign interaction
-  reset ticks.
-- Handles server-side `EntityInteract` and `EntityInteractSpecific` at highest
-  priority. `EntityInteractionProtectionService` checks the current configured
-  entity type list and the player's interaction status at the target's chunk.
-  Only `WAR_CONTESTED` participants get the existing OPaC full pass, cleared by
-  the server post-tick handler. This pass is broader than a single interaction
-  until cleared. No Corpse classes, inventory access, or event uncancellation
-  are involved.
+- Handles server ticks, block/entity interaction activity, and death events for war lives.
 
 Compat:
 
-- `CustomClaimsCreateMod` activates Create hooks only when Create is loaded.
-- `CustomClaimsAeronauticsMod` activates Offroad bore-mining hooks and optional Sable assembly checks only when their target mods are loaded.
-- `CustomClaimsBigCannonsMod` activates CBC hooks only when Create Big Cannons
-  is loaded.
-- `CustomClaimsXaeroMod` registers marker payloads, the serverbound Xaero map
-  war-start payload, server tick marker sync, and client-only waypoint/overlay
-  behavior. The map action sends only dimension and chunk; server permission,
-  same-dimension, distance, and normal war checks remain authoritative.
+- `CustomClaimsXaeroMod` registers marker payloads, the serverbound Xaero map war-start payload, server tick marker sync, and client-only waypoint/overlay behavior. The map action sends only dimension and chunk; server permission, same-dimension, distance, and normal war checks remain authoritative.
 
 ## Persistence
 
@@ -122,35 +65,20 @@ world/customclaims/
 Current file names:
 
 - `war/active-wars.dat`: non-terminal wars and original claim snapshots.
-- `war/side-cooldowns.dat`: fixed attack/defense window timestamps and consumed
-  target-chunk slots per side.
+- `war/side-cooldowns.dat`: fixed attack/defense window timestamps and consumed target-chunk slots per side.
 - `war/daily-starts.dat`: optional successful current-day war starts per attacking side.
 - `war/daily-accepted-starts.dat`: optional successful current-day incoming war starts per defending side.
 - `logs/war.log`: war lifecycle/progress log.
 - `logs/actions.log`: general action log.
-- `protection/explosion-protection.txt`: side explosion rule state.
-- `protection/create-machines.txt`: side Create/Offroad mining rule state.
-- `protection/create-assemblies.txt`: side Create/Sable assembly rule state.
-- `protection/claimrule-toggle-cooldowns.txt`: side toggle cooldown timestamps.
 - `metrics/server-id.txt`: randomly generated anonymous dedicated-server id.
 
-Foreign interaction counters are runtime-only. War lives are serialized as part
-of active war data.
+War lives are serialized as part of active war data.
 
 ## Important Invariants
 
 - OPaC remains the authority for party membership and claim ownership.
-- Contested chunks use OPaC's built-in `Server` owner only during active war
-  handling; original claim snapshots must be preserved so cancel/fail paths can
-  restore ownership.
-- Internal ownership mutations use OPaC's administrative `claim` operation, not
-  the player `tryToClaim` path. Target ownership plus snapshot sub-config and
-  forceload data must still be preserved.
-- Contested bypass is limited to attacker and defender sides. Outsiders should
-  not gain shared chunk access.
-- Xaero marker sync may globally broadcast only active/preparing war metadata
-  when configured. It must never expose a global claim-owner map or weaken
-  server validation of map war-start requests.
-- Optional compat code must stay safe when the target mod is not installed, including Aeronautics/Offroad nested modules.
-- Client-only registrations must stay behind `FMLEnvironment.dist == Dist.CLIENT`
-  checks.
+- Contested chunks use OPaC's built-in `Server` owner only during active war handling; original claim snapshots must be preserved so cancel/fail paths can restore ownership.
+- Internal ownership mutations use OPaC's administrative `claim` operation, not the player `tryToClaim` path. Target ownership plus snapshot sub-config and forceload data must still be preserved.
+- Contested bypass is limited to attacker and defender sides. Outsiders should not gain shared chunk access.
+- Xaero marker sync may globally broadcast only active/preparing war metadata when configured. It must never expose a global claim-owner map or weaken server validation of map war-start requests.
+- Client-only registrations must stay behind client-side checks.

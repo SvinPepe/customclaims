@@ -1,0 +1,31 @@
+// Stonecutter configuration for Open Parties and Claims: Warfare
+// Multi-version & multi-loader project configuration
+// Reference: https://stonecutter.kikugie.dev/
+
+plugins {
+    id 'dev.kikugie.stonecutter' version '0.9.8' apply false
+}
+
+stonecutter {
+    // Controller configuration
+    kotlinController = false
+    centralScript = "build.gradle"
+
+    // Shared Minecraft version targets:
+    // - 1.21.1: Stable baseline release (Java 21, NeoForge 21.1.x, Fabric 0.16.x)
+    // - 26.1: Modern forward-port release (Java 25, NeoForge 26.x, Fabric 0.17.x)
+    shared {
+        versions("1.21.1", "26.1")
+    }
+
+    // Default active version for development and IDE editing
+    active "1.21.1"
+
+    // Architecture layout:
+    // - common: Loader-agnostic domain models, capture algorithms, war data, config abstractions
+    // - fabric: Fabric loader ModInitializer, Fabric networking, Fabric permission adapter
+    // - neoforge: NeoForge loader @Mod, EventBus subscriptions, NeoForge network payloads
+    registerChiseled("common", "1.21.1", "26.1")
+    registerChiseled("fabric", "1.21.1", "26.1")
+    registerChiseled("neoforge", "1.21.1", "26.1")
+}

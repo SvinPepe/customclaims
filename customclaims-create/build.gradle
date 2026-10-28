@@ -1,8 +1,0 @@
-dependencies {
-    implementation project(':customclaims-core')
-    implementation project(':customclaims-protection')
-
-    compileOnly "maven.modrinth:create:${create_version}"
-
-    localRuntime "maven.modrinth:create:${create_version}"
-}

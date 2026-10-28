@@ -12,14 +12,9 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
-rootProject.name = 'customclaims'
+rootProject.name = 'opac-warfare'
 
 include 'customclaims-core'
 include 'customclaims-war'
-include 'customclaims-protection'
-include 'customclaims-create'
-include 'customclaims-aeronautics'
-include 'customclaims-big-cannons'
 include 'customclaims-xaero'
 include 'opac-warfare'
-include 'opac-better-protection'

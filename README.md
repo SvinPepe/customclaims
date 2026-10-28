@@ -6,11 +6,10 @@
 [Anonymous metrics](https://customclaims-metrics.svinpepe.workers.dev/) 
 [Modrinth](https://modrinth.com/mod/open-parties-and-claims-warfare)
 
-It adds chunk wars, contested claims, side-based attack and defense cooldowns with configurable target-chunk slots, configurable claim protection rules,
-Create mining and contraption-assembly controls, Aeronautics/Offroad bore protection,
-Sable assembly protection, Create Big Cannons protection, and globally visible Xaero war markers with configurable filtering. Open Parties and Claims
-remains the source of party membership and claim ownership; this project builds
-warfare and protection mechanics on top of OPaC territories.
+It adds chunk wars, contested claims, side-based attack and defense cooldowns with configurable target-chunk slots,
+raid windows, capture progress, war lives, Discord webhooks, and fair-play Xaero minimap/worldmap marker synchronization.
+Open Parties and Claims remains the source of party membership and claim ownership; this project builds warfare mechanics
+on top of OPaC territories.
 
 ## Requirements
 
@@ -19,61 +18,40 @@ warfare and protection mechanics on top of OPaC territories.
 - Java `21`
 - Open Parties and Claims `neoforge-1.21.1-0.27.5` or newer on the baseline stack
 
-The official jar is one modern artifact. `Minecraft 1.21.1 + NeoForge 21.1.232`
-is the fully tested baseline; newer 1.21.x releases are experimental same-jar support
-that must pass boot and gameplay smoke tests before being called verified. Forge, Fabric,
-Quilt, older `1.20.x`, and Minecraft `26.x` (which has incompatible APIs — see
-[Compatibility](docs/compatibility.md)) are not supported by this jar. See
-[Compatibility](docs/compatibility.md) for the support policy and probe workflow.
-
 Optional integrations activate only when their target mods are installed:
 
-- Create `mc1.21.1-6.0.9` or newer
-- Create Aeronautics/Offroad `1.3.0` or newer for bore protection
-- Sable `2.0.3` for optional contraption assembly protection (with Sable's required Create version)
-- Create Big Cannons `5.11.7` or newer
 - Xaero Minimap or Xaero World Map on compatible clients; Xaero World Map
   also enables a right-click map war-start action
 
 ## What To Install
 
-Server owners normally install the single distribution jar built by the
-`opac-warfare` module. That jar contains the seven functional modules:
-
-- `customclaims_core`
-- `customclaims_war`
-- `customclaims_protection`
-- `customclaims_create`
-- `customclaims_aeronautics`
-- `customclaims_big_cannons`
-- `customclaims_xaero`
-
-The module jars can also be built separately for development, but the public
-server artifact is:
+Server owners install the single distribution jar built by the `opac-warfare` module:
 
 ```text
 opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-For this release, that artifact is `opac-warfare-1.6.7.2.jar`.
+This single distribution jar bundles:
+- `customclaims_core`
+- `customclaims_war`
+- `customclaims_xaero`
 
 ## Quick Start
 
-Build the same artifact that CI uploads:
+Build the artifact:
 
 ```powershell
-.\gradlew.bat --no-daemon build :opac-warfare:jar
+.\gradlew.bat --no-daemon :opac-warfare:jar test
 ```
 
 On Linux/macOS:
 
 ```sh
-./gradlew --no-daemon build :opac-warfare:jar
+./gradlew --no-daemon :opac-warfare:jar test
 ```
 
 Copy the resulting `opac-warfare-*.jar` into the server `mods/` folder together
-with Open Parties and Claims. Install optional compat mods only when you want
-their integrations.
+with Open Parties and Claims.
 
 After first server start, NeoForge writes common config files under `config/`.
 See [Configuration](docs/configuration.md) before using the mod on a production
@@ -92,8 +70,7 @@ Each heartbeat contains only:
   `world/customclaims/metrics/server-id.txt`;
 - the CustomClaims, Minecraft, and NeoForge versions;
 - the current number of online players;
-- boolean presence flags for OPaC, Create, Create Big Cannons (CBC),
-  Aeronautics/Offroad, Xaero, and Corpse.
+- boolean presence flags for OPaC, Xaero, and Corpse.
 
 It does not include the server IP or hostname, player names, the world seed, or
 other identifying data. Metrics never run in an integrated/client server. To
@@ -128,24 +105,6 @@ Admin war commands:
 /waradmin setprogress chunk <dimension> <chunkX> <chunkZ> <value>
 ```
 
-Protection commands:
-
-```text
-/claimrules limits me
-/claimrules limits reset <player>
-/claimrules limits resetall
-/claimrules explosions status
-/claimrules explosions enable
-/claimrules explosions disable
-/claimrules create status
-/claimrules create enable
-/claimrules create disable
-/claimrules assembly status
-/claimrules assembly enable
-/claimrules assembly disable
-/claimrules gui
-```
-
 ## Documentation
 
 - [Server Admin Guide](docs/server-admin.md): installation, gameplay flow,
@@ -162,14 +121,11 @@ Protection commands:
 ## Safety Notes
 
 - Make world backups before first production use and before upgrades.
-- Active wars and claim-rule toggles are persisted under
-  `world/customclaims/`.
+- Active wars are persisted under `world/customclaims/`.
 - The Xaero module broadcasts active/preparing war markers to all compatible
   clients by default; config can restore side/admin/radius filtering. It still
   validates map war-start requests server-side and never publishes a global
   claim-owner map.
-- Create, Aeronautics/Offroad, Sable, and Create Big Cannons hooks are guarded by
-  mod-load checks and stay inactive when the target mods are absent.
 
 ## License
 

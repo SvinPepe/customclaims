@@ -1,7 +1,6 @@
 # Development
 
-This repository uses Gradle, NeoForge userdev, Java `21`, and a `1.21.1`
-compile baseline.
+This repository uses Gradle, NeoForge userdev, Java `21`, and a `1.21.1` compile baseline, with architectural support for multi-loader (Fabric + NeoForge via Architectury) and multi-version (Minecraft 1.21.1 and 26.1 via Stonecutter).
 
 ## Setup
 
@@ -11,19 +10,9 @@ Required locally:
 - Git
 - The Gradle wrapper included in this repository
 
-The build resolves Minecraft/NeoForge and mod dependencies through configured
-Maven repositories, including Modrinth Maven for Open Parties and Claims,
-Create, Create Big Cannons, and related compat dependencies.
-Aeronautics/Offroad compat uses the local bundled jar in `libs/` for
-development runtime coverage.
+The build resolves Minecraft/NeoForge and mod dependencies through configured Maven repositories, including Modrinth Maven for Open Parties and Claims.
 
-This repository intentionally keeps one official jar. It compiles against
-`Minecraft 1.21.1 + NeoForge 21.1.232`, while metadata allows experimental
-same-jar probes on Minecraft `[1.21.1,26.0)` and NeoForge `[21.1.232,26.0)`.
-Minecraft 26.x is incompatible (renamed `ResourceLocation` → `Identifier`,
-removed `FMLEnvironment.dist`, requires Java 25); a separate port branch handles
-those versions. Do not add multi-version Gradle targets or widen those ranges
-without updating [Compatibility](compatibility.md) and smoke-test expectations.
+This repository compiles against `Minecraft 1.21.1 + NeoForge 21.1.232`, while metadata allows experimental same-jar probes on Minecraft `[1.21.1,26.0)` and NeoForge `[21.1.232,26.0)`.
 
 Important version properties live in `gradle.properties`:
 
@@ -33,10 +22,7 @@ minecraft_version_range=[1.21.1,26.0)
 neo_version=21.1.232
 neo_version_range=[21.1.232,26.0)
 opc_version=neoforge-1.21.1-0.27.5
-create_version=mc1.21.1-6.0.9
-cbc_version=5.11.7
-rpl_version=2.1.2
-mod_version=1.6.7.2
+mod_version=2.0.0
 ```
 
 ## CI-Parity Build
@@ -44,13 +30,13 @@ mod_version=1.6.7.2
 GitHub Actions runs:
 
 ```sh
-./gradlew --no-daemon build :opac-warfare:jar
+./gradlew --no-daemon build :opac-warfare:jar test
 ```
 
 On Windows, use:
 
 ```powershell
-.\gradlew.bat --no-daemon build :opac-warfare:jar
+.\gradlew.bat --no-daemon build :opac-warfare:jar test
 ```
 
 The uploaded release artifact comes from:
@@ -64,117 +50,50 @@ opac-warfare/build/libs/opac-warfare-*.jar
 Before release, run:
 
 ```powershell
-.\gradlew.bat --no-daemon build :opac-warfare:jar
+.\gradlew.bat --no-daemon build :opac-warfare:jar test
 ```
 
 Smoke-test the built jar on the baseline `Minecraft 1.21.1 + NeoForge 21.1.232` with OPaC:
 
 - server boots without mixin, classloading, packet, or config errors;
-- `/war status`, `/war start`, and `/claimrules create status` work;
-- default side cooldowns block a second outgoing declaration for `2` hours and
-  a second incoming declaration against the defending side for `1` hour;
-- the first successful declaration starts both fixed windows without extending
-  them on later starts; a role limit of `3` allows exactly three parallel wars,
-  and a side cannot attack while defending or defend while attacking;
-- daily territory fight limits remain disabled at default `0`; when enabled,
-  they remain additional successful-start quotas;
-- protection blocks foreign peaceful interactions;
-- with Corpse installed, both war sides can open and retrieve permitted corpse
-  contents in a contested chunk; Corpse ownership restrictions still apply;
-- Create machine protection works when Create is installed;
-- Aeronautics/Offroad bore protection works when Aeronautics/Offroad is
-  installed;
-- Xaero war waypoint names and cleanup work on a compatible client.
-
-Newer Minecraft 1.21.x / NeoForge 21.x–25.x candidates are probes only.
-Install the same jar there, run the same smoke checks, and document the target as
-unsupported if boot or gameplay checks fail. Minecraft 26.x requires a separate
-port and is not a probe target for this jar.
+- `/war status`, `/war start`, `/war near`, and `/waradmin` work;
+- default side cooldowns block a second outgoing declaration for `2` hours and a second incoming declaration against the defending side for `1` hour;
+- raid windows and capture progress tick properly;
+- war lives decrement on death and end war upon exhaustion;
+- Xaero war waypoint sync works on a compatible client.
 
 ## Focused Commands
 
-Compile all functional modules:
+Compile all functional warfare modules:
 
 ```powershell
-.\gradlew.bat --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:compileJava :customclaims-war:compileJava :customclaims-protection:compileJava :customclaims-create:compileJava :customclaims-aeronautics:compileJava :customclaims-big-cannons:compileJava :customclaims-xaero:compileJava -q
+.\gradlew.bat --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:compileJava :customclaims-war:compileJava :customclaims-xaero:compileJava -q
 ```
 
-Build functional module jars:
-
-```powershell
-.\gradlew.bat --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:jar :customclaims-war:jar :customclaims-protection:jar :customclaims-create:jar :customclaims-aeronautics:jar :customclaims-big-cannons:jar :customclaims-xaero:jar -q
-```
-
-Build the distribution jar:
+Build jars:
 
 ```powershell
 .\gradlew.bat --no-daemon :opac-warfare:jar
 ```
 
-If Gradle has just downloaded plugins or a worker daemon is stuck, stop daemons:
+Run test suite:
 
 ```powershell
-.\gradlew.bat --stop
+.\gradlew.bat --no-daemon test
 ```
 
-## Source Layout
+## Multi-Version and Multi-Loader Workflows
 
-Each functional module keeps normal Java sources under:
+For detailed documentation, see [Multi-Loader & Multi-Version Architecture](multiversion-multiloader.md) and `stonecutter.gradle`.
 
-```text
-<module>/src/main/java/dev/customclaims/<area>/
+Stonecutter allows switching target versions during development:
+
+```powershell
+.\gradlew.bat SetActiveVersion --version 1.21.1
 ```
 
-Resources live under:
+Or building across configured version matrices:
 
-```text
-<module>/src/main/resources/
+```powershell
+.\gradlew.bat chiseledBuild
 ```
-
-Generated resources are ignored by git through `**/src/generated/`.
-
-## Working Rules
-
-- Prefer existing services over adding logic directly to event handlers.
-- Keep command classes responsible for parsing, permission checks, and messages;
-  move behavior into services.
-- Keep config keys stable unless a migration or release note is planned.
-- Do not add hard dependencies from optional compat modules to absent target
-  mods without a mod-load guard; Aeronautics/Offroad hooks must remain optional.
-- Keep client-only UI, keybind, overlay, and waypoint code behind client-side
-  checks.
-- Update `docs/configuration.md` whenever a config key, default, or meaning
-  changes.
-- Update `docs/server-admin.md` whenever a command, permission, runtime file, or
-  operator-visible behavior changes.
-- Update `docs/architecture.md` when module boundaries, service ownership, or
-  persistence changes.
-
-## Testing Notes
-
-There are no conventional unit test source sets in the repository right now.
-Use focused Gradle compile/jar tasks while developing and run the CI-parity
-command before release.
-
-For docs-only changes, verify:
-
-- module names match `settings.gradle`;
-- commands match `WarCommand`, `WarAdminCommand`, and `ClaimRulesCommand`;
-- config keys match `CoreConfig`, `WarConfig`, `ProtectionConfig`, and
-  `XaeroCompatConfig`;
-- Markdown links resolve.
-
-For gameplay changes, test in a NeoForge server run with OPaC installed and
-exercise the affected commands or event paths in-game. For Aeronautics/Offroad,
-test Borehead Bearing + Rock Cutting Wheel mining against protected and allowed
-claims.
-
-For contested entity interaction exceptions, test both entity interaction event
-paths, both war sides, an outsider, peaceful and unclaimed chunks, and a finished
-war. Test across a chunk boundary in both directions to confirm that the target
-entity's chunk controls eligibility. Verify an empty list, another configured
-entity type, a non-listed type, config reload, and startup without Corpse. Confirm
-that other mods' cancellations and Corpse access restrictions remain effective,
-attacks do not grant a pass, and granted OPaC passes are removed at the next server
-post-tick. When checking denied scenarios, start after that cleanup tick because
-the existing full-pass mechanism temporarily bypasses more than one interaction.

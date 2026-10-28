@@ -30,7 +30,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build
-        run: gradle --no-daemon :opac-warfare:jar :opac-better-protection:jar test
+        run: gradle --no-daemon :opac-warfare:jar test
 
       - name: Upload release jars
         uses: actions/upload-artifact@v4
@@ -38,4 +38,3 @@ jobs:
           name: release-jars
           path: |
             opac-warfare/build/libs/opac-warfare-*.jar
-            opac-better-protection/build/libs/opac-better-protection-*.jar
