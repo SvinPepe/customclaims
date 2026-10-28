@@ -1,7 +1,7 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-issueTrackerURL="https://github.com/SvinPepe/customclaims/issues"
+issueTrackerURL="https://github.com/SvinPepe/opac-warfare/issues"
 showAsResourcePack=false
 
 [[mixins]]
@@ -11,7 +11,7 @@ config="customclaims_xaero.mixins.json"
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-displayURL="https://github.com/SvinPepe/customclaims"
+displayURL="https://github.com/SvinPepe/opac-warfare"
 authors="${mod_authors}"
 credits="Fair-play temporary war waypoint sync compatible with Xaero minimap/worldmap clients."
 description='''

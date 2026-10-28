@@ -1,7 +1,7 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-issueTrackerURL="https://github.com/SvinPepe/customclaims/issues"
+issueTrackerURL="https://github.com/SvinPepe/opac-warfare/issues"
 showAsResourcePack=false
 
 [[jarJar]]
@@ -15,7 +15,7 @@ config="customclaims_xaero.mixins.json"
 modId="opac_warfare"
 version="${mod_version}"
 displayName="Open Parties and Claims: Warfare"
-displayURL="https://github.com/SvinPepe/customclaims"
+displayURL="https://github.com/SvinPepe/opac-warfare"
 authors="${mod_authors}"
 credits="Built for NeoForge servers that use Open Parties and Claims as the source of party and personal claim ownership."
 description='''
