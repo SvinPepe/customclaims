@@ -25,66 +25,77 @@ opc_version=neoforge-1.21.1-0.27.5
 mod_version=2.0.0
 ```
 
-## CI-Parity Build
+## Build and Test Commands
 
-GitHub Actions runs:
+### CI-Parity Build & Test
+
+To build the release jar and execute the full test suite:
+
+```powershell
+.\gradlew.bat --no-daemon :opac-warfare:jar test
+```
+
+On Linux/macOS:
 
 ```sh
-./gradlew --no-daemon build :opac-warfare:jar test
+./gradlew --no-daemon :opac-warfare:jar test
 ```
 
-On Windows, use:
-
-```powershell
-.\gradlew.bat --no-daemon build :opac-warfare:jar test
-```
-
-The uploaded release artifact comes from:
+The resulting distribution artifact is located at:
 
 ```text
-opac-warfare/build/libs/opac-warfare-*.jar
+opac-warfare/build/libs/opac-warfare-<version>.jar
 ```
 
-## Release Checklist
+### Focused Development Commands
 
-Before release, run:
-
-```powershell
-.\gradlew.bat --no-daemon build :opac-warfare:jar test
-```
-
-Smoke-test the built jar on the baseline `Minecraft 1.21.1 + NeoForge 21.1.232` with OPaC:
-
-- server boots without mixin, classloading, packet, or config errors;
-- `/war status`, `/war start`, `/war near`, and `/waradmin` work;
-- default side cooldowns block a second outgoing declaration for `2` hours and a second incoming declaration against the defending side for `1` hour;
-- raid windows and capture progress tick properly;
-- war lives decrement on death and end war upon exhaustion;
-- Xaero war waypoint sync works on a compatible client.
-
-## Focused Commands
-
-Compile all functional warfare modules:
+Compile all functional warfare modules (single-worker, quiet output):
 
 ```powershell
 .\gradlew.bat --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:compileJava :customclaims-war:compileJava :customclaims-xaero:compileJava -q
 ```
 
-Build jars:
+Build only the distribution jar:
 
 ```powershell
 .\gradlew.bat --no-daemon :opac-warfare:jar
 ```
 
-Run test suite:
+Run all unit tests across subprojects:
 
 ```powershell
 .\gradlew.bat --no-daemon test
 ```
+
+Run tests for specific modules:
+
+```powershell
+.\gradlew.bat --no-daemon :customclaims-core:test :customclaims-war:test
+```
+
+## Release Checklist
+
+Before releasing a new version:
+
+1. Run the CI build and test command:
+   ```powershell
+   .\gradlew.bat --no-daemon :opac-warfare:jar test
+   ```
+2. Smoke-test the built jar on the baseline `Minecraft 1.21.1 + NeoForge 21.1.232` with OPaC:
+   - Server boots cleanly without mixin, classloading, packet, or config errors.
+   - Player commands `/war start`, `/war status`, `/war list`, and `/war near` function as expected.
+   - Admin commands under `/waradmin` (`list`, `stop`, `skipprep`, `setprogress`) execute properly.
+   - Default side cooldowns block a second outgoing declaration for `2` hours and a second incoming declaration against the defending side for `1` hour.
+   - Raid windows and capture progress tick properly.
+   - War lives decrement on death and end war upon exhaustion.
+   - Xaero war waypoint sync works on a compatible client, and right-click war start behaves as expected.
+3. If testing alongside the companion mod **[Open Parties and Claims: Better Protection](https://github.com/SvinPepe/opac-better-protection)**:
+   - Verify `WarfareBridge` correctly allows contraptions, cannons, and explosions inside contested war chunks while preserving claim protection elsewhere.
 
 ## Multi-Version and Multi-Loader Workflows
 
 For detailed documentation, see [Multi-Loader & Multi-Version Architecture](multiversion-multiloader.md) and `stonecutter.gradle`.
 
 Stonecutter allows switching target versions during development by setting `stonecutter.active "<version>"` in `stonecutter.gradle` or using the Stonecutter IntelliJ IDEA plugin version switcher.
+
 

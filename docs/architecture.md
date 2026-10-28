@@ -4,13 +4,52 @@ This repository is a Gradle multi-module project with a Minecraft `1.21.1` compi
 
 For details on the forward-looking multi-loader (Fabric + NeoForge via Architectury) and multi-version (Minecraft 1.21.1 and 26.1 via Stonecutter) plan, see [Multi-Loader & Multi-Version Architecture](multiversion-multiloader.md).
 
+## Separation of Concerns: Warfare vs. Protection
+
+Starting with version 2.0, claim protection rules and mechanics (Create contraption assembly, drills, saws, CBC/Clockwork cannon projectile impacts, explosion protection, and `/claimrules`) have been cleanly extracted into the companion mod:
+👉 **[Open Parties and Claims: Better Protection](https://github.com/SvinPepe/opac-better-protection)**
+
+- **Open Parties and Claims: Warfare** focuses solely on warfare mechanics: declarations, contested chunks, raid windows, conquest sectors, capture timers, war lives, and map sync.
+- Both mods communicate through the lightweight `WarfareBridge` API provided by `customclaims-core`.
+
+## System Architecture Diagram
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                               opac-warfare (Distribution Jar)                          │
+│                                                                                        │
+│  ┌──────────────────────────────┐              ┌────────────────────────────────────┐  │
+│  │      customclaims-war        │              │        customclaims-xaero          │  │
+│  │ - War lifecycle & states     │              │ - Fair-play marker sync            │  │
+│  │ - Conquest wedges & capture  │              │ - Temporary waypoints              │  │
+│  │ - Raid windows & lives       │              │ - Xaero World Map war-start action │  │
+│  │ - /war & /waradmin commands  │              └─────────────────┬──────────────────┘  │
+│  └──────────────┬───────────────┘                                │                     │
+│                 │ registers war status                           │                     │
+│                 ▼                                                ▼                     │
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │                               customclaims-core                                  │  │
+│  │ - OPaC claim adapters & party side identity                                      │  │
+│  │ - Common permissions & storage management                                        │  │
+│  │ - WarfareBridge API: IWarfareBridge & WarfareBridgeHolder                        │  │
+│  └───────────────────────┬──────────────────────────────────▲───────────────────────┘  │
+└──────────────────────────┼──────────────────────────────────┼──────────────────────────┘
+                           │                                  │
+                           ▼ queries membership/claims        │ queries contested status
+          ┌─────────────────────────────────┐        ┌────────┴─────────────────────────┐
+          │     Open Parties and Claims     │        │     opac-better-protection       │
+          │    (Authoritative Claims &      │        │  (Companion Mod: Create, CBC,    │
+          │         Parties Mod)            │        │   explosions, /claimrules)       │
+          └─────────────────────────────────┘        └──────────────────────────────────┘
+```
+
 ## Modules
 
 | Gradle project | Mod id | Role |
 | --- | --- | --- |
-| `customclaims-core` | `customclaims_core` | Shared OPaC adapters, territory services, permissions, storage, messages, logs, anonymous metrics, and rollback interface. |
-| `customclaims-war` | `customclaims_war` | War lifecycle, raid windows, border checks, capture progress, war lives, HUD, notifications, Discord webhooks, and war commands. |
-| `customclaims-xaero` | `customclaims_xaero` | Fair-play war-marker sync, client waypoints/overlay, and Xaero World Map war-start action. |
+| `customclaims-core` | `customclaims_core` | Shared OPaC adapters, territory services, permissions, storage, messages, logs, anonymous metrics, rollback interface, and `WarfareBridge` provider API. |
+| `customclaims-war` | `customclaims_war` | War lifecycle, raid windows, border checks, capture progress, war lives, HUD, notifications, Discord webhooks, and war commands (`/war`, `/waradmin`). Implements and registers `IWarfareBridge`. |
+| `customclaims-xaero` | `customclaims_xaero` | Fair-play war-marker sync, client waypoints/overlay, and Xaero World Map right-click war-start action. |
 | `opac-warfare` | multiple mod ids | Single-jar distribution that bundles `customclaims-core`, `customclaims-war`, and `customclaims-xaero`. |
 
 ## Dependency Shape
@@ -28,6 +67,49 @@ External dependencies:
 
 - `customclaims-core` requires Open Parties and Claims.
 - `customclaims-xaero` has optional client-side Xaero behavior, including a Xaero World Map right-click war-start mixin, global active-war marker visibility by default, and configurable side/admin/radius filtering.
+
+## WarfareBridge API (External Integration)
+
+The `WarfareBridge` API allows external mods (such as `Open Parties and Claims: Better Protection`) to check whether a specific chunk is currently contested in an active war, without requiring a compile-time or runtime hard dependency on `customclaims-war`.
+
+### API Classes
+
+Both classes reside in `customclaims-core` under `dev.customclaims.api.war`:
+
+1. **`IWarfareBridge`**:
+   ```java
+   package dev.customclaims.api.war;
+
+   import net.minecraft.server.level.ServerLevel;
+   import net.minecraft.world.level.ChunkPos;
+
+   public interface IWarfareBridge {
+       boolean isContestedWarChunk(ServerLevel level, ChunkPos chunkPos);
+   }
+   ```
+
+2. **`WarfareBridgeHolder`**:
+   ```java
+   package dev.customclaims.api.war;
+
+   public final class WarfareBridgeHolder {
+       public static void register(IWarfareBridge newBridge);
+       public static boolean isContestedWarChunk(ServerLevel level, ChunkPos chunkPos);
+   }
+   ```
+
+### Lifecycle & Mechanics
+
+- **Provider Registration**: During initialization, `WarManager` (in `customclaims-war`) registers its contested chunk lookup implementation into `WarfareBridgeHolder`:
+  ```java
+  WarfareBridgeHolder.register(this::isContestedWarChunk);
+  ```
+- **Consumer Querying**: Companion mods (like `opac-better-protection`) invoke:
+  ```java
+  boolean inWar = WarfareBridgeHolder.isContestedWarChunk(level, chunkPos);
+  ```
+  If `inWar` is `true`, protection handlers allow explosions, block modification by contraptions, and projectile impact damage inside the war zone. If `false`, standard OPaC claim protections apply.
+- **Fail-Safe Fallback**: If `customclaims-war` is not loaded or no bridge is registered, `WarfareBridgeHolder` safely returns `false` without throwing exceptions.
 
 ## Service Records
 
@@ -80,5 +162,7 @@ War lives are serialized as part of active war data.
 - Contested chunks use OPaC's built-in `Server` owner only during active war handling; original claim snapshots must be preserved so cancel/fail paths can restore ownership.
 - Internal ownership mutations use OPaC's administrative `claim` operation, not the player `tryToClaim` path. Target ownership plus snapshot sub-config and forceload data must still be preserved.
 - Contested bypass is limited to attacker and defender sides. Outsiders should not gain shared chunk access.
+- `WarfareBridgeHolder` must maintain backwards compatibility and null-safe defaults for companion mods.
 - Xaero marker sync may globally broadcast only active/preparing war metadata when configured. It must never expose a global claim-owner map or weaken server validation of map war-start requests.
 - Client-only registrations must stay behind client-side checks.
+

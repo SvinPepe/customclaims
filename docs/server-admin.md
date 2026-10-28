@@ -84,49 +84,65 @@ If all checks pass:
 
 ## Commands
 
-Player commands:
+Player war commands:
 
 ```text
 /war start
-/war cancel
 /war status
+/war list
 /war near
+/war near <radius_chunks>
 ```
 
-Admin commands:
+- `/war start`: Declares war on the border claim chunk where the player is standing.
+- `/war status`: Displays status and capture progress of wars involving the player or party.
+- `/war list`: Lists active and preparing wars visible to the player.
+- `/war near [radius_chunks]`: Searches for active wars within the given chunk radius (default: 8, max: 32).
+
+Compatible Xaero World Map clients can also right-click any claim chunk within reach and choose `Start war here`. The server authoritatively validates distance, dimension, permissions, and war target rules.
+
+Admin war commands:
 
 ```text
 /waradmin list
-/waradmin end <id> <attacker_win|defender_win|cancel>
-/waradmin capture <id> <progress>
-/waradmin lives set <id> <attacker|defender> <lives>
-/waradmin reload
+/waradmin stop here
+/waradmin stop chunk <dimension> <chunkX> <chunkZ>
+/waradmin skipprep here
+/waradmin skipprep chunk <dimension> <chunkX> <chunkZ>
+/waradmin setprogress here <value>
+/waradmin setprogress chunk <dimension> <chunkX> <chunkZ> <value>
 ```
+
+- `/waradmin list`: Lists all active and preparing wars on the server with coordinates, status, and capture progress.
+- `/waradmin stop here`: Terminates the war in the executor's current chunk and restores claims from snapshots.
+- `/waradmin stop chunk <dimension> <chunkX> <chunkZ>`: Terminates the war at the specified coordinates and restores claims.
+- `/waradmin skipprep here`: Skips the preparation timer for the war in the executor's current chunk, activating it immediately.
+- `/waradmin skipprep chunk <dimension> <chunkX> <chunkZ>`: Skips the preparation timer at the specified coordinates.
+- `/waradmin setprogress here <value>`: Sets capture progress (`0.0` to `100.0`) for the war in the executor's current chunk.
+- `/waradmin setprogress chunk <dimension> <chunkX> <chunkZ> <value>`: Sets capture progress at the specified coordinates.
+
+> **Note on `/claimrules`**: Claim protection rules and `/claimrules` (explosions, Create contraptions, CBC cannons) are not part of `opac-warfare`. They are provided by the companion mod **[Open Parties and Claims: Better Protection](https://github.com/SvinPepe/opac-better-protection)**.
 
 ## Permissions
 
-Players can satisfy permissions through player tags, configured default-player
-permissions, or the configured operator level. Console has admin-level access.
+Permissions can be configured using LuckPerms, NeoForge's built-in `PermissionAPI`, player tags, or the server operator level (`op_permission_level`, default: `2`). Console automatically has admin permissions.
 
 Permission nodes:
 
-```text
-opac.admin
-opac.bypass
-opac.warfare.start
-opac.warfare.cancel
-opac.warfare.status
-opac.warfare.admin
-opac.warfare.bypass
-opac.warfare.rollback
-```
+| Permission Node | Default | Description |
+| --- | --- | --- |
+| `opac.warfare.start` | `true` (all players) | Start chunk wars via `/war start` or Xaero World Map. |
+| `opac.warfare.status` | `true` (all players) | View war status via `/war status`, `/war list`, and `/war near`. |
+| `opac.warfare.cancel` | `false` (OP 2+) | Reserved war cancellation permission. |
+| `opac.warfare.admin` | `false` (OP 2+) | Administrative access to all `/waradmin` commands. |
+| `opac.warfare.bypass` | `false` (OP 2+) | Bypass war limits, cooldown windows, and raid window restrictions. |
+| `opac.warfare.rollback` | `false` (OP 2+) | Perform territory rollback operations. |
+| `opac.admin` | `false` (OP 2+) | Global administrative access. |
+| `opac.bypass` | `false` (OP 2+) | Global bypass for all checks. |
 
-Legacy aliases (`customclaims.admin`, `customclaims.war.start`, etc.) are
-supported for backward compatibility.
+Legacy aliases (`customclaims.war.start`, `customclaims.war.status`, `customclaims.war.admin`, `customclaims.war.cancel`, `customclaims.war.bypass`, `customclaims.rollback`, `customclaims.admin`, `customclaims.bypass`) are supported for backward compatibility.
 
-Default player permissions are configured in `customclaims_core-common.toml`.
-By default, normal players can start and inspect wars. Admin commands and
-rollback commands are not granted by default.
+Default player permissions are configured in `customclaims_core-common.toml` under `permissions.default_player_permissions`. By default, normal players can start and inspect wars. Admin and bypass permissions are never granted by default.
 
 ## Xaero War Markers
 
