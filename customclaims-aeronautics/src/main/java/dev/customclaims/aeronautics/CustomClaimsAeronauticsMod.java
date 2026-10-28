@@ -4,15 +4,21 @@ import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
-import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 
-@Mod(CustomClaimsAeronauticsMod.MOD_ID)
 public final class CustomClaimsAeronauticsMod {
     public static final String MOD_ID = "customclaims_aeronautics";
     public static final Logger LOGGER = LogUtils.getLogger();
 
+    private static boolean initialized;
+
     public CustomClaimsAeronauticsMod(IEventBus modEventBus, ModContainer modContainer) {
+        init(modEventBus, modContainer);
+    }
+
+    public static synchronized void init(IEventBus modEventBus, ModContainer modContainer) {
+        if (initialized) return;
+        initialized = true;
         boolean offroadLoaded = ModList.get().isLoaded("offroad");
         boolean sableLoaded = ModList.get().isLoaded("sable");
         if (offroadLoaded) {

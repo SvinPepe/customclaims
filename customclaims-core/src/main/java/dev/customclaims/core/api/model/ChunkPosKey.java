@@ -17,7 +17,10 @@ public record ChunkPosKey(String levelId, int x, int z) {
     }
 
     public static ChunkPosKey from(ServerLevel level, ChunkPos chunkPos) {
-        return new ChunkPosKey(level.dimension().location().toString(), chunkPos.x, chunkPos.z);
+        String levelId = level != null && level.dimension() != null && level.dimension().location() != null
+                ? level.dimension().location().toString()
+                : "minecraft:overworld";
+        return new ChunkPosKey(levelId, chunkPos.x, chunkPos.z);
     }
 
     public static ChunkPosKey from(ServerLevel level, BlockPos blockPos) {

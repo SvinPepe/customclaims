@@ -7,6 +7,7 @@ import dev.customclaims.war.service.BorderChunkService;
 import dev.customclaims.war.service.CaptureBoostItemService;
 import dev.customclaims.war.service.CaptureProgressService;
 import dev.customclaims.war.service.DailyWarStartLimitService;
+import dev.customclaims.war.service.SectorWedgeService;
 import dev.customclaims.war.service.WarCooldownService;
 import dev.customclaims.war.service.RaidWindowService;
 import dev.customclaims.war.service.WarManager;
@@ -24,6 +25,7 @@ public record WarServices(
         WarCooldownService warCooldownService,
         RaidWindowService raidWindowService,
         BorderChunkService borderChunkService,
+        SectorWedgeService sectorWedgeService,
         AfkTracker afkTracker,
         CaptureProgressService captureProgressService,
         CaptureBoostItemService captureBoostItemService,
@@ -40,6 +42,7 @@ public record WarServices(
         WarCooldownService warCooldownService = new WarCooldownService(coreServices.dataStorageService());
         RaidWindowService raidWindowService = new RaidWindowService();
         BorderChunkService borderChunkService = new BorderChunkService(coreServices.territoryService());
+        SectorWedgeService sectorWedgeService = new SectorWedgeService(coreServices.territoryService());
         AfkTracker afkTracker = new AfkTracker();
         WarLivesService livesService = new WarLivesService(coreServices);
         CaptureProgressService captureProgressService = new CaptureProgressService(coreServices.partyService(), livesService);
@@ -56,6 +59,7 @@ public record WarServices(
                 warCooldownService,
                 raidWindowService,
                 borderChunkService,
+                sectorWedgeService,
                 afkTracker,
                 captureProgressService,
                 displayService,
@@ -72,6 +76,7 @@ public record WarServices(
                 warCooldownService,
                 raidWindowService,
                 borderChunkService,
+                sectorWedgeService,
                 afkTracker,
                 captureProgressService,
                 captureBoostItemService,

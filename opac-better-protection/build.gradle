@@ -1,0 +1,60 @@
+def bundledProjects = [
+        project(':customclaims-protection'),
+        project(':customclaims-create'),
+        project(':customclaims-aeronautics'),
+        project(':customclaims-big-cannons')
+]
+
+base {
+    archivesName = 'opac-better-protection'
+}
+
+dependencies {
+    implementation project(':customclaims-core')
+    implementation project(':customclaims-protection')
+    implementation project(':customclaims-create')
+    implementation project(':customclaims-aeronautics')
+    implementation project(':customclaims-big-cannons')
+
+    compileOnly "maven.modrinth:open-parties-and-claims:${opc_version}"
+    compileOnly "maven.modrinth:create:${create_version}"
+    compileOnly "maven.modrinth:rpl:${rpl_version}"
+    compileOnly "maven.modrinth:create-big-cannons:${cbc_version}"
+
+    localRuntime "maven.modrinth:open-parties-and-claims:${opc_version}"
+    localRuntime "maven.modrinth:create:${create_version}"
+    localRuntime "maven.modrinth:rpl:${rpl_version}"
+    localRuntime "maven.modrinth:create-big-cannons:${cbc_version}"
+}
+
+tasks.named('jar', Jar).configure {
+    archiveBaseName.set('opac-better-protection')
+    archiveVersion.set(rootProject.version.toString())
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    dependsOn project(':customclaims-core').tasks.named('jar')
+    dependsOn bundledProjects.collect { it.tasks.named('classes') }
+
+    from(project(':customclaims-core').tasks.named('jar')) {
+        into 'META-INF/jarjar'
+    }
+
+    bundledProjects.each { bundledProject ->
+        from(bundledProject.sourceSets.main.output) {
+            exclude 'META-INF/neoforge.mods.toml'
+            exclude 'META-INF/mods.toml'
+        }
+    }
+
+    manifest {
+        attributes([
+                'Specification-Title'   : 'Open Parties and Claims: Better Protection',
+                'Specification-Vendor'  : 'svinpepe',
+                'Specification-Version' : rootProject.version.toString(),
+                'Implementation-Title'  : 'Open Parties and Claims: Better Protection',
+                'Implementation-Vendor' : 'svinpepe',
+                'Implementation-Version': rootProject.version.toString()
+        ])
+    }
+}

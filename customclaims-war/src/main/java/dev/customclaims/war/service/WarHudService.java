@@ -63,21 +63,35 @@ public final class WarHudService {
 
     private void updateBossbar(MinecraftServer server, WarData war) {
         ServerBossEvent bossEvent = bossEvents.computeIfAbsent(war.id(), id -> new ServerBossEvent(
-                Component.literal(displayService.label(server, war)),
+                bossbarTitle(server, war),
                 BossEvent.BossBarColor.RED,
                 BossEvent.BossBarOverlay.PROGRESS
         ));
-        bossEvent.setName(Component.literal(displayService.label(server, war)));
+        bossEvent.setName(bossbarTitle(server, war));
         bossEvent.setProgress((float) Math.max(0.0D, Math.min(1.0D, war.progress() / 100.0D)));
         bossEvent.setColor(war.state() == WarState.PREPARING ? BossEvent.BossBarColor.YELLOW : BossEvent.BossBarColor.RED);
 
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            if (shouldSeeBossbar(player, war)) {
+            boolean shouldSee = shouldSeeBossbar(player, war);
+            boolean currentlySeeing = bossEvent.getPlayers().contains(player);
+            if (shouldSee && !currentlySeeing) {
                 bossEvent.addPlayer(player);
-            } else {
+            } else if (!shouldSee && currentlySeeing) {
                 bossEvent.removePlayer(player);
             }
         }
+    }
+
+    private Component bossbarTitle(MinecraftServer server, WarData war) {
+        String attackerName = displayService.sideName(server, war.attackerSide());
+        String defenderName = displayService.sideName(server, war.defenderSide());
+        return Component.translatable(
+                "opac_warfare.bossbar.title",
+                attackerName,
+                defenderName,
+                war.sectorChunks().size(),
+                Math.round(war.progress())
+        );
     }
 
     private void sendActionbar(MinecraftServer server, WarData war) {
@@ -86,10 +100,9 @@ public final class WarHudService {
             return;
         }
 
-        ChunkPos target = war.targetChunk().toChunkPos();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            if (player.level().dimension().equals(level.get().dimension()) && player.chunkPosition().equals(target)) {
-                player.displayClientMessage(Component.literal(displayService.actionbarText(war)), true);
+            if (player.level().dimension().equals(level.get().dimension()) && war.isInSector(level.get(), player.chunkPosition())) {
+                player.displayClientMessage(displayService.actionbarComponent(war, player), true);
             }
         }
     }
@@ -98,7 +111,6 @@ public final class WarHudService {
         if (WarConfig.BOSSBAR_VISIBLE_TO_ALL_PLAYERS.get()) {
             return true;
         }
-
         if (coreServices.partyService().isSameSide(player, war.attackerSide())
                 || coreServices.partyService().isSameSide(player, war.defenderSide())) {
             return true;
@@ -107,22 +119,29 @@ public final class WarHudService {
             return false;
         }
         int radius = WarConfig.WAR_UI_BOSSBAR_VISIBLE_RADIUS_CHUNKS.get();
-        return chunkDistance(player.chunkPosition(), war.targetChunk().toChunkPos()) <= radius;
+        for (ChunkPosKey chunk : war.sectorChunks()) {
+            if (chunkDistance(player.chunkPosition(), chunk.toChunkPos()) <= radius) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int chunkDistance(ChunkPos left, ChunkPos right) {
         return Math.max(Math.abs(left.x - right.x), Math.abs(left.z - right.z));
     }
 
+    private Optional<ServerLevel> resolveLevel(MinecraftServer server, ChunkPosKey key) {
+        ResourceLocation location = ResourceLocation.tryParse(key.levelId());
+        if (location == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(server.getLevel(ResourceKey.create(Registries.DIMENSION, location)));
+    }
+
     private void removeAllPlayers(MinecraftServer server, ServerBossEvent bossEvent) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             bossEvent.removePlayer(player);
         }
-    }
-
-    private Optional<ServerLevel> resolveLevel(MinecraftServer server, ChunkPosKey key) {
-        ResourceLocation location = ResourceLocation.parse(key.levelId());
-        ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, location);
-        return Optional.ofNullable(server.getLevel(dimension));
     }
 }

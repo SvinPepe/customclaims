@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      _JAVA_OPTIONS: "-Djava.net.preferIPv4Stack=true"
 
     steps:
       - name: Checkout repository
@@ -21,15 +23,19 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.1'
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
       - name: Build
-        run: ./gradlew --no-daemon build :opac-warfare:jar
+        run: gradle --no-daemon :opac-warfare:jar :opac-better-protection:jar test
 
-      - name: Upload release jar
+      - name: Upload release jars
         uses: actions/upload-artifact@v4
         with:
-          name: opac-warfare-jar
-          path: opac-warfare/build/libs/opac-warfare-*.jar
+          name: release-jars
+          path: |
+            opac-warfare/build/libs/opac-warfare-*.jar
+            opac-better-protection/build/libs/opac-better-protection-*.jar

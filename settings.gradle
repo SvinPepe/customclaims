@@ -1,6 +1,7 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        mavenCentral()
         maven {
             url = 'https://maven.neoforged.net/releases'
         }
@@ -21,3 +22,4 @@ include 'customclaims-aeronautics'
 include 'customclaims-big-cannons'
 include 'customclaims-xaero'
 include 'opac-warfare'
+include 'opac-better-protection'

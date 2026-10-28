@@ -2,6 +2,7 @@ package dev.customclaims.war.service;
 
 import dev.customclaims.core.CoreServices;
 import dev.customclaims.war.config.WarConfig;
+import dev.customclaims.war.discord.DiscordWebhookService;
 import dev.customclaims.war.model.WarData;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -20,50 +21,91 @@ public final class WarNotificationService {
     }
 
     public void notifyDeclared(MinecraftServer server, WarData war) {
-        send(server, war, "War declared: " + displayService.label(server, war)
-                + ". Preparation: " + displayService.formatDuration(WarConfig.PREPARATION_SECONDS.get()) + ".");
+        send(server, war, Component.translatable(
+                "opac_warfare.notification.declared",
+                displayService.label(server, war),
+                displayService.formatDuration(WarConfig.PREPARATION_SECONDS.get())
+        ));
+        DiscordWebhookService.sendWarDeclared(
+                war,
+                displayService.sideName(server, war.attackerSide()),
+                displayService.sideName(server, war.defenderSide())
+        );
     }
 
     public void notifyPreparationWarning(MinecraftServer server, WarData war, long secondsRemaining) {
-        send(server, war, "War starts in " + displayService.formatDuration(secondsRemaining)
-                + ": " + displayService.label(server, war) + ".");
+        send(server, war, Component.translatable(
+                "opac_warfare.notification.preparation_warning",
+                displayService.formatDuration(secondsRemaining),
+                displayService.label(server, war)
+        ));
     }
 
     public void notifyAdminSkip(MinecraftServer server, WarData war) {
-        send(server, war, "Preparation skipped by admin: " + displayService.label(server, war) + ".");
+        send(server, war, Component.translatable(
+                "opac_warfare.notification.admin_skip",
+                displayService.label(server, war)
+        ));
     }
 
     public void notifyActive(MinecraftServer server, WarData war) {
-        send(server, war, "War is active: " + displayService.label(server, war)
-                + ". " + displayService.progressText(war) + ".");
+        send(server, war, Component.translatable(
+                "opac_warfare.notification.active",
+                displayService.label(server, war),
+                displayService.progressText(war)
+        ));
+        DiscordWebhookService.sendWarActive(
+                war,
+                displayService.sideName(server, war.attackerSide()),
+                displayService.sideName(server, war.defenderSide())
+        );
     }
 
     public void notifyProgressMilestone(MinecraftServer server, WarData war, int milestone) {
-        send(server, war, "Capture reached " + milestone + "%: " + displayService.label(server, war) + ".");
+        send(server, war, Component.translatable(
+                "opac_warfare.notification.milestone",
+                milestone,
+                displayService.label(server, war)
+        ));
     }
 
     public void notifyEmptyDecay(MinecraftServer server, WarData war) {
-        send(server, war, "Contested chunk is empty, capture is decaying: "
-                + displayService.label(server, war) + ".");
+        send(server, war, Component.translatable(
+                "opac_warfare.notification.empty_decay",
+                displayService.label(server, war)
+        ));
     }
 
     public void notifyLifeLost(MinecraftServer server, WarData war, ServerPlayer player, int remainingLives) {
         if (remainingLives > 0) {
-            send(server, war, player.getGameProfile().getName() + " lost a war life: "
-                    + remainingLives + " remaining.");
+            send(server, war, Component.translatable(
+                    "opac_warfare.notification.life_lost",
+                    player.getScoreboardName(),
+                    remainingLives
+            ));
             return;
         }
-        send(server, war, player.getGameProfile().getName()
-                + " has no war lives left and no longer contributes to capture.");
+        send(server, war, Component.translatable(
+                "opac_warfare.notification.lives_exhausted",
+                player.getScoreboardName()
+        ));
     }
 
     public void notifyEnded(MinecraftServer server, WarData war) {
-        send(server, war, displayService.stateName(war.state()) + ": "
-                + displayService.label(server, war) + " (" + war.endReason() + ").");
+        send(server, war, Component.translatable(
+                "opac_warfare.notification.ended",
+                displayService.stateName(war.state()),
+                displayService.label(server, war),
+                war.endReason().isBlank() ? "ended" : war.endReason()
+        ));
+        DiscordWebhookService.sendWarEnded(
+                war,
+                displayService.sideName(server, war.attackerSide()),
+                displayService.sideName(server, war.defenderSide())
+        );
     }
 
-    private void send(MinecraftServer server, WarData war, String message) {
-        Component component = Component.literal(message);
+    private void send(MinecraftServer server, WarData war, Component component) {
         if (WarConfig.BROADCAST_NOTIFICATIONS_TO_ALL_PLAYERS.get()) {
             server.getPlayerList().getPlayers().forEach(player -> player.sendSystemMessage(component));
             return;

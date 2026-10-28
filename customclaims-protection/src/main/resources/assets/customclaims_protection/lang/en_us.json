@@ -1,4 +1,5 @@
 {
   "key.categories.customclaims": "CustomClaims",
-  "key.customclaims_protection.open_claimrules": "Open Claim Rules"
+  "key.customclaims_protection.open_claimrules": "Open Claim Rules",
+  "opac_better_protection.alert.cannon_blocked": "Launch blocked: cannon is inside a protected claim!"
 }
