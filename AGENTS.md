@@ -9,7 +9,9 @@ For full context, read `docs/architecture.md` and `docs/development.md`.
 - Product name: **Open Parties and Claims: Warfare**.
 - OPaC is the authority for parties and claims; this repo adds wars,
   protection, and compat integrations.
-- Server artifact: `opac-warfare/build/libs/opac-warfare-*.jar`.
+- Server artifacts:
+  - `opac-warfare/build/libs/opac-warfare-*.jar` (Warfare 2.0: Core, War, Xaero)
+  - `opac-better-protection/build/libs/opac-better-protection-*.jar` (Better Protection 2.0: Core, Protection, Create, Aeronautics, Big Cannons)
 - Compatibility anchor: baseline `Minecraft 26.1 + NeoForge 26.1.2.112`;
   metadata allows Minecraft `[26.1,26.3)` and NeoForge `[26.1.0,26.3)` (covers 26.1 and 26.2).
   Earlier 1.21.x releases are maintained on the `main` branch.
@@ -31,7 +33,7 @@ Before changing behavior, inspect the relevant files:
 CI parity:
 
 ```powershell
-.\gradlew.bat --no-daemon build :opac-warfare:jar
+.\gradlew.bat --no-daemon :opac-warfare:jar :opac-better-protection:jar
 ```
 
 Focused compile:
@@ -46,18 +48,18 @@ must be checked against Java source.
 ## Module Ownership
 
 - `customclaims-core`: OPaC adapters, side identity, territory status,
-  permissions, storage, logs, common messages, rollback interface.
-- `customclaims-war`: war lifecycle, contested ownership, capture, lives,
-  daily start/accepted limits, raid windows, HUD, notifications, `/war`, `/waradmin`.
-- `customclaims-protection`: claim rules, explosion protection, opt-in
-  villager/Wither protection, foreign interaction limits, claim-rule GUI
-  payloads, `/claimrules`.
+  permissions (NeoForge PermissionAPI + LuckPerms), storage, logs, common messages, rollback interface.
+- `customclaims-war`: sector war conquest wedge, contested ownership, anti-zerg capture, lives,
+  daily start/accepted limits, raid windows, HUD, discord webhooks, `/war`, `/waradmin`.
+- `customclaims-protection`: claim rules, direct OPAC API explosion protection,
+  foreign interaction limits, claim-rule GUI payloads, `/claimrules`.
 - `customclaims-create`: optional Create hooks.
 - `customclaims-aeronautics`: optional Aeronautics/Offroad bore mining hooks.
 - `customclaims-big-cannons`: optional Create Big Cannons hooks.
 - `customclaims-xaero`: fair-play war marker sync, client waypoint/overlay
   behavior, and Xaero World Map right-click war-start requests.
-- `opac-warfare`: single-jar distribution; keep it bundling functional modules.
+- `opac-warfare`: bundles `customclaims-core`, `customclaims-war`, `customclaims-xaero`.
+- `opac-better-protection`: bundles `customclaims-core`, `customclaims-protection`, `customclaims-create`, `customclaims-aeronautics`, `customclaims-big-cannons`.
 
 ## Do Not Break
 

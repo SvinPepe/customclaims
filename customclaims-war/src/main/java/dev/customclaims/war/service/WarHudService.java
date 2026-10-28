@@ -64,11 +64,11 @@ public final class WarHudService {
     private void updateBossbar(MinecraftServer server, WarData war) {
         ServerBossEvent bossEvent = bossEvents.computeIfAbsent(war.id(), id -> new ServerBossEvent(
                 id,
-                Component.literal(displayService.label(server, war)),
+                bossbarTitle(server, war),
                 BossEvent.BossBarColor.RED,
                 BossEvent.BossBarOverlay.PROGRESS
         ));
-        bossEvent.setName(Component.literal(displayService.label(server, war)));
+        bossEvent.setName(bossbarTitle(server, war));
         bossEvent.setProgress((float) Math.max(0.0D, Math.min(1.0D, war.progress() / 100.0D)));
         bossEvent.setColor(war.state() == WarState.PREPARING ? BossEvent.BossBarColor.YELLOW : BossEvent.BossBarColor.RED);
 
@@ -81,16 +81,27 @@ public final class WarHudService {
         }
     }
 
+    private Component bossbarTitle(MinecraftServer server, WarData war) {
+        String attackerName = displayService.sideName(server, war.attackerSide());
+        String defenderName = displayService.sideName(server, war.defenderSide());
+        return Component.translatable(
+                "opac_warfare.bossbar.title",
+                attackerName,
+                defenderName,
+                war.sectorChunks().size(),
+                Math.round(war.progress())
+        );
+    }
+
     private void sendActionbar(MinecraftServer server, WarData war) {
         Optional<ServerLevel> level = resolveLevel(server, war.targetChunk());
         if (level.isEmpty()) {
             return;
         }
 
-        ChunkPos target = war.targetChunk().toChunkPos();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            if (player.level().dimension().equals(level.get().dimension()) && player.chunkPosition().equals(target)) {
-                player.sendOverlayMessage(Component.literal(displayService.actionbarText(war)));
+            if (player.level().dimension().equals(level.get().dimension()) && war.isInSector(level.get(), player.chunkPosition())) {
+                player.sendOverlayMessage(displayService.actionbarComponent(war, player));
             }
         }
     }
@@ -108,7 +119,12 @@ public final class WarHudService {
             return false;
         }
         int radius = WarConfig.WAR_UI_BOSSBAR_VISIBLE_RADIUS_CHUNKS.get();
-        return chunkDistance(player.chunkPosition(), war.targetChunk().toChunkPos()) <= radius;
+        for (ChunkPosKey chunk : war.sectorChunks()) {
+            if (chunkDistance(player.chunkPosition(), chunk.toChunkPos()) <= radius) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int chunkDistance(ChunkPos left, ChunkPos right) {

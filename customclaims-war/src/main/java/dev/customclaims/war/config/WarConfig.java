@@ -18,17 +18,45 @@ public final class WarConfig {
             .comment("Capture progress assigned when the active phase starts.")
             .defineInRange("war.capture.starting_progress", 50.0D, 0.0D, 100.0D);
 
-    public static final ModConfigSpec.DoubleValue PLAYER_WEIGHT_PER_SECOND = BUILDER
-            .comment("Progress weight per non-AFK participant standing in the contested chunk each second.")
-            .defineInRange("war.capture.player_weight_per_second", 0.35D, 0.0D, 100.0D);
+    public static final ModConfigSpec.IntValue MAX_SECTOR_CHUNKS = BUILDER
+            .comment("Maximum number of connected chunks included in a sector conquest wedge.")
+            .defineInRange("war.sector.max_chunks", 4, 1, 6);
 
-    public static final ModConfigSpec.DoubleValue ATTACKER_PRESENCE_BONUS_PER_SECOND = BUILDER
-            .comment("Flat bonus progress per second when at least one non-AFK attacker is in the contested chunk.")
-            .defineInRange("war.capture.attacker_presence_bonus_per_second", 0.25D, 0.0D, 100.0D);
+    public static final ModConfigSpec.IntValue MAX_CONQUEST_DEPTH_CHUNKS = BUILDER
+            .comment("Maximum depth of chunks from the border eligible for conquest in a single siege.")
+            .defineInRange("war.sector.max_conquest_depth_chunks", 2, 1, 4);
+
+    public static final ModConfigSpec.DoubleValue BASE_CAPTURE_RATE_PER_SECOND = BUILDER
+            .comment("Base capture progress per second with 1 attacker present in the sector.")
+            .defineInRange("war.capture.base_rate_per_second", 0.40D, 0.0D, 100.0D);
+
+    public static final ModConfigSpec.DoubleValue EXTRA_ATTACKER_BONUS_PER_SECOND = BUILDER
+            .comment("Additional capture progress per second for each extra attacker beyond the first.")
+            .defineInRange("war.capture.extra_attacker_bonus_per_second", 0.05D, 0.0D, 100.0D);
+
+    public static final ModConfigSpec.DoubleValue MAX_CAPTURE_RATE_PER_SECOND = BUILDER
+            .comment("Hard ceiling cap on attacker capture progress gain per second (anti-zerg cap).")
+            .defineInRange("war.capture.max_capture_rate_per_second", 0.60D, 0.0D, 100.0D);
+
+    public static final ModConfigSpec.DoubleValue DEFENDER_WEIGHT_PER_SECOND = BUILDER
+            .comment("Progress reduction per second per defending player inside the sector.")
+            .defineInRange("war.capture.defender_weight_per_second", 0.35D, 0.0D, 100.0D);
+
+    public static final ModConfigSpec.BooleanValue GLOWING_EFFECT_ENABLED = BUILDER
+            .comment("If true, all players in an actively contested sector receive the Glowing effect to prevent hiding.")
+            .define("war.capture.glowing_effect_enabled", true);
 
     public static final ModConfigSpec.DoubleValue EMPTY_CHUNK_DECAY_PER_SECOND = BUILDER
             .comment("Progress decay per second when no non-AFK attackers or defenders are in the contested chunk.")
             .defineInRange("war.capture.empty_chunk_decay_per_second", 0.50D, 0.0D, 100.0D);
+
+    public static final ModConfigSpec.ConfigValue<String> DISCORD_WEBHOOK_URL = BUILDER
+            .comment("Discord webhook URL for siege start, active, and finish embed notifications. Empty disables.")
+            .define("war.discord.webhook_url", "");
+
+    public static final ModConfigSpec.ConfigValue<String> DISCORD_WEBHOOK_LANGUAGE = BUILDER
+            .comment("Language for Discord webhook embed notifications: 'ru_ru' or 'en_us'.")
+            .define("war.discord.webhook_language", "ru_ru");
 
     public static final ModConfigSpec.IntValue ATTACKER_COOLDOWN_SECONDS = BUILDER
             .comment("Fixed cooldown window for war starts by one attacking side. Set to 0 to disable the time window.")
@@ -103,6 +131,10 @@ public final class WarConfig {
             .define("war.lives.scoreboard_objective", "cc_war_lives");
 
     public static final ModConfigSpec SPEC = BUILDER.build();
+
+    public static <T> T getSafe(ModConfigSpec.ConfigValue<T> value) {
+        return SPEC.isLoaded() ? value.get() : value.getDefault();
+    }
 
     private WarConfig() {
     }

@@ -10,7 +10,9 @@ import dev.customclaims.war.model.WarState;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
 public final class WarDisplayService {
     private static final int PROGRESS_BAR_WIDTH = 12;
@@ -24,6 +26,7 @@ public final class WarDisplayService {
     public String formatWarStatus(MinecraftServer server, WarData war, Instant now) {
         return label(server, war)
                 + "\nState: " + stateName(war.state()) + " | " + progressText(war)
+                + "\nSector: " + war.sectorChunks().size() + " chunks"
                 + "\nAttackers: " + sideSummary(server, war.attackerSide())
                 + "\nDefenders: " + sideSummary(server, war.defenderSide())
                 + "\nPresence: ATK " + war.lastAttackersPresent() + " DEF " + war.lastDefendersPresent()
@@ -35,11 +38,13 @@ public final class WarDisplayService {
         return "- " + label(server, war)
                 + " | " + stateName(war.state())
                 + " | " + Math.round(war.progress()) + "%"
+                + " | Sector: " + war.sectorChunks().size() + " chunks"
                 + " | " + timeText(war, now);
     }
 
     public String formatStart(MinecraftServer server, WarData war) {
-        return "War started: " + label(server, war)
+        return "War declared: " + label(server, war)
+                + "\nSector: " + war.sectorChunks().size() + " chunks"
                 + "\nAttackers: " + sideSummary(server, war.attackerSide())
                 + "\nDefenders: " + sideSummary(server, war.defenderSide())
                 + "\nPreparation: " + formatDuration(WarConfig.PREPARATION_SECONDS.get());
@@ -52,7 +57,7 @@ public final class WarDisplayService {
     public String label(MinecraftServer server, WarData war) {
         return sideName(server, war.attackerSide())
                 + " vs " + sideName(server, war.defenderSide())
-                + " @ " + chunkLabel(war.targetChunk());
+                + " [" + war.sectorChunks().size() + " chunks @ " + chunkLabel(war.targetChunk()) + "]";
     }
 
     public String sideName(MinecraftServer server, ClaimSideId sideId) {
@@ -77,10 +82,19 @@ public final class WarDisplayService {
         return dimensionName(key.levelId()) + " [chunk " + key.x() + ", " + key.z() + "]";
     }
 
+    public Component actionbarComponent(WarData war, ServerPlayer player) {
+        int playerLives = war.lives(player.getUUID());
+        int maxLives = WarConfig.STARTING_LIVES.get();
+        boolean activelyContested = war.lastAttackersPresent() > 0 && war.lastDefendersPresent() > 0;
+        String key = activelyContested ? "opac_warfare.actionbar.contested" : "opac_warfare.actionbar.zone";
+        return Component.translatable(key, war.lastAttackersPresent(), war.lastDefendersPresent(), playerLives, maxLives);
+    }
+
     public String actionbarText(WarData war) {
-        return "Capture " + Math.round(war.progress()) + "% (" + signedDecimal(war.lastDeltaPerSecond())
-                + "/s) | ATK " + war.lastAttackersPresent() + " DEF " + war.lastDefendersPresent()
-                + " | Lives A " + remainingLives(war.attackerLives()) + " D " + remainingLives(war.defenderLives());
+        boolean activelyContested = war.lastAttackersPresent() > 0 && war.lastDefendersPresent() > 0;
+        String status = activelyContested ? "⚔ Contested!" : "⚔ Siege Zone";
+        return status + " | ⚔ " + war.lastAttackersPresent() + " vs " + war.lastDefendersPresent() + " 🛡"
+                + " | Capture: " + Math.round(war.progress()) + "%";
     }
 
     public String progressText(WarData war) {

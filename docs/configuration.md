@@ -20,12 +20,24 @@ Default player permissions:
 
 ```toml
 permissions.default_player_permissions = [
+  "opac.warfare.start",
+  "opac.warfare.status",
+  "opac.protection.claimrules",
+  "opac.protection.explosions.status",
+  "opac.protection.explosions.toggle",
+  "opac.protection.create.status",
+  "opac.protection.create.toggle",
+  "opac.protection.assembly.status",
+  "opac.protection.assembly.toggle",
   "customclaims.war.start",
   "customclaims.war.status",
+  "customclaims.claimrules",
   "customclaims.explosions.status",
   "customclaims.explosions.toggle",
   "customclaims.create.status",
-  "customclaims.create.toggle"
+  "customclaims.create.toggle",
+  "customclaims.assembly.status",
+  "customclaims.assembly.toggle"
 ]
 ```
 
@@ -33,11 +45,16 @@ permissions.default_player_permissions = [
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `preparation_seconds` | `300` | Seconds between `/war start` and the chunk becoming contested. |
+| `preparation_seconds` | `300` | Seconds between `/war start` and the chunk sector becoming contested. |
 | `max_duration_seconds` | `3600` | Maximum active war duration in seconds. |
+| `war.sector.max_chunks` | `4` | Maximum connected claim chunks captured in one conquest wedge sector (1-6). |
+| `war.sector.max_conquest_depth_chunks` | `2` | Maximum conquest depth from border/wilderness (prevents snake rushes into deep base core). |
 | `war.capture.starting_progress` | `50.0` | Capture progress assigned when the active phase starts. |
-| `war.capture.player_weight_per_second` | `0.35` | Progress weight per non-AFK participant in the contested chunk each second. |
-| `war.capture.attacker_presence_bonus_per_second` | `0.25` | Flat bonus per second when at least one non-AFK attacker is present. |
+| `war.capture.base_rate_per_second` | `0.40` | Base capture speed per second given by 1 non-AFK attacker in sector. |
+| `war.capture.extra_attacker_bonus_per_second` | `0.05` | Diminishing bonus capture speed per additional non-AFK attacker. |
+| `war.capture.max_capture_rate_per_second` | `0.60` | Anti-zerg hard cap on total positive capture rate per second. |
+| `war.capture.defender_weight_per_second` | `0.35` | Progress reduction per second per defending player inside the sector. |
+| `war.capture.glowing_effect_enabled` | `true` | Applies Glowing (MobEffects.GLOWING) when attackers and defenders contest the sector. |
 | `war.capture.empty_chunk_decay_per_second` | `0.50` | Progress decay per second when no non-AFK attackers or defenders are present. |
 | `war.cooldown.attacker_seconds` | `7200` | Fixed attack window opened by a side's first successful declaration; `0` disables the timed window. |
 | `war.cooldown.defender_seconds` | `3600` | Fixed defense/protection window opened by a side's first accepted incoming declaration; `0` disables the timed window. |
@@ -52,8 +69,9 @@ permissions.default_player_permissions = [
 | `raid_window.blocked_windows` | `["04:00-08:00"]` | Blocked windows in `HH:mm-HH:mm` form. |
 | `raid_window.allow_ongoing_wars_to_continue_after_window_start` | `true` | If `false`, active wars fail when a blocked raid window starts. |
 | `war.notifications.broadcast_to_all_players` | `true` | Sends every war lifecycle notification to every online player; `false` restricts them to the involved sides. |
-
-| `war_ui.bossbar_visible_to_all_players` | `true` | Shows every active/preparing war bossbar to every online player regardless of distance or dimension. |
+| `war.discord.webhook_url` | `""` | Discord channel webhook URL; empty string disables webhook notifications. |
+| `war.discord.webhook_language` | `"ru_ru"` | Language for Discord webhook embed notifications ('ru_ru' or 'en_us'). |
+| `war_ui.bossbar_visible_to_all_players` | `true` | Shows single frontline war conquest bossbar to every online player regardless of distance or dimension. |
 | `war_ui.bossbar_visible_radius_chunks` | `3` | When global bossbars are disabled, nearby same-dimension players see them within this radius; involved sides always see them. |
 | `war.lives.starting_lives` | `3` | Personal lives assigned to current participants when active phase starts. |
 | `war.lives.scoreboard_sidebar_enabled` | `true` | Shows active war lives in the vanilla sidebar scoreboard. |
@@ -70,10 +88,6 @@ A side can run wars only in one role at a time: an active defense blocks new att
 
 Daily limits remain optional and are evaluated in addition to cooldowns when configured above `0`.
 
-> Migration: remove `max_active_wars_per_party` and `post_war_protection_seconds` from existing war config files. The former is replaced by the role-specific chunk limits; the latter is replaced by the defender cooldown for the entire side.
-
-> Migration: remove the obsolete `war.contested_owner_uuid` and `war.contested_owner_name` keys. Active wars are reassigned to OPaC's built-in `Server` owner when loaded.
-
 ## `customclaims_protection-common.toml`
 
 | Key | Default | Meaning |
@@ -83,34 +97,12 @@ Daily limits remain optional and are evaluated in addition to cooldowns when con
 | `foreign_interaction.limit_reset_interval_seconds` | `3600` | Global runtime reset interval for foreign claim counters. |
 | `entity_interaction.contested_exceptions` | `["corpse:corpse"]` | Exact entity type IDs whose right-click interactions grant an OPaC bypass to attacking/defending sides in the target entity's contested chunk. |
 | `claimrules.toggle_cooldown_seconds` | `600` | Cooldown for side-level `/claimrules` toggles. |
-| `explosions.custom_filter_enabled` | `true` | Filters block damage from explosions in protected claimed chunks. |
-| `explosions.allow_in_war_chunks` | `true` | Does not filter explosion block damage in contested war chunks. |
-| `big_cannons.block_projectile_launch_from_protected_claims` | `true` | Cancels Create Big Cannons projectiles spawned from protected claimed chunks. |
+| `explosions.custom_filter_enabled` | `true` | Filters block damage from explosions in protected claimed chunks via direct OPAC API sync. |
+| `explosions.allow_in_war_chunks` | `true` | Does not filter explosion block damage in contested war chunks (via IWarfareBridge soft hook). |
+| `big_cannons.block_projectile_launch_from_protected_claims` | `true` | Cancels Create Big Cannons projectiles spawned from protected claimed chunks and displays an actionbar alert. |
 | `big_cannons.log_blocked_projectiles` | `true` | Logs Create Big Cannons projectiles blocked by explosion protection. |
-| `wither_rules.disable_wither_summon_in_overworld` | `false` | Blocks Wither summoning in the Overworld when explicitly enabled. |
-| `wither_rules.disable_wither_summon_in_end` | `false` | Blocks Wither summoning in the End when explicitly enabled. |
-| `wither_rules.disable_wither_summon_in_nether` | `false` | Blocks Wither summoning in the Nether. |
-| `wither_rules.log_blocked_wither_summons` | `true` | Logs blocked Wither summons. |
-| `villager_protection.enable_villager_protection` | `false` | Opts into CustomClaims villager/trader damage protection. |
-| `villager_protection.protect_villagers_everywhere` | `true` | Protects villagers/traders outside claims too. |
-| `villager_protection.protect_villagers_only_on_claims` | `false` | Restricts villager/trader protection to claims. |
-| `villager_protection.protect_wandering_traders` | `true` | Includes wandering traders in protection rules. |
-| `villager_protection.prevent_player_damage` | `true` | Blocks player damage to protected villagers/traders. |
-| `villager_protection.prevent_fire_damage` | `true` | Blocks fire damage to protected villagers/traders. |
-| `villager_protection.prevent_lava_damage` | `true` | Blocks lava damage to protected villagers/traders. |
-| `villager_protection.prevent_fall_damage` | `true` | Blocks fall damage to protected villagers/traders. |
-| `villager_protection.prevent_drowning_damage` | `true` | Blocks drowning damage to protected villagers/traders. |
-| `villager_protection.prevent_suffocation_damage` | `true` | Blocks suffocation damage to protected villagers/traders. |
-| `villager_protection.prevent_explosion_damage` | `true` | Blocks explosion damage to protected villagers/traders. |
-| `villager_protection.prevent_projectile_damage` | `true` | Blocks projectile damage to protected villagers/traders. |
-| `villager_protection.prevent_void_damage` | `false` | Blocks void damage to protected villagers/traders. |
-| `villager_protection.allow_zombie_damage` | `true` | Allows zombie damage even when villager protection is enabled. |
-| `villager_protection.protect_villagers_in_war_chunks` | `false` | If `false`, disables villager/trader protection in contested chunks. |
-| `villager_protection.allow_player_damage_to_villagers_in_war_chunks` | `true` | Allows player damage to villagers/traders in contested chunks. |
-| `villager_protection.allow_explosion_damage_to_villagers_in_war_chunks` | `true` | Allows explosion damage to villagers/traders in contested chunks. |
-| `villager_protection.clear_fire_on_blocked_damage` | `true` | Clears fire when protected damage is blocked. |
 
-The runtime `/claimrules create` side toggle is persisted in `protection/create-machines.txt`, not TOML. It controls Create drills, saws, other block-breaking movement machines, and Aeronautics/Offroad bore mining.
+The runtime `/claimrules create` side toggle is persisted in `protection/create-machines.txt`. It controls foreign Create machines (drills, saws, deployers) across borders while allowing claim owners/members to freely use their machines inside their claims.
 
 `entity_interaction.contested_exceptions` accepts exact `namespace:path` IDs, not
 wildcards or tags. An empty list (`[]`) disables these exceptions. IDs for mods

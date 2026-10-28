@@ -35,6 +35,7 @@ public final class WarManager {
     private final DailyWarStartLimitService dailyWarStartLimitService;
     private final RaidWindowService raidWindowService;
     private final BorderChunkService borderChunkService;
+    private final SectorWedgeService sectorWedgeService;
     private final AfkTracker afkTracker;
     private final CaptureProgressService captureProgressService;
     private final WarCooldownService warCooldownService;
@@ -54,6 +55,7 @@ public final class WarManager {
             WarCooldownService warCooldownService,
             RaidWindowService raidWindowService,
             BorderChunkService borderChunkService,
+            SectorWedgeService sectorWedgeService,
             AfkTracker afkTracker,
             CaptureProgressService captureProgressService,
 
@@ -69,6 +71,7 @@ public final class WarManager {
         this.warCooldownService = warCooldownService;
         this.raidWindowService = raidWindowService;
         this.borderChunkService = borderChunkService;
+        this.sectorWedgeService = sectorWedgeService;
         this.afkTracker = afkTracker;
         this.captureProgressService = captureProgressService;
 
@@ -77,6 +80,13 @@ public final class WarManager {
         this.notificationService = notificationService;
         this.livesService = livesService;
         this.scoreboardService = scoreboardService;
+
+        dev.customclaims.api.war.WarfareBridgeHolder.register(this::isContestedWarChunk);
+    }
+
+    public boolean isContestedWarChunk(ServerLevel level, ChunkPos chunkPos) {
+        ChunkPosKey key = ChunkPosKey.from(level, chunkPos);
+        return findByChunk(key).filter(war -> war.state() == WarState.ACTIVE).isPresent();
     }
 
     public WarOperationResult startWar(ServerPlayer player) {
@@ -162,8 +172,24 @@ public final class WarManager {
                     + acceptedDailyLimit.used() + "/" + acceptedDailyLimit.limit() + ") for " + acceptedDailyLimit.day() + ".");
         }
 
+        SectorWedgeService.SectorResult sectorResult = sectorWedgeService.buildConquestSector(
+                level,
+                target,
+                defenderSide.get(),
+                chunkKey -> findByChunk(chunkKey).isEmpty()
+        );
+        if (!sectorResult.success()) {
+            return WarOperationResult.fail(sectorResult.errorMessage());
+        }
+
+        for (ChunkPosKey chunkKey : sectorResult.sectorChunks()) {
+            if (findByChunk(chunkKey).isPresent()) {
+                return WarOperationResult.fail("A chunk in this sector (" + chunkKey.x() + ", " + chunkKey.z() + ") is already involved in a war.");
+            }
+        }
+
         Instant declaredAt = Instant.now();
-        WarData war = new WarData(UUID.randomUUID(), attackerSide, defenderSide.get(), key, declaredAt);
+        WarData war = new WarData(UUID.randomUUID(), attackerSide, defenderSide.get(), key, sectorResult.sectorChunks(), declaredAt);
         wars.put(war.id(), war);
         save(server);
         warCooldownService.recordStart(server, attackerSide, defenderSide.get(), declaredAt);
@@ -395,8 +421,14 @@ public final class WarManager {
                 + " defenders=" + capture.defendersPresent());
 
         if (war.progress() >= 100.0D) {
-            boolean transferred = coreServices.territoryService().transferClaimToSide(level.get(), war.targetChunk().toChunkPos(), war.attackerSide());
-            if (!transferred) {
+            boolean allTransferred = true;
+            for (ChunkPosKey chunkKey : war.sectorChunks()) {
+                boolean transferred = coreServices.territoryService().transferClaimToSide(level.get(), chunkKey.toChunkPos(), war.attackerSide());
+                if (!transferred) {
+                    allTransferred = false;
+                }
+            }
+            if (!allTransferred) {
                 finish(server, war, WarState.FAILED, "claim_transfer_failed");
                 return true;
             }
@@ -434,7 +466,9 @@ public final class WarManager {
         war.setActiveAt(now);
         war.setProgress(Math.max(war.progress(), WarConfig.STARTING_PROGRESS.get()));
         livesService.initializeIfNeeded(server, war);
-        coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerSide(), war.defenderSide());
+        for (ChunkPosKey chunkKey : war.sectorChunks()) {
+            coreServices.territoryStateService().markContested(chunkKey, war.attackerSide(), war.defenderSide());
+        }
         coreServices.warLogService().log(server, "ACTIVE " + describe(war));
         notificationService.notifyActive(server, war);
         notifyProgressMilestones(server, war);
@@ -448,7 +482,9 @@ public final class WarManager {
         war.setState(state);
         war.setEndedAt(Instant.now());
         war.setEndReason(reason);
-        coreServices.territoryStateService().clearStatus(war.targetChunk());
+        for (ChunkPosKey chunkKey : war.sectorChunks()) {
+            coreServices.territoryStateService().clearStatus(chunkKey);
+        }
 
         hudService.remove(server, war);
         scoreboardService.update(server, activeWars().toList());
@@ -479,7 +515,7 @@ public final class WarManager {
     private Optional<WarData> findByChunk(ChunkPosKey key) {
         return wars.values().stream()
                 .filter(war -> !war.isTerminal())
-                .filter(war -> war.targetChunk().equals(key))
+                .filter(war -> war.isInSector(key))
                 .findFirst();
     }
 
@@ -518,9 +554,13 @@ public final class WarManager {
             return false;
         }
         ChunkPos playerChunk = player.chunkPosition();
-        ChunkPos target = war.targetChunk().toChunkPos();
-        int distance = Math.max(Math.abs(playerChunk.x() - target.x()), Math.abs(playerChunk.z() - target.z()));
-        return distance <= radiusChunks;
+        for (ChunkPosKey chunkKey : war.sectorChunks()) {
+            int distance = Math.max(Math.abs(playerChunk.x() - chunkKey.x()), Math.abs(playerChunk.z() - chunkKey.z()));
+            if (distance <= radiusChunks) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private WarMarkerDto markerFor(
@@ -585,7 +625,9 @@ public final class WarManager {
         boolean changed = false;
         for (WarData war : wars.values()) {
             if (war.state() == WarState.ACTIVE) {
-                coreServices.territoryStateService().markContested(war.targetChunk(), war.attackerSide(), war.defenderSide());
+                for (ChunkPosKey chunkKey : war.sectorChunks()) {
+                    coreServices.territoryStateService().markContested(chunkKey, war.attackerSide(), war.defenderSide());
+                }
                 resolveLevel(server, war.targetChunk()).ifPresent(level -> ensureContestedClaimOwner(level, war));
                 changed |= livesService.initializeIfNeeded(server, war);
             }
@@ -611,51 +653,74 @@ public final class WarManager {
     }
 
     private boolean setupContestedClaim(ServerLevel level, WarData war) {
-        Optional<ClaimSnapshot> currentSnapshot = coreServices.territoryService()
-                .getClaimSnapshot(level, war.targetChunk().toChunkPos());
-        if (currentSnapshot.isEmpty()) {
-            return false;
-        }
-        if (war.originalClaimSnapshot().isEmpty()) {
-            war.setOriginalClaimSnapshot(currentSnapshot.get());
-        }
-        ClaimSnapshot original = war.originalClaimSnapshot().orElse(currentSnapshot.get());
         UUID contestedOwner = contestedOwnerUuid();
-        boolean claimed = coreServices.territoryService().claimFromServer(
-                level,
-                war.targetChunk().toChunkPos(),
-                contestedOwner,
-                original.subConfigIndex(),
-                original.forceload()
-        );
-        return claimed && isClaimOwnedBy(level, war, contestedOwner);
+        boolean allSuccess = true;
+        for (ChunkPosKey chunkKey : war.sectorChunks()) {
+            ChunkPos pos = chunkKey.toChunkPos();
+            Optional<ClaimSnapshot> currentSnapshot = coreServices.territoryService()
+                    .getClaimSnapshot(level, pos);
+            if (currentSnapshot.isPresent()) {
+                if (war.originalClaimSnapshot(chunkKey).isEmpty()) {
+                    war.setOriginalClaimSnapshot(chunkKey, currentSnapshot.get());
+                }
+                ClaimSnapshot original = war.originalClaimSnapshot(chunkKey).orElse(currentSnapshot.get());
+                boolean claimed = coreServices.territoryService().claimFromServer(
+                        level,
+                        pos,
+                        contestedOwner,
+                        original.subConfigIndex(),
+                        original.forceload()
+                );
+                if (!claimed || !isClaimOwnedBy(level, pos, contestedOwner)) {
+                    allSuccess = false;
+                }
+            }
+        }
+        return allSuccess;
     }
 
     private void ensureContestedClaimOwner(ServerLevel level, WarData war) {
-        if (isClaimOwnedBy(level, war, contestedOwnerUuid())) {
-            return;
+        for (ChunkPosKey chunkKey : war.sectorChunks()) {
+            ChunkPos pos = chunkKey.toChunkPos();
+            if (isClaimOwnedBy(level, pos, contestedOwnerUuid())) {
+                continue;
+            }
+            war.originalClaimSnapshot(chunkKey).ifPresent(snapshot -> coreServices.territoryService().claimFromServer(
+                    level,
+                    pos,
+                    contestedOwnerUuid(),
+                    snapshot.subConfigIndex(),
+                    snapshot.forceload()
+            ));
         }
-        war.originalClaimSnapshot().ifPresent(snapshot -> coreServices.territoryService().claimFromServer(
-                level,
-                war.targetChunk().toChunkPos(),
-                contestedOwnerUuid(),
-                snapshot.subConfigIndex(),
-                snapshot.forceload()
-        ));
     }
 
     private void restoreOriginalClaim(ServerLevel level, WarData war) {
-        war.originalClaimSnapshot().ifPresent(snapshot -> coreServices.territoryService().claimFromServer(
-                level,
-                war.targetChunk().toChunkPos(),
-                snapshot.ownerId(),
-                snapshot.subConfigIndex(),
-                snapshot.forceload()
-        ));
+        Map<ChunkPosKey, ClaimSnapshot> snapshots = war.allOriginalClaimSnapshots();
+        if (snapshots.isEmpty()) {
+            war.originalClaimSnapshot().ifPresent(snapshot -> coreServices.territoryService().claimFromServer(
+                    level,
+                    war.targetChunk().toChunkPos(),
+                    snapshot.ownerId(),
+                    snapshot.subConfigIndex(),
+                    snapshot.forceload()
+            ));
+            return;
+        }
+        for (Map.Entry<ChunkPosKey, ClaimSnapshot> entry : snapshots.entrySet()) {
+            ClaimSnapshot snapshot = entry.getValue();
+            coreServices.territoryService().claimFromServer(
+                    level,
+                    entry.getKey().toChunkPos(),
+                    snapshot.ownerId(),
+                    snapshot.subConfigIndex(),
+                    snapshot.forceload()
+            );
+        }
     }
 
-    private boolean isClaimOwnedBy(ServerLevel level, WarData war, UUID ownerId) {
-        return coreServices.territoryService().getClaimSnapshot(level, war.targetChunk().toChunkPos())
+    private boolean isClaimOwnedBy(ServerLevel level, ChunkPos pos, UUID ownerId) {
+        return coreServices.territoryService().getClaimSnapshot(level, pos)
                 .map(snapshot -> snapshot.ownerId().equals(ownerId))
                 .orElse(false);
     }

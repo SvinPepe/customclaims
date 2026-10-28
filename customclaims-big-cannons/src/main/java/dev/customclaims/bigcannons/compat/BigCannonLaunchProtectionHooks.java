@@ -33,6 +33,20 @@ public final class BigCannonLaunchProtectionHooks {
             return false;
         }
 
+        net.minecraft.network.chat.Component alert = net.minecraft.network.chat.Component
+                .translatable("opac_better_protection.alert.cannon_blocked")
+                .withStyle(net.minecraft.ChatFormatting.RED);
+        for (net.minecraft.world.entity.Entity passenger : entity.getPassengers()) {
+            if (passenger instanceof net.minecraft.server.level.ServerPlayer player) {
+                player.sendOverlayMessage(alert);
+            }
+        }
+        for (net.minecraft.server.level.ServerPlayer nearby : level.getEntitiesOfClass(
+                net.minecraft.server.level.ServerPlayer.class,
+                entity.getBoundingBox().inflate(16.0D))) {
+            nearby.sendOverlayMessage(alert);
+        }
+
         if (ProtectionConfig.LOG_BLOCKED_BIG_CANNON_PROJECTILES.get()) {
             CustomClaimsBigCannonsMod.LOGGER.info(
                     "Blocked Create Big Cannons launch before consuming munition at {} {}",
