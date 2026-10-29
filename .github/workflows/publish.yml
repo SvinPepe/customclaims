@@ -170,7 +170,7 @@ jobs:
   update-modrinth-description:
     name: Sync Modrinth Description
     needs: publish
-    if: always() && (inputs.update_description != false)
+    if: always() && (github.event_name == 'push' || inputs.update_description != false)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
