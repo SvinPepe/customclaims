@@ -1,18 +1,9 @@
-// Stonecutter controller configuration for Open Parties and Claims: Warfare
-// Multi-version & multi-loader project configuration
-// Reference: https://stonecutter.kikugie.dev/
-
 plugins {
-    id 'dev.kikugie.stonecutter' version '0.9.8' apply false
+    id 'dev.kikugie.stonecutter'
 }
 
-// Controller script configuration
-// When the Stonecutter Gradle plugin is applied to root or subprojects,
-// active version switching is controlled via `stonecutter.active`.
 stonecutter.active "1.21.1"
 
 stonecutter.parameters {
-    // Custom preprocessor parameters / conditions:
-    // - 1.21.1: Stable baseline release (Java 21, NeoForge 21.1.x, Fabric 0.16.x)
-    // - 26.1: Modern forward-port release (Java 25, NeoForge 26.x, Fabric 0.17.x)
+    // Shared preprocessor parameters
 }

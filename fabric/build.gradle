@@ -1,0 +1,62 @@
+plugins {
+    id 'java-library'
+    id 'dev.architectury.loom'
+}
+
+def mcVer = stonecutter.node.metadata.version
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.fabricmc.net/' }
+    maven { url = 'https://api.modrinth.com/maven' }
+    maven { url = 'https://maven.neoforged.net/releases' }
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+}
+
+java {
+    if (stonecutter.eval(mcVer, "<1.20.5")) {
+        toolchain.languageVersion = JavaLanguageVersion.of(17)
+    } else {
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+def commonProject = stonecutter.node.sibling('common').project
+
+dependencies {
+    minecraft "com.mojang:minecraft:${mcVer}"
+    mappings loom.officialMojangMappings()
+
+    modImplementation "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}"
+
+    if (stonecutter.eval(mcVer, "<1.20.5")) {
+        modImplementation "net.fabricmc.fabric-api:fabric-api:${project.property('fabric_api_version_1_20_1')}"
+        modCompileOnly "maven.modrinth:open-parties-and-claims:${project.property('opc_version_1_20_1_fabric')}"
+        modImplementation "maven.modrinth:forge-config-api-port:v${project.property('forge_config_api_port_fabric_version_1_20_1')}-1.20.1-Fabric"
+    } else {
+        modImplementation "net.fabricmc.fabric-api:fabric-api:${project.property('fabric_api_version')}"
+        modCompileOnly "maven.modrinth:open-parties-and-claims:${project.property('opc_version_fabric')}"
+        modImplementation "maven.modrinth:forge-config-api-port:v${project.property('forge_config_api_port_fabric_version')}-1.21.1-Fabric"
+    }
+
+    if (stonecutter.eval(mcVer, "<1.20.5")) {
+        compileOnly files("${rootDir}/libs/xaeroworldmap-forge-1.20.1-1.47.0.jar")
+    } else {
+        compileOnly files("${rootDir}/libs/xaeroworldmap-neoforge-1.21.1-1.41.2.jar")
+    }
+    compileOnly commonProject
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    source(commonProject.sourceSets.main.allSource)
+}
+
+tasks.withType(ProcessResources).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(commonProject.sourceSets.main.resources)
+}
+
+base {
+    archivesName = "opac-warfare-${mcVer}-fabric"
+}

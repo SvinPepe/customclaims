@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.0.0
+
+### Added
+
+* **Multi-Loader Support**: Added native support for **Fabric** (1.20.1, 1.21.1) and Minecraft **Forge** (1.20.1) alongside **NeoForge** (1.21.1, 26.1).
+* **Multi-Version Architecture**: Full multi-version support orchestrated with **Stonecutter** (`0.9.8`) and **Architectury Loom** (`1.17.493`) across Minecraft `1.20.1`, `1.21.1`, and `26.1+`.
+* **Automated CI/CD Publishing**: Added GitHub Actions release workflow for automated publishing to **CurseForge** (`1640225`) and **Modrinth** (`kOE5HGwC`), including automatic project description synchronization.
+* **Separation of Concerns**: Extracted claim protection rules and mechanics (Create contraption assembly, drills, saws, CBC/Clockwork cannon projectile impacts, explosion protection, and `/claimrules`) into official companion mod `Open Parties and Claims: Better Protection`.
+* **Permanent Public Bridge API**: Introduced `dev.customclaims.api.war.IWarfareBridge` and `WarfareBridgeHolder` in `common` for seamless external companion mod integration.
+* **Refreshed Documentation**: Revamped `README.md` and `DESCRIPTION.md` focusing on player/admin gameplay features and visual showcases.
+
+### Changed
+
+* Unified functional warfare codebase into `common` with platform abstractions (`IPlatformHelper`, `IPermissionHelper`, `INetworkHelper`).
+* Restructured module layout into `common`, `fabric`, `neoforge`, and `forge`.
+* Updated project distribution outputs to dedicated per-platform jars:
+  * `opac-warfare-1.20.1-forge.jar`
+  * `opac-warfare-1.20.1-fabric.jar`
+  * `opac-warfare-1.21.1-neoforge.jar`
+  * `opac-warfare-1.21.1-fabric.jar`
+  * `opac-warfare-26.1-neoforge.jar`
+
 ## 1.6.7.2
 
 ### Fixed
@@ -228,4 +250,3 @@ First public Modrinth release under the name **Open Parties and Claims: Warfare*
 * This is an unofficial addon for Open Parties and Claims.
 * This is the first public Modrinth release.
 * Server owners should make backups before using it on production worlds.
-

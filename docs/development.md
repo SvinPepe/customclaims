@@ -1,101 +1,98 @@
 # Development
 
-This repository uses Gradle, NeoForge userdev, Java `21`, and a `1.21.1` compile baseline, with architectural support for multi-loader (Fabric + NeoForge via Architectury) and multi-version (Minecraft 1.21.1 and 26.1 via Stonecutter).
+This repository uses Gradle, Stonecutter (`0.9.8`), Architectury Loom (`1.17.493`), and supports **Minecraft 1.20.1, 1.21.1, and 26.1** across **Forge, NeoForge, and Fabric**.
 
 ## Setup
 
 Required locally:
 
-- JDK `21`
+- JDK `21` (default baseline for 1.21.1 development); JDK 17 toolchain for 1.20.1 and JDK 25 toolchain for 26.1 are automatically handled by Gradle Toolchains / Foojay resolver.
 - Git
-- The Gradle wrapper included in this repository
+- Gradle wrapper (`gradlew` / `gradlew.bat`)
 
-The build resolves Minecraft/NeoForge and mod dependencies through configured Maven repositories, including Modrinth Maven for Open Parties and Claims.
+The active Stonecutter target for source editing is set to `"1.21.1"` in `stonecutter.gradle`.
 
-This repository compiles against `Minecraft 1.21.1 + NeoForge 21.1.232`, while metadata allows experimental same-jar probes on Minecraft `[1.21.1,26.0)` and NeoForge `[21.1.232,26.0)`.
+## Target Matrix & Distribution Jars
 
-Important version properties live in `gradle.properties`:
-
-```properties
-minecraft_version=1.21.1
-minecraft_version_range=[1.21.1,26.0)
-neo_version=21.1.232
-neo_version_range=[21.1.232,26.0)
-opc_version=neoforge-1.21.1-0.27.5
-mod_version=2.0.0
-```
+| Target | Gradle Task | Output Artifact |
+| --- | --- | --- |
+| **1.20.1 Forge** | `:forge:1.20.1:remapJar` | `forge/versions/1.20.1/build/libs/opac-warfare-1.20.1-forge.jar` |
+| **1.20.1 Fabric** | `:fabric:1.20.1:remapJar` | `fabric/versions/1.20.1/build/libs/opac-warfare-1.20.1-fabric.jar` |
+| **1.21.1 NeoForge** | `:neoforge:1.21.1:remapJar` | `neoforge/versions/1.21.1/build/libs/opac-warfare-1.21.1-neoforge.jar` |
+| **1.21.1 Fabric** | `:fabric:1.21.1:remapJar` | `fabric/versions/1.21.1/build/libs/opac-warfare-1.21.1-fabric.jar` |
+| **26.1 NeoForge** | `:neoforge:26.1:assemble` | `neoforge/versions/26.1/build/libs/opac-warfare-26.1-neoforge.jar` |
 
 ## Build and Test Commands
 
-### CI-Parity Build & Test
-
-To build the release jar and execute the full test suite:
+### Run Unit Tests
 
 ```powershell
-.\gradlew.bat --no-daemon :opac-warfare:jar test
+.\gradlew.bat --no-daemon :common:1.21.1:test
 ```
 
 On Linux/macOS:
 
 ```sh
-./gradlew --no-daemon :opac-warfare:jar test
+./gradlew --no-daemon :common:1.21.1:test
 ```
 
-The resulting distribution artifact is located at:
+### Build Full Matrix
 
-```text
-opac-warfare/build/libs/opac-warfare-<version>.jar
-```
-
-### Focused Development Commands
-
-Compile all functional warfare modules (single-worker, quiet output):
+To build all 5 distribution jars across all loaders and versions:
 
 ```powershell
-.\gradlew.bat --no-daemon "-Dorg.gradle.workers.max=1" :customclaims-core:compileJava :customclaims-war:compileJava :customclaims-xaero:compileJava -q
+.\gradlew.bat --no-daemon :neoforge:1.21.1:remapJar :fabric:1.21.1:remapJar :fabric:1.20.1:remapJar :forge:1.20.1:remapJar :neoforge:26.1:assemble
 ```
 
-Build only the distribution jar:
+On Linux/macOS:
 
-```powershell
-.\gradlew.bat --no-daemon :opac-warfare:jar
+```sh
+./gradlew --no-daemon :neoforge:1.21.1:remapJar :fabric:1.21.1:remapJar :fabric:1.20.1:remapJar :forge:1.20.1:remapJar :neoforge:26.1:assemble
 ```
 
-Run all unit tests across subprojects:
+### Focused Target Commands
 
+Build Forge 1.20.1:
 ```powershell
-.\gradlew.bat --no-daemon test
+.\gradlew.bat --no-daemon :forge:1.20.1:remapJar
 ```
 
-Run tests for specific modules:
-
+Build Fabric 1.20.1:
 ```powershell
-.\gradlew.bat --no-daemon :customclaims-core:test :customclaims-war:test
+.\gradlew.bat --no-daemon :fabric:1.20.1:remapJar
+```
+
+Build Fabric 1.21.1:
+```powershell
+.\gradlew.bat --no-daemon :fabric:1.21.1:remapJar
+```
+
+Build NeoForge 1.21.1:
+```powershell
+.\gradlew.bat --no-daemon :neoforge:1.21.1:remapJar
+```
+
+Build NeoForge 26.1:
+```powershell
+.\gradlew.bat --no-daemon :neoforge:26.1:assemble
+```
+
+Compile all common Stonecutter targets:
+```powershell
+.\gradlew.bat --no-daemon :common:1.20.1:compileJava :common:1.21.1:compileJava :common:26.1:compileJava
 ```
 
 ## Release Checklist
 
 Before releasing a new version:
 
-1. Run the CI build and test command:
+1. Run the test suite:
    ```powershell
-   .\gradlew.bat --no-daemon :opac-warfare:jar test
+   .\gradlew.bat --no-daemon :common:1.21.1:test
    ```
-2. Smoke-test the built jar on the baseline `Minecraft 1.21.1 + NeoForge 21.1.232` with OPaC:
-   - Server boots cleanly without mixin, classloading, packet, or config errors.
-   - Player commands `/war start`, `/war status`, `/war list`, and `/war near` function as expected.
-   - Admin commands under `/waradmin` (`list`, `stop`, `skipprep`, `setprogress`) execute properly.
-   - Default side cooldowns block a second outgoing declaration for `2` hours and a second incoming declaration against the defending side for `1` hour.
-   - Raid windows and capture progress tick properly.
-   - War lives decrement on death and end war upon exhaustion.
-   - Xaero war waypoint sync works on a compatible client, and right-click war start behaves as expected.
-3. If testing alongside the companion mod **[Open Parties and Claims: Better Protection](https://github.com/SvinPepe/opac-better-protection)**:
-   - Verify `WarfareBridge` correctly allows contraptions, cannons, and explosions inside contested war chunks while preserving claim protection elsewhere.
-
-## Multi-Version and Multi-Loader Workflows
-
-For detailed documentation, see [Multi-Loader & Multi-Version Architecture](multiversion-multiloader.md) and `stonecutter.gradle`.
-
-Stonecutter allows switching target versions during development by setting `stonecutter.active "<version>"` in `stonecutter.gradle` or using the Stonecutter IntelliJ IDEA plugin version switcher.
-
-
+2. Build the full matrix of distribution jars:
+   ```powershell
+   .\gradlew.bat --no-daemon :neoforge:1.21.1:remapJar :fabric:1.21.1:remapJar :fabric:1.20.1:remapJar :forge:1.20.1:remapJar :neoforge:26.1:assemble
+   ```
+3. Verify that `stonecutter.active` is set to `"1.21.1"` in `stonecutter.gradle`.
+4. Ensure public contracts (`dev.customclaims.api.war.IWarfareBridge`, `WarfareBridgeHolder`) remain stable.

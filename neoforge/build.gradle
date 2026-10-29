@@ -1,0 +1,72 @@
+plugins {
+    id 'java-library'
+    id 'dev.architectury.loom' apply false
+    id 'dev.architectury.loom-no-remap' apply false
+}
+
+def mcVer = stonecutter.node.metadata.version
+
+if (stonecutter.eval(mcVer, "<26.0")) {
+    apply plugin: 'dev.architectury.loom'
+} else {
+    apply plugin: 'dev.architectury.loom-no-remap'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.neoforged.net/releases' }
+    maven { url = 'https://api.modrinth.com/maven' }
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+    maven { url = 'https://maven.fabricmc.net/' }
+}
+
+java {
+    if (stonecutter.eval(mcVer, "<1.20.5")) {
+        toolchain.languageVersion = JavaLanguageVersion.of(17)
+    } else if (stonecutter.eval(mcVer, "<26.0")) {
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
+    } else {
+        toolchain.languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+loom {
+    neoForge {
+    }
+}
+
+def commonProject = stonecutter.node.sibling('common').project
+
+dependencies {
+    def mcDepVer = stonecutter.eval(mcVer, ">=26.0") ? project.property('minecraft_version_26_1') : mcVer
+    minecraft "com.mojang:minecraft:${mcDepVer}"
+    if (stonecutter.eval(mcVer, "<26.0")) {
+        mappings loom.officialMojangMappings()
+        neoForge "net.neoforged:neoforge:${project.property('neo_version')}"
+    } else {
+        neoForge "net.neoforged:neoforge:${project.property('neo_version_26_1')}"
+    }
+
+    if (stonecutter.eval(mcVer, "<26.0")) {
+        compileOnly "maven.modrinth:open-parties-and-claims:${project.property('opc_version')}"
+    } else {
+        compileOnly "maven.modrinth:open-parties-and-claims:${project.property('opc_version_26_1_neoforge')}"
+    }
+    compileOnly files("${rootDir}/libs/xaeroworldmap-neoforge-1.21.1-1.41.2.jar")
+
+    compileOnly commonProject
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    source(commonProject.sourceSets.main.allSource)
+}
+
+tasks.withType(ProcessResources).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(commonProject.sourceSets.main.resources)
+}
+
+base {
+    archivesName = "opac-warfare-${mcVer}-neoforge"
+}

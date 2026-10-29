@@ -1,0 +1,217 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - '[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Release type (release, beta, alpha)'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - beta
+          - alpha
+      update_description:
+        description: 'Update Modrinth project description'
+        required: false
+        default: true
+        type: boolean
+      changelog:
+        description: 'Custom changelog text (optional)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  build:
+    name: Build & Test Matrix
+    runs-on: ubuntu-latest
+    env:
+      _JAVA_OPTIONS: "-Djava.net.preferIPv4Stack=true"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.1'
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run Unit Tests
+        run: ./gradlew --no-daemon :common:1.21.1:test
+
+      - name: Build All Distribution Jars
+        run: ./gradlew --no-daemon :neoforge:1.21.1:remapJar :fabric:1.21.1:remapJar :fabric:1.20.1:remapJar :forge:1.20.1:remapJar :neoforge:26.1:assemble
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: distribution-jars
+          path: |
+            forge/versions/1.20.1/build/libs/opac-warfare-1.20.1-forge.jar
+            fabric/versions/1.20.1/build/libs/opac-warfare-1.20.1-fabric.jar
+            neoforge/versions/1.21.1/build/libs/opac-warfare-1.21.1-neoforge.jar
+            fabric/versions/1.21.1/build/libs/opac-warfare-1.21.1-fabric.jar
+            neoforge/versions/26.1/build/libs/opac-warfare-26.1-neoforge.jar
+
+  publish:
+    name: Publish to CurseForge & Modrinth
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: "1.20.1 Forge"
+            mc: "1.20.1"
+            loader: "forge"
+            file: "forge/versions/1.20.1/build/libs/opac-warfare-1.20.1-forge.jar"
+            dependencies: |
+              open-parties-and-claims(required)
+              xaeros-minimap(optional)
+              xaeros-world-map(optional)
+          - target: "1.20.1 Fabric"
+            mc: "1.20.1"
+            loader: "fabric"
+            file: "fabric/versions/1.20.1/build/libs/opac-warfare-1.20.1-fabric.jar"
+            dependencies: |
+              open-parties-and-claims(required)
+              fabric-api(required)
+              forge-config-api-port(required)
+              xaeros-minimap(optional)
+              xaeros-world-map(optional)
+          - target: "1.21.1 NeoForge"
+            mc: "1.21.1"
+            loader: "neoforge"
+            file: "neoforge/versions/1.21.1/build/libs/opac-warfare-1.21.1-neoforge.jar"
+            dependencies: |
+              open-parties-and-claims(required)
+              xaeros-minimap(optional)
+              xaeros-world-map(optional)
+          - target: "1.21.1 Fabric"
+            mc: "1.21.1"
+            loader: "fabric"
+            file: "fabric/versions/1.21.1/build/libs/opac-warfare-1.21.1-fabric.jar"
+            dependencies: |
+              open-parties-and-claims(required)
+              fabric-api(required)
+              forge-config-api-port(required)
+              xaeros-minimap(optional)
+              xaeros-world-map(optional)
+          - target: "26.1 NeoForge"
+            mc: "26.1.2"
+            loader: "neoforge"
+            file: "neoforge/versions/26.1/build/libs/opac-warfare-26.1-neoforge.jar"
+            dependencies: |
+              open-parties-and-claims(required)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: distribution-jars
+
+      - name: Determine Version
+        id: version_step
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            RAW_VER="${GITHUB_REF_NAME#v}"
+          else
+            RAW_VER=$(grep "mod_version=" gradle.properties | cut -d'=' -f2 | tr -d ' \r\n')
+          fi
+          echo "VERSION=${RAW_VER}" >> $GITHUB_ENV
+
+      - name: Publish ${{ matrix.target }}
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: "1640225"
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN || secrets.CF_TOKEN || secrets.CURSE_API_KEY || secrets.CF_API_KEY }}
+          modrinth-id: "kOE5HGwC"
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN || secrets.MODRINTH_API_KEY }}
+          files: ${{ matrix.file }}
+          name: "OPaC Warfare v${{ env.VERSION }} [${{ matrix.target }}]"
+          version: "${{ env.VERSION }}+${{ matrix.mc }}-${{ matrix.loader }}"
+          version-type: ${{ inputs.version_type || 'release' }}
+          changelog: ${{ inputs.changelog || 'https://github.com/SvinPepe/opac-warfare/releases' }}
+          loaders: ${{ matrix.loader }}
+          game-versions: ${{ matrix.mc }}
+          dependencies: ${{ matrix.dependencies }}
+        continue-on-error: true
+
+  update-modrinth-description:
+    name: Sync Modrinth Description
+    needs: publish
+    if: always() && (inputs.update_description != false)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Update Modrinth Project Body
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN || secrets.MODRINTH_API_KEY }}
+        run: |
+          python .github/scripts/update_modrinth_description.py
+
+  github-release:
+    name: Create GitHub Release
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: distribution-jars
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            forge/versions/1.20.1/build/libs/opac-warfare-1.20.1-forge.jar
+            fabric/versions/1.20.1/build/libs/opac-warfare-1.20.1-fabric.jar
+            neoforge/versions/1.21.1/build/libs/opac-warfare-1.21.1-neoforge.jar
+            fabric/versions/1.21.1/build/libs/opac-warfare-1.21.1-fabric.jar
+            neoforge/versions/26.1/build/libs/opac-warfare-26.1-neoforge.jar
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ inputs.version_type == 'beta' || inputs.version_type == 'alpha' }}

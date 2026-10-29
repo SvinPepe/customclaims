@@ -1,18 +1,73 @@
-# Open Parties and Claims: Warfare
+# ⚔️ Open Parties and Claims: Warfare
 
-**Open Parties and Claims: Warfare** is an unofficial NeoForge addon for
-[Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims).
+<p align="center">
+  <img src="https://cdn.modrinth.com/data/kOE5HGwC/images/ae84c4e4f05a3d020e8060a353519ccdabd0ce44.png" alt="Warfare Showcase" width="100%">
+</p>
+
+Turn your peaceful **Open Parties and Claims (OPaC)** server into an epic arena of territorial conquest, tactical sieges, and diplomatic warfare!
 
 [GitHub](https://github.com/SvinPepe/opac-warfare) |
 [Modrinth](https://modrinth.com/mod/open-parties-and-claims-warfare) |
+[CurseForge](https://www.curseforge.com/minecraft/mc-mods/open-parties-and-claims-warfare) |
 [Anonymous metrics](https://customclaims-metrics.svinpepe.workers.dev/)
 
-It adds chunk wars, contested claims, side-based attack and defense cooldowns with configurable target-chunk slots,
-raid windows, capture progress, war lives, Discord webhooks, and fair-play Xaero minimap/worldmap marker synchronization.
-Open Parties and Claims remains the source of party membership and claim ownership; this project builds warfare mechanics
-on top of OPaC territories.
+**Open Parties and Claims: Warfare** bridges the gap between peaceful claim protection and thrilling faction PvP. Players can declare wars against rival claims, engage in dynamic chunk-by-chunk sieges, track active conflicts on their minimap, and fight for land while keeping offline bases safe with configurable raid windows.
 
-## Separation of Concerns: Warfare vs. Protection
+---
+
+## 🌟 Key Features
+
+### 🚩 Tactical Chunk Wars & Conquest
+- **Border-Based Warfare**: Declare war on neighboring hostile claims from the border. Deep core territory cannot be bypassed without securing border chunks first!
+- **Sector Wedge Conquest**: Take control of strategic wedges of connected territory in a single, hard-fought campaign.
+
+### 🛡️ Balanced Capture & Anti-Zerg Mechanics
+- **Presence-Driven Capture**: Attackers advance the siege progress bar by holding the contested zone; defenders push it back by defending the territory.
+- **Anti-Zerg Protection**: Diminishing returns prevent massive zergs from instantly steamrolling smaller, well-fortified teams. Skill and endurance decide the victor!
+- **AFK Protection**: Idle players do not contribute to siege progress.
+
+### ⏰ Fair-Play Raid Windows & Cooldowns
+- **No 4 AM Offline Raids**: Define exact server raid hours (e.g., `18:00 - 22:00`) so battles only happen when players are online and ready to fight.
+- **Strategic Cooldowns**: Configurable attack and defense cooldowns prevent spam declarations and give defeated parties time to regroup.
+
+<p align="center">
+  <img src="https://cdn.modrinth.com/data/kOE5HGwC/images/9d40247bb92110a385003cb2483fae4fe1651c70.png" alt="In-Game Siege Action" width="100%">
+</p>
+
+### ❤️ War Lives & Live Scoreboard
+- **High-Stakes Combat**: Every warrior receives limited war lives per siege. Lose your lives, and you're out of the battle!
+- **Sidebar HUD**: Real-time scoreboard display keeps everyone informed of remaining lives and combat status.
+
+### 🗺️ Full Xaero's Map Integration
+- **Fair-Play War Markers**: View active conflict zones and timers directly on **Xaero's Minimap** and **Xaero's World Map**.
+- **Right-Click War Start**: Simply right-click any eligible enemy border chunk directly on Xaero's World Map to initiate a siege!
+
+### 🔔 Discord Webhooks
+- Automatically broadcast war declarations, phase transitions, and final siege outcomes directly to your server's Discord channel with rich embeds.
+
+---
+
+## ⚔️ How Sieges Work
+
+```text
+  [ /war start ] ────► [ Preparation Phase ] ────► [ Active Battle ] ────► [ Resolution ]
+  Target border chunk     Defenders & attackers      Fight for zone;           100% = Captured!
+  or Xaero right-click    gear up & rally           drain enemy lives         Timeout = Defended!
+```
+
+1. **Declaration**: A party declares war on an adjacent rival chunk using `/war start` or the Xaero World Map menu.
+2. **Preparation**: A countdown gives defenders time to rally their allies, build fortifications, and prepare gear.
+3. **Active Phase**: The chunk becomes contested! Normal claim restrictions relax for combatants:
+   - Stand inside the zone to capture or defend.
+   - Watch the capture bossbar and sidebar lives.
+   - Glowing effects keep combatants visible and prevent hiding in corners.
+4. **Resolution**:
+   - If attackers reach **100% progress**, the chunk is claimed by the attackers!
+   - If defenders hold out until time expires or deplete enemy lives, the siege fails and peace is restored.
+
+---
+
+## 🧩 Separation of Concerns: Warfare vs. Protection
 
 Starting with Warfare 2.0, claim protection rules and mechanics (Create contraption assembly, drills, saws, CBC/Clockwork cannon projectile impacts, explosion protection, and `/claimrules`) have been separated into a dedicated companion mod:
 
@@ -21,58 +76,71 @@ Starting with Warfare 2.0, claim protection rules and mechanics (Create contrapt
 - **Open Parties and Claims: Warfare** (this mod) focuses strictly on territorial conquest, contested claims, raid windows, capture progress, war lives, fair-play Xaero waypoint sync, and Discord webhooks.
 - When used alongside **Better Protection**, the two mods integrate seamlessly via `WarfareBridge` (`dev.customclaims.api.war.WarfareBridgeHolder`): `opac-better-protection` queries active war status to permit siege damage and contraption breaches inside contested war chunks while preserving claim safety elsewhere.
 
-## Multi-Loader and Multi-Version Status
+---
 
-- **Tested Baseline**: Minecraft `1.21.1` on NeoForge `21.1.232` (Java `21`). Jar metadata allows experimental same-jar probes on `[1.21.1,26.0)` and NeoForge `[21.1.232,26.0)`.
-- **Architectural Readiness**: The project architecture is structured for multi-loader support (Fabric + NeoForge via Architectury Loom abstractions for platform, networking, and permissions) and multi-version builds (Minecraft `1.21.1` and `26.1` via Stonecutter). For detailed architecture specifications, see [Multi-Loader & Multi-Version Architecture](docs/multiversion-multiloader.md).
+## 🌍 Multi-Loader and Multi-Version Support
 
-## Requirements
+Open Parties and Claims: Warfare natively supports multiple mod loaders and Minecraft versions via **Stonecutter** and **Architectury Loom**:
 
-- Minecraft `1.21.1` baseline; metadata allows experimental `[1.21.1,26.0)` probes (supports 1.21.x through 1.21.11)
-- NeoForge `21.1.232` baseline; metadata allows experimental `[21.1.232,26.0)` probes
-- Java `21`
-- Open Parties and Claims `neoforge-1.21.1-0.27.5` or newer on the baseline stack
+| Minecraft Version | Mod Loader | Java | Distribution Jar | Build Command |
+|---|---|---|---|---|
+| **1.20.1** | **Forge** (`47.3.0`) | Java 17 | `opac-warfare-1.20.1-forge.jar` | `./gradlew :forge:1.20.1:remapJar` |
+| **1.20.1** | **Fabric** (`0.16.14`) | Java 17 | `opac-warfare-1.20.1-fabric.jar` | `./gradlew :fabric:1.20.1:remapJar` |
+| **1.21.1** | **NeoForge** (`21.1.232`) | Java 21 | `opac-warfare-1.21.1-neoforge.jar` | `./gradlew :neoforge:1.21.1:remapJar` |
+| **1.21.1** | **Fabric** (`0.16.14`) | Java 21 | `opac-warfare-1.21.1-fabric.jar` | `./gradlew :fabric:1.21.1:remapJar` |
+| **26.1** | **NeoForge** (`26.1.2.112`) | Java 25 | `opac-warfare-26.1-neoforge.jar` | `./gradlew :neoforge:26.1:assemble` |
 
-Optional integrations activate only when their target mods are installed:
+---
 
-- Xaero Minimap or Xaero World Map on compatible clients; Xaero World Map
-  also enables a right-click map war-start action
+## 📦 What To Install
 
-## What To Install
+Server owners install the distribution jar matching their Minecraft version and loader:
+- Forge 1.20.1: `forge/versions/1.20.1/build/libs/opac-warfare-1.20.1-forge.jar`
+- Fabric 1.20.1: `fabric/versions/1.20.1/build/libs/opac-warfare-1.20.1-fabric.jar`
+- NeoForge 1.21.1: `neoforge/versions/1.21.1/build/libs/opac-warfare-1.21.1-neoforge.jar`
+- Fabric 1.21.1: `fabric/versions/1.21.1/build/libs/opac-warfare-1.21.1-fabric.jar`
+- NeoForge 26.1: `neoforge/versions/26.1/build/libs/opac-warfare-26.1-neoforge.jar`
 
-Server owners install the single distribution jar built by the `opac-warfare` module:
+Copy the appropriate `opac-warfare-*.jar` into the server `mods/` folder together with Open Parties and Claims.
 
-```text
-opac-warfare/build/libs/opac-warfare-<version>.jar
-```
+---
 
-This single distribution jar bundles:
-- `customclaims_core`
-- `customclaims_war`
-- `customclaims_xaero`
+## 🚀 Quick Start
 
-## Quick Start
-
-Build the artifact:
+Run test suite:
 
 ```powershell
-.\gradlew.bat --no-daemon :opac-warfare:jar test
+.\gradlew.bat --no-daemon :common:1.21.1:test
+```
+
+Build all jars:
+
+```powershell
+.\gradlew.bat --no-daemon :neoforge:1.21.1:remapJar :fabric:1.21.1:remapJar :fabric:1.20.1:remapJar :forge:1.20.1:remapJar :neoforge:26.1:assemble
 ```
 
 On Linux/macOS:
 
 ```sh
-./gradlew --no-daemon :opac-warfare:jar test
+./gradlew --no-daemon :neoforge:1.21.1:remapJar :fabric:1.21.1:remapJar :fabric:1.20.1:remapJar :forge:1.20.1:remapJar :neoforge:26.1:assemble
 ```
 
-Copy the resulting `opac-warfare-*.jar` into the server `mods/` folder together
-with Open Parties and Claims.
+---
 
-After first server start, NeoForge writes common config files under `config/`.
-See [Configuration](docs/configuration.md) before using the mod on a production
-world.
+## 📖 Main Commands
 
-## Anonymous Metrics
+| Command | Permission | Description |
+|---|---|---|
+| `/war start` | `customclaims.war.start` | Declare war on the claimed chunk you are standing in. |
+| `/war cancel` | `customclaims.war.cancel` | Cancel an active war declared by your party. |
+| `/war info` | `customclaims.war.info` | Display current war status, progress, and remaining lives. |
+| `/war top` | `customclaims.war.info` | Show active wars and ongoing sieges across the server. |
+| `/waradmin stop` | `customclaims.admin` | Force stop a war in a specific chunk or globally. |
+| `/waradmin setprogress` | `customclaims.admin` | Administratively modify capture progress. |
+
+---
+
+## 📊 Anonymous Metrics
 
 On dedicated servers, CustomClaims can send an anonymous heartbeat every 30
 minutes to the HTTP(S) endpoint configured as `metrics.endpoint` in
@@ -80,70 +148,11 @@ minutes to the HTTP(S) endpoint configured as `metrics.endpoint` in
 `https://customclaims-metrics.svinpepe.workers.dev/heartbeat`.
 
 Each heartbeat contains only:
-
-- a randomly generated `server_id`, stored locally in
-  `world/customclaims/metrics/server-id.txt`;
-- the CustomClaims, Minecraft, and NeoForge versions;
+- a randomly generated `server_id`, stored locally in `world/customclaims/metrics/server-id.txt`;
+- the CustomClaims, Minecraft, and loader versions;
 - the current number of online players;
 - boolean presence flags for OPaC, Xaero, and Corpse.
 
 It does not include the server IP or hostname, player names, the world seed, or
-other identifying data. Metrics never run in an integrated/client server. To
-disable them, set `metrics.enabled = false` or set `metrics.endpoint = ""` in
-`config/customclaims_core-common.toml` and restart the server.
-
-## Main Commands
-
-Player war commands:
-
-```text
-/war start
-/war status
-/war list
-/war near
-/war near <radius_chunks>
-```
-
-Compatible Xaero World Map clients can also right-click the map and choose
-`Start war here`. The server still enforces war-start permission, same-dimension
-and distance limits, side cooldowns, optional daily quotas, and all normal war target rules.
-
-Admin war commands:
-
-```text
-/waradmin list
-/waradmin stop here
-/waradmin stop chunk <dimension> <chunkX> <chunkZ>
-/waradmin skipprep here
-/waradmin skipprep chunk <dimension> <chunkX> <chunkZ>
-/waradmin setprogress here <value>
-/waradmin setprogress chunk <dimension> <chunkX> <chunkZ> <value>
-```
-
-## Documentation
-
-- [Server Admin Guide](docs/server-admin.md): installation, gameplay flow,
-  commands, permissions, runtime data, and operational notes.
-- [Compatibility](docs/compatibility.md): supported Minecraft/NeoForge target,
-  one-jar policy, and adjacent-version probe workflow.
-- [Configuration](docs/configuration.md): all common config files and keys.
-- [Architecture](docs/architecture.md): modules, services, event entrypoints,
-  persistence, and compat boundaries.
-- [Multi-Loader & Multi-Version Architecture](docs/multiversion-multiloader.md): Architectury and Stonecutter design.
-- [Development](docs/development.md): setup, Gradle commands, CI parity, and
-  contribution workflow.
-- [AGENTS.md](AGENTS.md): short Codex/agent working memory for this repository.
-
-## Safety Notes
-
-- Make world backups before first production use and before upgrades.
-- Active wars are persisted under `world/customclaims/`.
-- The Xaero module broadcasts active/preparing war markers to all compatible
-  clients by default; config can restore side/admin/radius filtering. It still
-  validates map war-start requests server-side and never publishes a global
-  claim-owner map.
-
-## License
-
-MIT. See [LICENSE](LICENSE).
-
+other identifying data. To disable them, set `metrics.enabled = false` or set `metrics.endpoint = ""` in
+`config/customclaims_core-common.toml`.

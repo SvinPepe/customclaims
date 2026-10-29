@@ -2,19 +2,38 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
-        maven {
-            url = 'https://maven.neoforged.net/releases'
-        }
+        maven { url = 'https://maven.architectury.dev/' }
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://maven.neoforged.net/releases' }
+        maven { url = 'https://maven.minecraftforge.net/' }
+    }
+    plugins {
+        id 'dev.architectury.loom' version '1.17.493'
+        id 'dev.architectury.loom-no-remap' version '1.17.493'
     }
 }
 
 plugins {
+    id 'dev.kikugie.stonecutter' version '0.9.8'
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
 rootProject.name = 'opac-warfare'
 
-include 'customclaims-core'
-include 'customclaims-war'
-include 'customclaims-xaero'
-include 'opac-warfare'
+stonecutter {
+    create(rootProject) {
+        branch("common") {
+            versions "1.20.1", "1.21.1", "26.1"
+        }
+        branch("fabric") {
+            versions "1.20.1", "1.21.1"
+        }
+        branch("neoforge") {
+            versions "1.21.1", "26.1"
+        }
+        branch("forge") {
+            versions "1.20.1"
+        }
+        vcsVersion = "1.21.1"
+    }
+}

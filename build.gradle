@@ -1,155 +1,20 @@
 plugins {
-    id 'java-library'
-    id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.1.38' apply false
+    id 'dev.architectury.loom' version '1.17.493' apply false
+    id 'dev.architectury.loom-no-remap' version '1.17.493' apply false
     id 'idea'
 }
 
 group = 'dev.customclaims'
 version = mod_version
 
-ext.customClaimsModules = [
-        'customclaims-core'       : [
-                modId      : 'customclaims_core',
-                modName    : 'OPaC Warfare - Core',
-                description: 'Core services for the unofficial Open Parties and Claims: Warfare addon.'
-        ],
-        'customclaims-war'        : [
-                modId      : 'customclaims_war',
-                modName    : 'OPaC Warfare - War',
-                description: 'Chunk wars, contested claims, raid windows, capture progress, and war commands for Open Parties and Claims.'
-        ],
-        'customclaims-xaero'      : [
-                modId      : 'customclaims_xaero',
-                modName    : 'OPaC Warfare - Xaero Compat',
-                description: 'Fair-play Xaero temporary waypoint sync for active Open Parties and Claims: Warfare conflicts.'
-        ],
-        'opac-warfare'            : [
-                modId      : 'opac_warfare',
-                modName    : 'Open Parties and Claims: Warfare',
-                description: 'Single-jar distribution for the unofficial Open Parties and Claims: Warfare addon.'
-        ]
-]
-
-subprojects {
-    def moduleInfo = rootProject.ext.customClaimsModules[project.name]
-    if (moduleInfo == null) {
-        throw new GradleException("Missing Custom Claims module metadata for ${project.name}")
-    }
-
-    apply plugin: 'java-library'
-    apply plugin: 'maven-publish'
-    apply plugin: 'net.neoforged.gradle.userdev'
-
-    group = rootProject.group
-    version = rootProject.version
-
-    ext.mod_id = moduleInfo.modId
-    ext.mod_name = moduleInfo.modName
-    ext.mod_description = moduleInfo.description
-
-    base {
-        archivesName = moduleInfo.modId
-    }
-
-    java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-
+allprojects {
     repositories {
         mavenCentral()
-        maven {
-            url = 'https://maven.neoforged.net/releases'
-        }
-        maven {
-            url = 'https://api.modrinth.com/maven'
-        }
-    }
-
-    sourceSets.main.resources {
-        srcDir 'src/generated/resources'
-        exclude('**/*.bbmodel')
-        exclude('src/generated/**/.cache')
-    }
-
-    configurations {
-        runtimeClasspath.extendsFrom localRuntime
-    }
-
-    dependencies {
-        implementation "net.neoforged:neoforge:${neo_version}"
-        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    }
-
-    tasks.withType(Test).configureEach {
-        useJUnitPlatform()
-    }
-
-    runs {
-        configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            systemProperty 'forge.logging.console.level', 'debug'
-            workingDirectory project.layout.projectDirectory.dir('run').dir(name)
-            modSource project.sourceSets.main
-        }
-
-        client {
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.ext.mod_id
-        }
-
-        server {
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.ext.mod_id
-            argument '--nogui'
-        }
-
-        gameTestServer {
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.ext.mod_id
-        }
-
-        data {
-            arguments.addAll '--mod', project.ext.mod_id,
-                    '--all',
-                    '--output', file('src/generated/resources/').getAbsolutePath(),
-                    '--existing', file('src/main/resources/').getAbsolutePath()
-        }
-    }
-
-    tasks.withType(ProcessResources).configureEach {
-        def replaceProperties = [
-                minecraft_version      : minecraft_version,
-                minecraft_version_range: minecraft_version_range,
-                neo_version            : neo_version,
-                neo_version_range      : neo_version_range,
-                loader_version_range   : loader_version_range,
-                mod_id                 : project.ext.mod_id,
-                mod_name               : project.ext.mod_name,
-                mod_license            : mod_license,
-                mod_version            : mod_version,
-                mod_authors            : mod_authors,
-                mod_description        : project.ext.mod_description
-        ]
-
-        inputs.properties replaceProperties
-
-        filesMatching(['META-INF/neoforge.mods.toml']) {
-            expand replaceProperties
-        }
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        options.encoding = 'UTF-8'
-    }
-
-    publishing {
-        publications {
-            register('mavenJava', MavenPublication) {
-                from components.java
-            }
-        }
-        repositories {
-            maven {
-                url "file://${project.projectDir}/repo"
-            }
-        }
+        maven { url = 'https://maven.architectury.dev/' }
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://maven.neoforged.net/releases' }
+        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url = 'https://api.modrinth.com/maven' }
     }
 }
 

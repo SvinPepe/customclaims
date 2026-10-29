@@ -1,8 +1,6 @@
 # Architecture
 
-This repository is a Gradle multi-module project with a Minecraft `1.21.1` compile baseline and experimental metadata for Minecraft `[1.21.1,26.0)` on NeoForge `[21.1.232,26.0)`. Open Parties and Claims is the source of party membership and claim ownership. This project adds territory-aware services, chunk wars, contested claims, raid windows, capture progress, war lives, fair-play Xaero map integration, and discord webhooks.
-
-For details on the forward-looking multi-loader (Fabric + NeoForge via Architectury) and multi-version (Minecraft 1.21.1 and 26.1 via Stonecutter) plan, see [Multi-Loader & Multi-Version Architecture](multiversion-multiloader.md).
+This repository is a Gradle multi-version and multi-loader project built with **Stonecutter** (`0.9.8`) and **Architectury Loom** (`1.17.493`). Open Parties and Claims is the source of party membership and claim ownership. This project adds territory-aware services, chunk wars, contested claims, raid windows, capture progress, war lives, fair-play Xaero map integration, and discord webhooks across **Minecraft 1.20.1, 1.21.1, and 26.1** on **Forge, NeoForge, and Fabric**.
 
 ## Separation of Concerns: Warfare vs. Protection
 
@@ -10,16 +8,16 @@ Starting with version 2.0, claim protection rules and mechanics (Create contrapt
 👉 **[Open Parties and Claims: Better Protection](https://github.com/SvinPepe/opac-better-protection)**
 
 - **Open Parties and Claims: Warfare** focuses solely on warfare mechanics: declarations, contested chunks, raid windows, conquest sectors, capture timers, war lives, and map sync.
-- Both mods communicate through the lightweight `WarfareBridge` API provided by `customclaims-core`.
+- Both mods communicate through the lightweight `WarfareBridge` API provided by `common` under `dev.customclaims.api.war`.
 
 ## System Architecture Diagram
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                               opac-warfare (Distribution Jar)                          │
+│                        opac-warfare (Distribution Jars: Forge, NeoForge, Fabric)       │
 │                                                                                        │
 │  ┌──────────────────────────────┐              ┌────────────────────────────────────┐  │
-│  │      customclaims-war        │              │        customclaims-xaero          │  │
+│  │         War Domain           │              │            Xaero Domain            │  │
 │  │ - War lifecycle & states     │              │ - Fair-play marker sync            │  │
 │  │ - Conquest wedges & capture  │              │ - Temporary waypoints              │  │
 │  │ - Raid windows & lives       │              │ - Xaero World Map war-start action │  │
@@ -28,10 +26,11 @@ Starting with version 2.0, claim protection rules and mechanics (Create contrapt
 │                 │ registers war status                           │                     │
 │                 ▼                                                ▼                     │
 │  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
-│  │                               customclaims-core                                  │  │
+│  │                                 Core Domain                                      │  │
 │  │ - OPaC claim adapters & party side identity                                      │  │
 │  │ - Common permissions & storage management                                        │  │
 │  │ - WarfareBridge API: IWarfareBridge & WarfareBridgeHolder                        │  │
+│  │ - Platform Abstractions: IPlatformHelper, IPermissionHelper, INetworkHelper      │  │
 │  └───────────────────────┬──────────────────────────────────▲───────────────────────┘  │
 └──────────────────────────┼──────────────────────────────────┼──────────────────────────┘
                            │                                  │
@@ -45,36 +44,29 @@ Starting with version 2.0, claim protection rules and mechanics (Create contrapt
 
 ## Modules
 
-| Gradle project | Mod id | Role |
-| --- | --- | --- |
-| `customclaims-core` | `customclaims_core` | Shared OPaC adapters, territory services, permissions, storage, messages, logs, anonymous metrics, rollback interface, and `WarfareBridge` provider API. |
-| `customclaims-war` | `customclaims_war` | War lifecycle, raid windows, border checks, capture progress, war lives, HUD, notifications, Discord webhooks, and war commands (`/war`, `/waradmin`). Implements and registers `IWarfareBridge`. |
-| `customclaims-xaero` | `customclaims_xaero` | Fair-play war-marker sync, client waypoints/overlay, and Xaero World Map right-click war-start action. |
-| `opac-warfare` | multiple mod ids | Single-jar distribution that bundles `customclaims-core`, `customclaims-war`, and `customclaims-xaero`. |
+| Gradle project | Target Loaders | Target Versions | Role |
+| --- | --- | --- | --- |
+| `common` | Shared / All | `1.20.1`, `1.21.1`, `26.1` | Shared domain logic: Core services, OPaC adapters, War services, Xaero marker sync, and the public `WarfareBridge` provider API (`IWarfareBridge`, `WarfareBridgeHolder`). |
+| `neoforge` | NeoForge | `1.21.1`, `26.1` | NeoForge platform implementations (`NeoForgePlatformHelper`, `NeoForgePermissionHelper`, `NeoForgeNetworkHelper`, `OpacWarfareMod`). |
+| `fabric` | Fabric | `1.20.1`, `1.21.1` | Fabric platform implementations (`FabricPlatformHelper`, `FabricPermissionHelper`, `FabricNetworkHelper`, `CustomClaimsFabricMod`, `CustomClaimsFabricClientMod`). |
+| `forge` | Forge | `1.20.1` | Minecraft Forge platform implementations (`ForgePlatformHelper`, `ForgePermissionHelper`, `ForgeNetworkHelper`, `OpacWarfareForgeMod`). |
 
-## Dependency Shape
+## Distribution Jars
 
-Project dependencies:
-
-```text
-customclaims-core
-  <- customclaims-war
-  <- customclaims-xaero
-opac-warfare bundles customclaims-core, customclaims-war, customclaims-xaero
-```
-
-External dependencies:
-
-- `customclaims-core` requires Open Parties and Claims.
-- `customclaims-xaero` has optional client-side Xaero behavior, including a Xaero World Map right-click war-start mixin, global active-war marker visibility by default, and configurable side/admin/radius filtering.
+Each loader and version branch outputs a dedicated distribution jar:
+- `forge/versions/1.20.1/build/libs/opac-warfare-1.20.1-forge.jar`
+- `fabric/versions/1.20.1/build/libs/opac-warfare-1.20.1-fabric.jar`
+- `neoforge/versions/1.21.1/build/libs/opac-warfare-1.21.1-neoforge.jar`
+- `fabric/versions/1.21.1/build/libs/opac-warfare-1.21.1-fabric.jar`
+- `neoforge/versions/26.1/build/libs/opac-warfare-26.1-neoforge.jar`
 
 ## WarfareBridge API (External Integration)
 
-The `WarfareBridge` API allows external mods (such as `Open Parties and Claims: Better Protection`) to check whether a specific chunk is currently contested in an active war, without requiring a compile-time or runtime hard dependency on `customclaims-war`.
+The `WarfareBridge` API allows external mods (such as `Open Parties and Claims: Better Protection`) to check whether a specific chunk is currently contested in an active war, without requiring a compile-time or runtime hard dependency on war domain logic.
 
 ### API Classes
 
-Both classes reside in `customclaims-core` under `dev.customclaims.api.war`:
+Both classes reside in `common` under `dev.customclaims.api.war`:
 
 1. **`IWarfareBridge`**:
    ```java
@@ -100,7 +92,7 @@ Both classes reside in `customclaims-core` under `dev.customclaims.api.war`:
 
 ### Lifecycle & Mechanics
 
-- **Provider Registration**: During initialization, `WarManager` (in `customclaims-war`) registers its contested chunk lookup implementation into `WarfareBridgeHolder`:
+- **Provider Registration**: During initialization, `WarManager` registers its contested chunk lookup implementation into `WarfareBridgeHolder`:
   ```java
   WarfareBridgeHolder.register(this::isContestedWarChunk);
   ```

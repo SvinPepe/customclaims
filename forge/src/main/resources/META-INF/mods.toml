@@ -1,0 +1,35 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+issueTrackerURL="https://github.com/SvinPepe/opac-warfare/issues"
+
+[[mods]]
+modId="opac_warfare"
+version="2.0.0"
+displayName="Open Parties and Claims: Warfare"
+displayURL="https://github.com/SvinPepe/opac-warfare"
+authors="svinpepe"
+description='''
+Open Parties and Claims: Warfare 2.0 - chunk wars, assault wedge sector conquests, anti-zerg capture mechanics, raid windows, and tactical HUD.
+'''
+
+[[dependencies.opac_warfare]]
+modId="forge"
+mandatory=true
+versionRange="[47.3.0,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.opac_warfare]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.opac_warfare]]
+modId="openpartiesandclaims"
+mandatory=true
+versionRange="[0.33.0,)"
+ordering="AFTER"
+side="BOTH"

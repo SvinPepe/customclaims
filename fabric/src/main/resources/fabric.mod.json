@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "opac_warfare",
+  "version": "${version}",
+  "name": "Open Parties and Claims: Warfare",
+  "description": "Open Parties and Claims: Warfare 2.0 - chunk wars, assault wedge sector conquests, anti-zerg capture mechanics, raid windows, and tactical HUD.",
+  "authors": [
+    "svinpepe"
+  ],
+  "contact": {
+    "homepage": "https://github.com/SvinPepe/opac-warfare",
+    "sources": "https://github.com/SvinPepe/opac-warfare",
+    "issues": "https://github.com/SvinPepe/opac-warfare/issues"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.customclaims.fabric.CustomClaimsFabricMod"
+    ],
+    "client": [
+      "dev.customclaims.fabric.client.CustomClaimsFabricClientMod"
+    ]
+  },
+  "mixins": [
+    "customclaims_xaero.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": ">=1.20.1",
+    "openpartiesandclaims": "*"
+  },
+  "suggests": {
+    "xaerominimap": "*",
+    "xaeroworldmap": "*"
+  }
+}
