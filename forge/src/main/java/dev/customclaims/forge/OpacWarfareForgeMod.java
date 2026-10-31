@@ -69,6 +69,7 @@ public final class OpacWarfareForgeMod {
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
         CustomClaimsCoreMod.services().metricsService().onServerStarted(event.getServer());
+        CustomClaimsWarMod.services().onServerStarted(event.getServer());
     }
 
     @SubscribeEvent

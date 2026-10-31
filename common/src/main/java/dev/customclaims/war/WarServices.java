@@ -88,4 +88,8 @@ public record WarServices(
                 messages
         );
     }
+
+    public void onServerStarted(net.minecraft.server.MinecraftServer server) {
+        warManager.onServerStarted(server);
+    }
 }

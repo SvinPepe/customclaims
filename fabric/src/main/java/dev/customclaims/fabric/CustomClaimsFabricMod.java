@@ -55,8 +55,10 @@ public final class CustomClaimsFabricMod implements ModInitializer {
         });
         *///?}
 
-        ServerLifecycleEvents.SERVER_STARTED.register(server ->
-                CustomClaimsCoreMod.services().metricsService().onServerStarted(server));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            CustomClaimsCoreMod.services().metricsService().onServerStarted(server);
+            CustomClaimsWarMod.services().onServerStarted(server);
+        });
         ServerLifecycleEvents.SERVER_STOPPING.register(server ->
                 CustomClaimsCoreMod.services().metricsService().onServerStopping(server));
         ServerTickEvents.END_SERVER_TICK.register(server -> {

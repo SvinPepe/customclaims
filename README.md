@@ -11,6 +11,16 @@ Turn your peaceful **Open Parties and Claims (OPaC)** server into an epic arena 
 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/open-parties-and-claims-warfare) |
 [Anonymous metrics](https://customclaims-metrics.svinpepe.workers.dev/)
 
+---
+
+## 📚 Guides & Documentation
+
+- 🔄 **[Migration & Upgrade Guide](docs/migration.md)** — Upgrading from 1.x (1.6.7.2) or early 2.0 builds.
+- 📖 **[Server Admin Guide](docs/server-admin.md)** — Installation, lifecycle, raid hours, and live server operations.
+- ⚙️ **[Configuration Guide](docs/configuration.md)** — Complete options reference, allowed ranges, and defaults for `opac_warfare-*.toml`.
+- 🧩 **[Companion Mod: Better Protection](https://github.com/SvinPepe/opac-better-protection)** — Mechanical contraption protection (Create drills/saws), cannon impacts, and `/claimrules`.
+- 🏗️ **[Architecture & WarfareBridge](docs/architecture.md)** — Developer notes, platform abstraction, and external mod integration.
+
 **Open Parties and Claims: Warfare** bridges the gap between peaceful claim protection and thrilling faction PvP. Players can declare wars against rival claims, engage in dynamic chunk-by-chunk sieges, track active conflicts on their minimap, and fight for land while keeping offline bases safe with configurable raid windows.
 
 ---
@@ -131,12 +141,16 @@ On Linux/macOS:
 
 | Command | Permission | Description |
 |---|---|---|
-| `/war start` | `customclaims.war.start` | Declare war on the claimed chunk you are standing in. |
-| `/war cancel` | `customclaims.war.cancel` | Cancel an active war declared by your party. |
-| `/war info` | `customclaims.war.info` | Display current war status, progress, and remaining lives. |
-| `/war top` | `customclaims.war.info` | Show active wars and ongoing sieges across the server. |
-| `/waradmin stop` | `customclaims.admin` | Force stop a war in a specific chunk or globally. |
-| `/waradmin setprogress` | `customclaims.admin` | Administratively modify capture progress. |
+| `/war start` | `opac.warfare.start` | Declare war on the eligible border chunk you are standing in. |
+| `/war status` | `opac.warfare.status` | Display status and capture progress of your active wars. |
+| `/war list` | `opac.warfare.status` | Show active wars and ongoing sieges visible to you. |
+| `/war near [radius]` | `opac.warfare.status` | Find wars within a chunk radius (default: 8, max: 32). |
+| `/waradmin list` | `opac.warfare.admin` | View all active and preparing wars across all dimensions. |
+| `/waradmin stop <uuid\|chunk>` | `opac.warfare.admin` | Force stop a war and restore claims to original owners. |
+| `/waradmin setprogress <uuid\|chunk> <0-100>` | `opac.warfare.admin` | Administratively modify capture progress. |
+| `/waradmin skip_preparation <chunk>` | `opac.warfare.admin` | Skip the preparation countdown and activate the siege immediately. |
+
+*(Legacy `customclaims.*` permissions remain supported as aliases for backwards compatibility).*
 
 ---
 
@@ -144,7 +158,7 @@ On Linux/macOS:
 
 On dedicated servers, CustomClaims can send an anonymous heartbeat every 30
 minutes to the HTTP(S) endpoint configured as `metrics.endpoint` in
-`config/customclaims_core-common.toml`. The default endpoint is
+`config/opac_warfare-common.toml`. The default endpoint is
 `https://customclaims-metrics.svinpepe.workers.dev/heartbeat`.
 
 Each heartbeat contains only:
@@ -155,4 +169,4 @@ Each heartbeat contains only:
 
 It does not include the server IP or hostname, player names, the world seed, or
 other identifying data. To disable them, set `metrics.enabled = false` or set `metrics.endpoint = ""` in
-`config/customclaims_core-common.toml`.
+`config/opac_warfare-common.toml`.

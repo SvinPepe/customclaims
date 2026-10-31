@@ -3,6 +3,8 @@
 This guide is for server owners and operators running **Open Parties and
 Claims: Warfare** on a NeoForge server.
 
+> **Upgrading?** If you are upgrading from CustomClaims 1.x or early 2.0 builds, read the [Migration & Upgrade Guide](migration.md) first.
+
 ## Install
 
 Use the `opac-warfare` distribution jar for normal server installs:
@@ -142,7 +144,7 @@ Permission nodes:
 
 Legacy aliases (`customclaims.war.start`, `customclaims.war.status`, `customclaims.war.admin`, `customclaims.war.cancel`, `customclaims.war.bypass`, `customclaims.rollback`, `customclaims.admin`, `customclaims.bypass`) are supported for backward compatibility.
 
-Default player permissions are configured in `customclaims_core-common.toml` under `permissions.default_player_permissions`. By default, normal players can start and inspect wars. Admin and bypass permissions are never granted by default.
+Default player permissions are configured in `opac_warfare-common.toml` under `permissions.default_player_permissions`. By default, normal players can start and inspect wars. Admin and bypass permissions are never granted by default.
 
 ## Xaero War Markers
 
@@ -201,6 +203,6 @@ War lives are persisted with active war data and survive server restart.
   cooldown durations and chunk limits, optional daily limits, AFK settings, and
   border settings first.
 - Use `/waradmin list` before stopping or modifying a war manually.
-- Set `metrics.enabled = false` in `customclaims_core-common.toml` and restart
+- Set `metrics.enabled = false` in `opac_warfare-common.toml` and restart
   to disable anonymous metrics. An empty `metrics.endpoint` also prevents
   requests.

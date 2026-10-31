@@ -2,7 +2,7 @@
   "required": false,
   "minVersion": "0.8",
   "package": "dev.customclaims.xaero.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_17",
   "client": [
     "GuiMapMixin"
   ],

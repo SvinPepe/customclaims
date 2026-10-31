@@ -358,6 +358,10 @@ public final class WarManager {
         save(server);
     }
 
+    public void onServerStarted(MinecraftServer server) {
+        ensureLoaded(server);
+    }
+
     public void tick(MinecraftServer server) {
         ensureLoaded(server);
         ticks++;
@@ -635,6 +639,7 @@ public final class WarManager {
         if (loaded) {
             return;
         }
+        initContestedClaimOwner(server);
         warStorage.load(server).forEach(war -> wars.put(war.id(), war));
         boolean changed = false;
         for (WarData war : wars.values()) {
@@ -687,7 +692,7 @@ public final class WarManager {
                         level,
                         pos,
                         contestedOwner,
-                        original.subConfigIndex(),
+                        0,
                         original.forceload()
                 );
                 if (!claimed || !isClaimOwnedBy(level, pos, contestedOwner)) {
@@ -708,7 +713,7 @@ public final class WarManager {
                     level,
                     pos,
                     contestedOwnerUuid(),
-                    snapshot.subConfigIndex(),
+                    0,
                     snapshot.forceload()
             ));
         }
@@ -745,7 +750,16 @@ public final class WarManager {
     }
 
     private UUID contestedOwnerUuid() {
-        return coreServices.territoryService().serverClaimOwnerId();
+        return WarConfig.getContestedClaimOwnerUuid();
+    }
+
+    private void initContestedClaimOwner(MinecraftServer server) {
+        coreServices.territoryService().initializeContestedClaimOwner(
+                server,
+                contestedOwnerUuid(),
+                WarConfig.getSafe(WarConfig.CONTESTED_CLAIM_NAME),
+                WarConfig.getSafe(WarConfig.CONTESTED_CLAIM_COLOR)
+        );
     }
 
     private void maybeSendPreparationWarning(MinecraftServer server, WarData war, long remainingSeconds) {

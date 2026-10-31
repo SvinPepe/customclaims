@@ -45,18 +45,20 @@ public final class OpacWarfareMod {
         );
 
         modContainer.registerConfig(ModConfig.Type.COMMON, CoreConfig.SPEC);
-        modContainer.registerConfig(ModConfig.Type.COMMON, WarConfig.SPEC);
-        modContainer.registerConfig(ModConfig.Type.COMMON, XaeroCompatConfig.SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, WarConfig.SPEC, "opac_warfare-war.toml");
+        modContainer.registerConfig(ModConfig.Type.COMMON, XaeroCompatConfig.SPEC, "opac_warfare-xaero.toml");
 
         CustomClaimsCoreMod.init();
         CustomClaimsWarMod.init();
         CustomClaimsXaeroMod.init();
 
-        modEventBus.addListener(NeoForgePermissionHelper::onGatherNodes);
+        NeoForge.EVENT_BUS.addListener(NeoForgePermissionHelper::onGatherNodes);
         modEventBus.addListener(XaeroNetwork::registerPayloads);
 
-        NeoForge.EVENT_BUS.addListener((ServerStartedEvent event) ->
-                CustomClaimsCoreMod.services().metricsService().onServerStarted(event.getServer()));
+        NeoForge.EVENT_BUS.addListener((ServerStartedEvent event) -> {
+            CustomClaimsCoreMod.services().metricsService().onServerStarted(event.getServer());
+            CustomClaimsWarMod.services().onServerStarted(event.getServer());
+        });
         NeoForge.EVENT_BUS.addListener((ServerStoppingEvent event) ->
                 CustomClaimsCoreMod.services().metricsService().onServerStopping(event.getServer()));
         NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post event) -> {

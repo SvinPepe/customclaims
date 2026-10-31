@@ -1,6 +1,7 @@
 package dev.customclaims.war.config;
 
 import java.util.List;
+import java.util.UUID;
 //? if <1.20.5 {
 /*import net.minecraftforge.common.ForgeConfigSpec;
 *///?} else {
@@ -61,7 +62,7 @@ public final class WarConfig {
 
     public static final ForgeConfigSpec.ConfigValue<String> DISCORD_WEBHOOK_LANGUAGE = BUILDER
             .comment("Language for Discord webhook embed notifications: 'ru_ru' or 'en_us'.")
-            .define("war.discord.webhook_language", "ru_ru");
+            .define("war.discord.webhook_language", "en_us");
 
     public static final ForgeConfigSpec.IntValue ATTACKER_COOLDOWN_SECONDS = BUILDER
             .comment("Fixed cooldown window for war starts by one attacking side. Set to 0 to disable the time window.")
@@ -135,6 +136,18 @@ public final class WarConfig {
             .comment("Objective name used for the war lives sidebar scoreboard.")
             .define("war.lives.scoreboard_objective", "cc_war_lives");
 
+    public static final ForgeConfigSpec.ConfigValue<String> CONTESTED_CLAIM_OWNER_UUID = BUILDER
+            .comment("UUID used as the fake player owner of contested war chunks.")
+            .define("war.contested_claim.owner_uuid", "a9d1645e-b816-3b60-b6d4-d5581ff24009");
+
+    public static final ForgeConfigSpec.ConfigValue<String> CONTESTED_CLAIM_NAME = BUILDER
+            .comment("Display name for the contested territory fake player claim.")
+            .define("war.contested_claim.name", "Contested Territory");
+
+    public static final ForgeConfigSpec.IntValue CONTESTED_CLAIM_COLOR = BUILDER
+            .comment("Color (ARGB integer) for contested territory claims on maps. Default is -3342336 (0xFFCC0000).")
+            .defineInRange("war.contested_claim.color", -3342336, Integer.MIN_VALUE, Integer.MAX_VALUE);
+
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static <T> T getSafe(ForgeConfigSpec.ConfigValue<T> value) {
@@ -193,7 +206,7 @@ public final class WarConfig {
 
     public static final ModConfigSpec.ConfigValue<String> DISCORD_WEBHOOK_LANGUAGE = BUILDER
             .comment("Language for Discord webhook embed notifications: 'ru_ru' or 'en_us'.")
-            .define("war.discord.webhook_language", "ru_ru");
+            .define("war.discord.webhook_language", "en_us");
 
     public static final ModConfigSpec.IntValue ATTACKER_COOLDOWN_SECONDS = BUILDER
             .comment("Fixed cooldown window for war starts by one attacking side. Set to 0 to disable the time window.")
@@ -267,12 +280,39 @@ public final class WarConfig {
             .comment("Objective name used for the war lives sidebar scoreboard.")
             .define("war.lives.scoreboard_objective", "cc_war_lives");
 
+    public static final ModConfigSpec.ConfigValue<String> CONTESTED_CLAIM_OWNER_UUID = BUILDER
+            .comment("UUID used as the fake player owner of contested war chunks.")
+            .define("war.contested_claim.owner_uuid", "a9d1645e-b816-3b60-b6d4-d5581ff24009");
+
+    public static final ModConfigSpec.ConfigValue<String> CONTESTED_CLAIM_NAME = BUILDER
+            .comment("Display name for the contested territory fake player claim.")
+            .define("war.contested_claim.name", "Contested Territory");
+
+    public static final ModConfigSpec.IntValue CONTESTED_CLAIM_COLOR = BUILDER
+            .comment("Color (ARGB integer) for contested territory claims on maps. Default is -3342336 (0xFFCC0000).")
+            .defineInRange("war.contested_claim.color", -3342336, Integer.MIN_VALUE, Integer.MAX_VALUE);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     public static <T> T getSafe(ModConfigSpec.ConfigValue<T> value) {
         return SPEC.isLoaded() ? value.get() : value.getDefault();
     }
     //?}
+
+    public static final String DEFAULT_CONTESTED_OWNER_UUID_STRING = "a9d1645e-b816-3b60-b6d4-d5581ff24009";
+    public static final UUID DEFAULT_CONTESTED_OWNER_UUID = UUID.fromString(DEFAULT_CONTESTED_OWNER_UUID_STRING);
+
+    public static UUID getContestedClaimOwnerUuid() {
+        String uuidStr = getSafe(CONTESTED_CLAIM_OWNER_UUID);
+        if (uuidStr == null || uuidStr.isBlank()) {
+            return DEFAULT_CONTESTED_OWNER_UUID;
+        }
+        try {
+            return UUID.fromString(uuidStr.trim());
+        } catch (IllegalArgumentException e) {
+            return DEFAULT_CONTESTED_OWNER_UUID;
+        }
+    }
 
     private WarConfig() {
     }

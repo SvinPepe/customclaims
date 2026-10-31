@@ -10,6 +10,16 @@ Turn your peaceful **Open Parties and Claims (OPaC)** server into an epic arena 
 
 ---
 
+## 📚 Guides & Documentation
+
+- 🔄 **[Migration & Upgrade Guide (1.x to 2.0)](https://github.com/SvinPepe/opac-warfare/blob/main/docs/migration.md)** — Step-by-step upgrade instructions from 1.x (1.6.7.2) or early 2.0 builds.
+- 📖 **[Server Admin Guide](https://github.com/SvinPepe/opac-warfare/blob/main/docs/server-admin.md)** — Installation, lifecycle, raid hours, and live server operations.
+- ⚙️ **[Configuration Reference](https://github.com/SvinPepe/opac-warfare/blob/main/docs/configuration.md)** — Complete options reference, allowed ranges, and defaults for `opac_warfare-*.toml`.
+- 🧩 **[Companion Mod: Better Protection](https://github.com/SvinPepe/opac-better-protection)** — Mechanical contraption protection (Create drills/saws), cannon impacts, and `/claimrules`.
+- 🏗️ **[Architecture & WarfareBridge](https://github.com/SvinPepe/opac-warfare/blob/main/docs/architecture.md)** — Developer notes, platform abstraction, and external mod integration.
+
+---
+
 ## 🌟 Key Features
 
 ### 🚩 Tactical Chunk Wars & Conquest
@@ -66,9 +76,9 @@ Turn your peaceful **Open Parties and Claims (OPaC)** server into an epic arena 
 
 ### 🛡️ Official Companion Mod: Better Protection
 Looking for Create contraption support, cannon warfare, and custom block-damage rules during sieges?
-👉 **[Open Parties and Claims: Better Protection](https://modrinth.com/mod/opac-better-protection)**
+👉 **[Open Parties and Claims: Better Protection](https://github.com/SvinPepe/opac-better-protection)**
 
-- When installed together, siege zones automatically allow Create drills, cannon impacts ([Create Big Cannons](https://modrinth.com/mod/create-big-cannons)), and tactical breaching in actively contested chunks while keeping peaceful claims 100% secure!
+- When installed together, siege zones automatically allow Create drills, cannon impacts (Create Big Cannons), and tactical breaching in actively contested chunks while keeping peaceful claims 100% secure!
 
 ### 🌍 Multi-Loader & Multi-Version
 Warfare supports your favorite mod loader and version out of the box:
@@ -80,7 +90,7 @@ Warfare supports your favorite mod loader and version out of the box:
 
 ## 📦 Installation & Requirements
 
-1. Install **[Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims)** for your loader and Minecraft version.
+1. Install **Open Parties and Claims** ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/open-parties-and-claims) / [Modrinth](https://modrinth.com/mod/open-parties-and-claims)) for your loader and Minecraft version.
 2. Download the matching **Open Parties and Claims: Warfare** jar:
    - `opac-warfare-1.20.1-forge.jar`
    - `opac-warfare-1.20.1-fabric.jar`
@@ -96,11 +106,15 @@ Warfare supports your favorite mod loader and version out of the box:
 
 | Command | Permission | Description |
 |---|---|---|
-| `/war start` | `customclaims.war.start` | Declare war on the claimed chunk you are standing in. |
-| `/war cancel` | `customclaims.war.cancel` | Cancel an active war declared by your party. |
-| `/war info` | `customclaims.war.info` | Display current war status, progress, and remaining lives. |
-| `/war top` | `customclaims.war.info` | Show active wars and ongoing sieges across the server. |
-| `/waradmin stop` | `customclaims.admin` | Force stop a war in a specific chunk or globally. |
-| `/waradmin setprogress` | `customclaims.admin` | Administratively modify capture progress. |
+| `/war start` | `opac.warfare.start` | Declare war on the eligible border chunk you are standing in. |
+| `/war status` | `opac.warfare.status` | Display status and capture progress of your active wars. |
+| `/war list` | `opac.warfare.status` | Show active wars and ongoing sieges visible to you. |
+| `/war near [radius]` | `opac.warfare.status` | Find wars within a chunk radius (default: 8, max: 32). |
+| `/waradmin list` | `opac.warfare.admin` | View all active and preparing wars across all dimensions. |
+| `/waradmin stop <uuid\|chunk>` | `opac.warfare.admin` | Force stop a war and restore claims to original owners. |
+| `/waradmin setprogress <uuid\|chunk> <0-100>` | `opac.warfare.admin` | Administratively modify capture progress. |
+| `/waradmin skip_preparation <chunk>` | `opac.warfare.admin` | Skip the preparation countdown and activate the siege immediately. |
 
-For advanced server configuration, raid window setups, and permission nodes, check our **[Documentation Wiki](https://github.com/SvinPepe/customclaims/tree/main/docs)**.
+*(Legacy `customclaims.*` permissions remain supported as aliases for backwards compatibility).*
+
+For advanced server configuration, raid window setups, and permission nodes, check our **[Documentation Wiki](https://github.com/SvinPepe/opac-warfare/tree/main/docs)**.

@@ -5,6 +5,7 @@ import dev.customclaims.core.api.model.ClaimSnapshot;
 import dev.customclaims.core.api.model.ClaimSideId;
 import java.util.Optional;
 import java.util.UUID;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 
@@ -49,5 +50,12 @@ public interface ClaimAdapter {
 
     default boolean isClaimed(ServerLevel level, ChunkPos chunkPos) {
         return getClaimSideOwner(level, chunkPos).isPresent();
+    }
+
+    /**
+     * Initializes the fake player claim configuration in the underlying claim mod
+     * if applicable.
+     */
+    default void initializeContestedClaimOwner(MinecraftServer server, UUID ownerId, String name, int color) {
     }
 }

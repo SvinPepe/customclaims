@@ -10,6 +10,7 @@ import dev.customclaims.core.api.model.TerritoryRelation;
 import dev.customclaims.core.api.model.TerritoryStatus;
 import java.util.Optional;
 import java.util.UUID;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
@@ -111,6 +112,10 @@ public final class TerritoryService {
             boolean forceload
     ) {
         return claimAdapter.claimFromServer(level, chunkPos, ownerId, subConfigIndex, forceload);
+    }
+
+    public void initializeContestedClaimOwner(MinecraftServer server, UUID ownerId, String name, int color) {
+        claimAdapter.initializeContestedClaimOwner(server, ownerId, name, color);
     }
 
     private boolean isPlayerInSide(ServerPlayer player, ClaimSideId sideId) {

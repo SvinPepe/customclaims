@@ -151,7 +151,7 @@ War lives are serialized as part of active war data.
 ## Important Invariants
 
 - OPaC remains the authority for party membership and claim ownership.
-- Contested chunks use OPaC's built-in `Server` owner only during active war handling; original claim snapshots must be preserved so cancel/fail paths can restore ownership.
+- Contested chunks use a dedicated fake player owner (`war.contested_claim.owner_uuid`) with `protectClaimedChunks = false` to provide wilderness-like rules during active war handling without weakening server claims (e.g. spawn claims). Original claim snapshots must be preserved so cancel/fail paths can restore ownership.
 - Internal ownership mutations use OPaC's administrative `claim` operation, not the player `tryToClaim` path. Target ownership plus snapshot sub-config and forceload data must still be preserved.
 - Contested bypass is limited to attacker and defender sides. Outsiders should not gain shared chunk access.
 - `WarfareBridgeHolder` must maintain backwards compatibility and null-safe defaults for companion mods.

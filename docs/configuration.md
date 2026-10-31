@@ -1,12 +1,15 @@
 # Configuration
 
-NeoForge writes common config files under the server `config/` directory. The
-file names are based on each module mod id, for example
-`customclaims_war-common.toml`.
+NeoForge and Forge write common config files under the server `config/` directory:
+- `opac_warfare-common.toml` (core settings and default permissions)
+- `opac_warfare-war.toml` (chunk war, capture, and raid window settings)
+- `opac_warfare-xaero.toml` (Xaero map and waypoint settings)
+
+
 
 Values below are the defaults verified directly from the Java config classes (`CoreConfig.java`, `WarConfig.java`, `XaeroCompatConfig.java`).
 
-## `customclaims_core-common.toml`
+## `opac_warfare-common.toml`
 
 | Key | Default | Allowed Range | Meaning |
 | --- | --- | --- | --- |
@@ -43,7 +46,7 @@ permissions.default_player_permissions = [
 
 > **Note**: Warfare permissions (`opac.warfare.start`, `opac.warfare.status` and legacy aliases) control warfare actions in this mod. Legacy protection permissions (`opac.protection.*`) are retained in the core config defaults for backward compatibility with existing server configs and companion mod interoperability (`Open Parties and Claims: Better Protection`).
 
-## `customclaims_war-common.toml`
+## `opac_warfare-war.toml`
 
 | Key | Default | Allowed Range | Meaning |
 | --- | --- | --- | --- |
@@ -59,7 +62,7 @@ permissions.default_player_permissions = [
 | `war.capture.glowing_effect_enabled` | `true` | `true` / `false` | Applies Glowing (`MobEffects.GLOWING`) when attackers and defenders contest the sector. |
 | `war.capture.empty_chunk_decay_per_second` | `0.50` | `0.0` .. `100.0` | Progress decay per second when no non-AFK attackers or defenders are present. |
 | `war.discord.webhook_url` | `""` | string | Discord channel webhook URL; empty string disables webhook notifications. |
-| `war.discord.webhook_language` | `"ru_ru"` | `"ru_ru"` / `"en_us"` | Language for Discord webhook embed notifications. |
+| `war.discord.webhook_language` | `"en_us"` | `"en_us"` / `"ru_ru"` | Language for Discord webhook embed notifications. |
 | `war.cooldown.attacker_seconds` | `7200` | `0` .. `604800` | Fixed attack window opened by a side's first successful declaration; `0` disables the timed window. |
 | `war.cooldown.defender_seconds` | `3600` | `0` .. `604800` | Fixed defense/protection window opened by a side's first accepted incoming declaration; `0` disables the timed window. |
 | `war.cooldown.max_started_chunks_per_attacker_side` | `1` | `1` .. `1024` | Maximum successful starts in one attack window and maximum concurrent wars for an attacking side. |
@@ -78,9 +81,11 @@ permissions.default_player_permissions = [
 | `war.lives.starting_lives` | `3` | `1` .. `100` | Personal lives assigned to current participants when active phase starts. |
 | `war.lives.scoreboard_sidebar_enabled` | `true` | `true` / `false` | Shows active war lives in the vanilla sidebar scoreboard. |
 | `war.lives.scoreboard_objective` | `"cc_war_lives"` | string | Objective name for the war lives scoreboard. |
+| `war.contested_claim.owner_uuid` | `"a9d1645e-b816-3b60-b6d4-d5581ff24009"` | string UUID | UUID used as the fake player owner of contested war chunks. |
+| `war.contested_claim.name` | `"Contested Territory"` | string | Display name for the contested territory fake player claim on maps. |
+| `war.contested_claim.color` | `-3342336` | integer | ARGB integer color for contested territory claims on maps (`0xFFCC0000`). |
 
-Contested chunks always use OPaC's built-in `Server` owner
-(`00000000-0000-0000-0000-000000000000`); this is intentionally not configurable.
+Contested chunks are assigned to a dedicated fake player owner (`war.contested_claim.owner_uuid`). On first startup, an OPaC player config file is generated with `protectClaimedChunks = false` (wilderness rules: all protections disabled), completely decoupling contested war zones from regular server claims (e.g. spawn claims).
 
 ### War cooldown windows
 
@@ -94,7 +99,7 @@ Daily limits remain optional and are evaluated in addition to cooldowns when con
 
 > Migration: remove the obsolete `war.contested_owner_uuid` and `war.contested_owner_name` keys. Active wars are reassigned to OPaC's built-in `Server` owner when loaded.
 
-## `customclaims_xaero-common.toml`
+## `opac_warfare-xaero.toml`
 
 | Key | Default | Allowed Range | Meaning |
 | --- | --- | --- | --- |

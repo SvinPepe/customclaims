@@ -6,6 +6,11 @@ import dev.customclaims.core.api.model.ClaimSnapshot;
 import dev.customclaims.core.api.model.ClaimSideId;
 import dev.customclaims.core.api.model.PartyDisplayInfo;
 import dev.customclaims.core.api.model.PartyId;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -16,10 +21,12 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.storage.LevelResource;
 import xaero.pac.common.claims.player.api.IPlayerChunkClaimAPI;
 import xaero.pac.common.server.api.OpenPACServerAPI;
 import xaero.pac.common.server.claims.api.IServerClaimsManagerAPI;
 import xaero.pac.common.server.parties.party.api.IServerPartyAPI;
+import xaero.pac.common.server.player.config.api.v2.PlayerConfigOptions;
 
 public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter {
     private static final UUID SERVER_CLAIM_OWNER_ID = new UUID(0L, 0L);
@@ -265,5 +272,49 @@ public final class OpenPartiesClaimAdapter implements ClaimAdapter, PartyAdapter
         } catch (IllegalArgumentException exception) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public void initializeContestedClaimOwner(MinecraftServer server, UUID ownerId, String name, int color) {
+        Path configsDir = server.getWorldPath(LevelResource.ROOT)
+                .resolve("data")
+                .resolve("openpartiesandclaims")
+                .resolve("player-configs");
+        Path configFile = configsDir.resolve(ownerId + ".toml");
+
+        boolean fileExisted = Files.exists(configFile);
+        if (!fileExisted) {
+            try {
+                Files.createDirectories(configsDir);
+                String toml = generateContestedPlayerConfig(name, color);
+                Files.writeString(configFile, toml, StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } catch (IOException exception) {
+                // If writing fails, continue
+            }
+        }
+
+        try {
+            OpenPACServerAPI api = OpenPACServerAPI.get(server);
+            if (api != null && api.getPlayerConfigManager() != null) {
+                var configManager = api.getPlayerConfigManager();
+                var config = configManager.getLoadedConfig(ownerId);
+                if (config != null && !fileExisted) {
+                    config.tryToSet(PlayerConfigOptions.PROTECT_CLAIMED_CHUNKS, false);
+                    config.tryToSet(PlayerConfigOptions.CLAIMS_NAME, name);
+                    config.tryToSet(PlayerConfigOptions.CLAIMS_COLOR, color);
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static String generateContestedPlayerConfig(String name, int color) {
+        String safeName = name == null ? "Contested Territory" : name.replace("\\", "\\\\").replace("\"", "\\\"");
+        return "playerConfig = {customPlayerGroups = [], bonusPlayerGroups = 0, bonusPlayerGroupSpace = 0, lastPermissionValues = [], claims = {usedSub = \"main\", usedServerSub = \"main\", usedPartySub = \"main\", name = \""
+                + safeName
+                + "\", color = "
+                + color
+                + ", protectClaimedChunks = false, bonusChunkClaims = 0, bonusChunkForceloads = 0, bonusAnchors = 0, bonusAnchorRange = 0, wholePartyCanClaim = false, allowedToClaim = true, allowedToAddForceloads = true, protection = {fluidBarrier = true, pistonBarrier = true, neighborChunksItemUse = true, dispenserBarrier = true, playerDeathLoot = \"N\", overrideMobGriefingRule = true, exceptions = {fullAccess = \"P\", blocksByPlayers = \"N\", blocksByMobs = \"N\", blocksByOther = \"N\", blocksRedirect = true, blocksByExplosions = false, fireSpread = false, blocksByEnchantments = \"N\", cropTrample = false, buttonsByProjectiles = \"N\", targetsByProjectiles = \"N\", platesByPlayers = \"N\", platesByMobs = \"N\", platesByOther = \"N\", tripwireByPlayers = \"N\", tripwireByMobs = \"N\", tripwireByOther = \"N\", entitiesByPlayers = \"N\", entitiesByMobs = \"N\", entitiesByOther = \"N\", entitiesRedirect = true, entitiesByExplosions = false, entitiesByFire = false, raids = false, playersByPlayers = true, playersByMobs = true, playersByOther = true, playersRedirect = true, playerLightning = \"N\", chorusFruitTeleport = \"N\", netherPortalsPlayers = \"N\", netherPortalsMobs = \"N\", netherPortalsOther = \"N\", itemUse = \"N\", itemTossPlayers = \"E\", itemTossMobs = \"E\", itemTossOther = \"E\", itemTossRedirect = true, mobLoot = \"E\", itemPickupPlayers = \"E\", itemPickupMobs = \"E\", itemPickupRedirect = false, xpPickup = \"E\", naturalSpawnHostile = true, naturalSpawnFriendly = true, spawnersHostile = true, spawnersFriendly = true, projectileHitHostileSpawn = \"N\", projectileHitFriendlySpawn = \"N\", reclaimable = \"N\", canClaimNextTo = \"N\", groups = {entity = {barrier = {Players = \"E\", Ender_Pearls = \"E\"}, interact = {Traders = \"N\", Armor_Stands = \"N\", Players = \"N\"}, handInteract = {Item_Frames = \"N\"}, break = {Livestock = \"N\"}, blockAccess = {Villagers = \"N\"}, entityAccess = {Zombies = \"N\"}, playerAccess = {Zombies = \"N\"}, droppedItemAccess = {Villagers = \"N\", Piglins = \"N\", Foxes = \"N\"}}, block = {interact = {Controls = \"N\", Doors = \"N\", Chests = \"N\", Barrels = \"N\", Ender_Chests = \"N\", Shulker_Boxes = \"N\", Furnaces = \"N\", Hoppers = \"N\", Dispenser-like = \"N\", Anvils = \"N\", Stonecutters = \"N\", Grindstones = \"N\", Cartography_Tables = \"N\", Lecterns = \"N\", Smithing_Tables = \"N\", Looms = \"N\", Jukeboxes = \"N\", Beds = \"N\", Beacons = \"N\", Enchanting_Tables = \"N\"}, break = {Crops = \"N\"}}, item = {interact = {Books = \"N\"}}}}}, forceload = {enabled = true, offlineForceload = false}}, parties = {name = \"\", shareLocationWithParty = true, shareLocationWithMutualAllyParties = false, receiveLocationsFromParty = true, receiveLocationsFromMutualAllyParties = false}, version = 18}\n";
     }
 }
